@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/convert"
+	"ultrathreads/converter"
 	"ultrathreads/cache"
 	"ultrathreads/form"
 	"ultrathreads/model"
@@ -25,7 +25,7 @@ func (c *TagController) Show(ctx *gin.Context) {
 			c.Fail(ctx, util.ErrorTagNotFound)
 			return
 		}
-		c.Success(ctx, convert.ToTag(tag))
+		c.Success(ctx, converter.ToTag(tag))
 	}
 }
 
@@ -38,7 +38,7 @@ func (c *TagController) List(ctx *gin.Context) {
 		Page(page, 200).Desc("id"))
 
 	data := map[string]interface{}{}
-	data["results"] = convert.ToTags(tags)
+	data["results"] = converter.ToTags(tags)
 	data["page"] = paging
 	c.Success(ctx, data)
 }

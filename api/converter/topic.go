@@ -1,4 +1,4 @@
-package convert
+package converter
 
 import (
 	"html/template"
@@ -18,7 +18,7 @@ func ToTopic(topic *model.Topic) *model.TopicResponse {
 
 	rsp := &model.TopicResponse{}
 
-	rsp.TopicId = topic.ID
+	rsp.Id = topic.ID
 	rsp.Type = topic.Type
 	rsp.Title = topic.Title
 	rsp.User = ToUserDefaultIfNull(topic.UserId)
@@ -56,7 +56,9 @@ func ToSimpleTopic(topic *model.Topic) *model.TopicSimpleResponse {
 
 	rsp := &model.TopicSimpleResponse{}
 
-	rsp.TopicId = topic.ID
+	rsp.Id = topic.ID
+	rsp.ThreadId = topic.ThreadId
+	rsp.ParentId = topic.ParentId
 	rsp.Type = topic.Type
 	rsp.Title = topic.Title
 	rsp.User = ToUserDefaultIfNull(topic.UserId)

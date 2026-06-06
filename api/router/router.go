@@ -82,11 +82,6 @@ func Setup(e *gin.Engine) {
 	jwtApi.POST("/topic/:id/like", topicController.Like)
 	jwtApi.POST("/topic/:id/favorite", topicController.Favorite)
 
-	// Comments
-	commentController := &controller.CommentController{}
-	api.GET("/comments", commentController.List)
-	jwtApi.POST("/comments", commentController.Create)
-
 	// Favorites
 	favoriteController := &controller.FavoriteController{}
 	jwtApi.GET("/favorites/favorited", favoriteController.GetFavorited)
@@ -193,13 +188,6 @@ func Setup(e *gin.Engine) {
 	adminAPI.GET("/articles/:id", adminArticleController.Show)
 	adminAPI.PUT("/articles/:id", adminArticleController.Update)
 	adminAPI.DELETE("/articles/:id", adminArticleController.Delete)
-
-	// Comment
-	adminCommentController := &admin.CommentController{}
-	adminAPI.GET("/comments", adminCommentController.List)
-	adminAPI.GET("/comments/:id", adminCommentController.Show)
-	adminAPI.PUT("/comments/:id", adminCommentController.Update)
-	adminAPI.DELETE("/comments/:id", adminCommentController.Delete)
 
 	// User
 	adminUserController := &admin.UserController{}

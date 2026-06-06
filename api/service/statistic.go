@@ -31,10 +31,8 @@ func (s *statisticService) GenerateData() {
 	var (
 		statUserCount    = strconv.Itoa(UserService.Count(querybuilder.NewQueryBuilder()))
 		statTopicCount   = strconv.Itoa(TopicService.Count(querybuilder.NewQueryBuilder()))
-		statCommentCount = strconv.Itoa(CommentService.Count(querybuilder.NewQueryBuilder()))
 	)
 
 	SettingService.Set("statUserCount", statUserCount, "社区会员", "社区会员总数")
 	SettingService.Set("statTopicCount", statTopicCount, "帖子数", "主题总数")
-	SettingService.Set("statCommentCount", statCommentCount, "回帖数", "回帖总数")
 }

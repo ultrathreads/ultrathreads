@@ -54,7 +54,9 @@ type NodeResponse struct {
 
 // 帖子列表返回实体
 type TopicSimpleResponse struct {
-	TopicId         int64          `json:"topicId"`
+	Id         int64          `json:"id"`
+	ThreadId        int64          `json:"threadId"`
+	ParentId        int64          `json:"parentId"`
 	Type            int            `json:"type"`
 	User            *UserInfo      `json:"user"`
 	Node            *NodeResponse  `json:"node"`

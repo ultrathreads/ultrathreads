@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"ultrathreads/convert"
+	"ultrathreads/converter"
 	"ultrathreads/controller"
 	"ultrathreads/form"
 	"ultrathreads/service"
@@ -108,9 +108,9 @@ func (c *TopicController) List(ctx *gin.Context) {
 	var results []map[string]interface{}
 	for _, topic := range list {
 		result := util.StructToMap(topic, "content")
-		result["user"] = convert.ToUserDefaultIfNull(topic.UserId)
+		result["user"] = converter.ToUserDefaultIfNull(topic.UserId)
 		result["node"] = service.NodeService.Get(topic.NodeId)
-		result["tags"] = convert.ToTags(service.TopicService.GetTopicTags(topic.ID))
+		result["tags"] = converter.ToTags(service.TopicService.GetTopicTags(topic.ID))
 		// 简介
 		mr := markdown.NewMd().Run(topic.Content)
 		result["summary"] = mr.SummaryText

@@ -376,9 +376,7 @@ func (s *userService) SyncUserCount() {
 	s.Scan(func(users []model.User) {
 		for _, user := range users {
 			topicCount := dao.TopicDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
-			commentCount := dao.CommentDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
 			_ = dao.UserDao.UpdateColumn(user.ID, "topic_count", topicCount)
-			_ = dao.UserDao.UpdateColumn(user.ID, "comment_count", commentCount)
 			cache.UserCache.Invalidate(user.ID)
 		}
 	})

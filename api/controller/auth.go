@@ -4,7 +4,7 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/convert"
+	"ultrathreads/converter"
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -31,7 +31,7 @@ func (c *AuthController) Signup(ctx *gin.Context) {
 			return
 		}
 		c.Success(ctx, gin.H{
-			"user": convert.ToUser(user),
+			"user": converter.ToUser(user),
 			"ref":  ref,
 		})
 	}

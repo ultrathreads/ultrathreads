@@ -16,7 +16,6 @@ func Mock() {
 	UserTableSeeder(true)
 	NodeTableSeeder(true)
 	TopicTableSeeder(true)
-	CommentTableSeeder(true)
 	LinkTableSeeder(true)
 	SettingTableSeeder(true)
 }

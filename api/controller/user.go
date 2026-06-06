@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strings"
 
-	"ultrathreads/convert"
+	"ultrathreads/converter"
 	"ultrathreads/cache"
 	"ultrathreads/form"
 	"ultrathreads/model"
@@ -21,7 +21,7 @@ type UserController struct {
 func (c *UserController) GetCurrent(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	c.Success(ctx, convert.ToUser(user))
+	c.Success(ctx, converter.ToUser(user))
 }
 
 // 用户详情
@@ -30,7 +30,7 @@ func (c *UserController) Show(ctx *gin.Context) {
 	if c.BindAndValidate(ctx, &gDto) {
 		user := cache.UserCache.Get(gDto.ID)
 		if user != nil && user.Status != model.StatusDeleted {
-			c.Success(ctx, convert.ToUser(user))
+			c.Success(ctx, converter.ToUser(user))
 		} else {
 			c.Fail(ctx, util.NewErrorMsg("用户不存在"))
 		}
@@ -70,7 +70,7 @@ func (c *UserController) GetScoreRank(ctx *gin.Context) {
 	userScores := service.UserScoreService.Find(querybuilder.NewQueryBuilder().Desc("score").Limit(10))
 	var results []*model.UserInfo
 	for _, userScore := range userScores {
-		results = append(results, convert.ToUserDefaultIfNull(userScore.UserId))
+		results = append(results, converter.ToUserDefaultIfNull(userScore.UserId))
 	}
 	c.Success(ctx, results)
 }
@@ -101,7 +101,7 @@ func (c *UserController) GetNotificationsRecent(ctx *gin.Context) {
 	}
 	data := make(map[string]interface{})
 	data["count"] = count
-	data["notifications"] = convert.ToNotifications(notifications)
+	data["notifications"] = converter.ToNotifications(notifications)
 	c.Success(ctx, data)
 }
 
@@ -118,7 +118,7 @@ func (c *UserController) GetNotifications(ctx *gin.Context) {
 	service.NotificationService.MarkRead(user.ID)
 
 	c.Success(ctx, gin.H{
-		"results": convert.ToNotifications(messages),
+		"results": converter.ToNotifications(messages),
 		"paging":  paging,
 	})
 }
@@ -142,7 +142,7 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 	}
 
 	c.Success(ctx, gin.H{
-		"results": convert.ToFavorites(favorites),
+		"results": converter.ToFavorites(favorites),
 		"cursor":  cursor,
 	})
 }
@@ -154,7 +154,7 @@ func (c *UserController) GetRecentWatchers(ctx *gin.Context) {
 		userWatchers := service.UserWatchService.Recent(gDto.ID, 10)
 		var users []model.UserInfo
 		for _, userWatcher := range userWatchers {
-			userInfo := convert.ToUserById(userWatcher.WatcherID)
+			userInfo := converter.ToUserById(userWatcher.WatcherID)
 			if userInfo != nil {
 				users = append(users, *userInfo)
 			}

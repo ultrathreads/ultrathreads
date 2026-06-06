@@ -87,24 +87,6 @@ func (s *userScoreService) IncrementPostTopicScore(topic *model.Topic) {
 	}
 }
 
-// IncrementPostCommentScore 跟帖获积分
-func (s *userScoreService) IncrementPostCommentScore(comment *model.Comment) {
-	// 非话题跟帖，跳过
-	if comment.EntityType != model.EntityTypeTopic {
-		return
-	}
-	config := SettingService.GetSetting()
-	if config.ScoreConfig.PostCommentScore <= 0 {
-		log.Info("请配置跟帖积分")
-		return
-	}
-	err := s.addScore(comment.UserId, config.ScoreConfig.PostCommentScore, model.EntityTypeComment,
-		strconv.FormatInt(comment.ID, 10), "发表跟帖")
-	if err != nil {
-		log.Error(err.Error())
-	}
-}
-
 // Increment 增加分数
 func (s *userScoreService) Increment(userId int64, score int, sourceType, sourceId, description string) error {
 	if score <= 0 {

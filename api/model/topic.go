@@ -3,6 +3,8 @@ package model
 // 话题
 type Topic struct {
 	Model
+	ThreadId          int64  `gorm:"not null;default:0;index:idx_thread_id" json:"threadId" form:"threadId"`
+	ParentId          int64  `gorm:"not null;default:0;index:idx_parent_id" json:"parentId" form:"parentId"`
 	Type              int    `gorm:"not null;index:idx_topic_type" json:"type" form:"type"`          // 类型
 	NodeId            int64  `gorm:"not null;index:idx_node_id;" json:"nodeId" form:"nodeId"`        // 节点编号
 	UserId            int64  `gorm:"not null;index:idx_topic_user_id;" json:"userId" form:"userId"`  // 用户

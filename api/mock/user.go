@@ -25,9 +25,16 @@ var (
 func userFactory(i int) *factory.Factory {
 
 	password := "123456"
+	username := ""
+
+	// ✅ 第一个用户特殊处理：用户名 admin，密码 admin12345
+	if i == 0 {
+		username = "admin"
+		password = "admin12345"
+	}
 
 	u := &model.User{
-		Username:   util.SqlNullString(""),
+		Username:   util.SqlNullString(username),
 		Password:   util.EncodePassword(password),
 		Status:     model.StatusOk,
 		CreateTime: util.NowTimestamp(),
@@ -39,34 +46,33 @@ func userFactory(i int) *factory.Factory {
 	return factory.NewFactory(
 		u,
 	).Attr("Nickname", func(args factory.Args) (interface{}, error) {
+		// ✅ admin 用户的昵称也设为 admin，保持一致性
+		if i == 0 {
+			return "admin", nil
+		}
 		return fmt.Sprintf("user-%d", i+1), nil
 	}).Attr("Avatar", func(args factory.Args) (interface{}, error) {
 		return avatars[r], nil
 	}).Attr("Description", func(args factory.Args) (interface{}, error) {
 		paragraph := randomdata.Paragraph()
-
 		if len(paragraph) >= 70 {
 			paragraph = paragraph[:70]
 		}
 		return paragraph, nil
 	}).Attr("Email", func(args factory.Args) (interface{}, error) {
 		if i == 0 {
-			return util.SqlNullString("1@test.com"), nil
+			return util.SqlNullString("admin@test.com"), nil // ✅ admin 专用邮箱
 		}
 		if i == 1 {
 			return util.SqlNullString("2@test.com"), nil
 		}
 		return util.SqlNullString(randomdata.Email()), nil
 	}).Attr("Level", func(args factory.Args) (interface{}, error) {
-		if i == 0 {
-			return 10, nil
-		}
-		if i == 1 {
+		if i == 0 || i == 1 {
 			return 10, nil
 		}
 		return 0, nil
 	})
-
 }
 
 // UserTableSeeder -

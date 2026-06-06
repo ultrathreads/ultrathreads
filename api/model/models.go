@@ -1,7 +1,7 @@
 package model
 
 var Models = []interface{}{
-	&User{}, &Tag{}, &Article{}, &ArticleTag{}, &Comment{}, &Favorite{},
+	&User{}, &Tag{}, &Article{}, &ArticleTag{}, &Favorite{},
 	&Topic{}, &Node{}, &TopicTag{}, &TopicLike{}, &Notification{}, &Setting{}, &Link{},
 	&LoginSource{}, &Sitemap{}, &UserWatch{}, &UserScore{}, &UserScoreLog{},
 }
