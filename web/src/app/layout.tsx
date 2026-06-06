@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { I18nClientProvider } from '@/components/I18nClientProvider';
 import { getServerTranslation } from '@/lib/i18n-server';
 import type { Metadata } from 'next';
-import { getSiteConfig } from '@/lib/api';
+import { getSiteConfig } from '@/lib/api/site';
 
 import './globals.css';
 

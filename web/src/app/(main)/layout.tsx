@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
 import PreviewPopover from '@/components/PreviewPopover';
-import { getSiteConfig } from '@/lib/api';
+import { getSiteConfig } from '@/lib/api/site';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const config = await getSiteConfig();
