@@ -14,7 +14,7 @@ import (
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/markdown"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/strtrim"
 )
 
@@ -77,7 +77,7 @@ func (c *ArticleController) List(ctx *gin.Context) {
 	limit := form.FormValueIntDefault(ctx, "limit", 20)
 	name := ctx.Request.FormValue("name")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
@@ -110,5 +110,5 @@ func (c *ArticleController) List(ctx *gin.Context) {
 		results = append(results, item)
 	}
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: results, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }

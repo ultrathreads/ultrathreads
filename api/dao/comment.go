@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var CommentDao = newCommentDao()
@@ -30,12 +30,12 @@ func (d *commentDao) Take(where ...interface{}) *model.Comment {
 	return ret
 }
 
-func (d *commentDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Comment) {
+func (d *commentDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Comment) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *commentDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Comment {
+func (d *commentDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Comment {
 	ret := &model.Comment{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *commentDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Comment {
 	return ret
 }
 
-func (d *commentDao) List(cnd *sqlcnd.SqlCnd) (list []model.Comment, paging *sqlcnd.Paging) {
+func (d *commentDao) List(cnd *querybuilder.QueryBuilder) (list []model.Comment, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Comment{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,
@@ -55,7 +55,7 @@ func (d *commentDao) List(cnd *sqlcnd.SqlCnd) (list []model.Comment, paging *sql
 	return
 }
 
-func (d *commentDao) Count(cnd *sqlcnd.SqlCnd) int {
+func (d *commentDao) Count(cnd *querybuilder.QueryBuilder) int {
 	return cnd.Count(db, &model.Comment{})
 }
 

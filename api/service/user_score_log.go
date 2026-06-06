@@ -3,7 +3,7 @@ package service
 import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var UserScoreLogService = newUserScoreLogService()
@@ -23,15 +23,15 @@ func (s *userScoreLogService) Take(where ...interface{}) *model.UserScoreLog {
 	return dao.UserScoreLogDao.Take(where...)
 }
 
-func (s *userScoreLogService) Find(cnd *sqlcnd.SqlCnd) []model.UserScoreLog {
+func (s *userScoreLogService) Find(cnd *querybuilder.QueryBuilder) []model.UserScoreLog {
 	return dao.UserScoreLogDao.Find(cnd)
 }
 
-func (s *userScoreLogService) FindOne(cnd *sqlcnd.SqlCnd) *model.UserScoreLog {
+func (s *userScoreLogService) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScoreLog {
 	return dao.UserScoreLogDao.FindOne(cnd)
 }
 
-func (s *userScoreLogService) List(cnd *sqlcnd.SqlCnd) (list []model.UserScoreLog, paging *sqlcnd.Paging) {
+func (s *userScoreLogService) List(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog, paging *querybuilder.Paging) {
 	return dao.UserScoreLogDao.List(cnd)
 }
 

@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var UserScoreLogDao = newUserScoreLogDao()
@@ -30,12 +30,12 @@ func (d *userScoreLogDao) Take(where ...interface{}) *model.UserScoreLog {
 	return ret
 }
 
-func (d *userScoreLogDao) Find(cnd *sqlcnd.SqlCnd) (list []model.UserScoreLog) {
+func (d *userScoreLogDao) Find(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *userScoreLogDao) FindOne(cnd *sqlcnd.SqlCnd) *model.UserScoreLog {
+func (d *userScoreLogDao) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScoreLog {
 	ret := &model.UserScoreLog{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *userScoreLogDao) FindOne(cnd *sqlcnd.SqlCnd) *model.UserScoreLog {
 	return ret
 }
 
-func (d *userScoreLogDao) List(cnd *sqlcnd.SqlCnd) (list []model.UserScoreLog, paging *sqlcnd.Paging) {
+func (d *userScoreLogDao) List(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.UserScoreLog{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

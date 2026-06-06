@@ -9,7 +9,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type ArticleController struct {
@@ -126,7 +126,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 
 // GetRecent 最近文章
 func (c *ArticleController) GetRecent(ctx *gin.Context) {
-	articles := service.ArticleService.Find(sqlcnd.NewSqlCnd().Where("status = ?", model.StatusOk).Desc("id").Limit(10))
+	articles := service.ArticleService.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk).Desc("id").Limit(10))
 
 	c.Success(ctx, articles)
 }
@@ -158,7 +158,7 @@ func (c *ArticleController) GetTagArticles(ctx *gin.Context) {
 func (c *ArticleController) GetUserRecent(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		articles := service.ArticleService.Find(sqlcnd.NewSqlCnd().Where("user_id = ? and status = ?",
+		articles := service.ArticleService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, convert.ToSimpleArticles(articles))
 	}
@@ -169,7 +169,7 @@ func (c *ArticleController) GetUserArticles(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		articles, paging := service.ArticleService.List(sqlcnd.NewSqlCnd().
+		articles, paging := service.ArticleService.List(querybuilder.NewQueryBuilder().
 			Eq("user_id", gDto.ID).
 			Eq("status", model.StatusOk).
 			Page(page, 20).Desc("id"))

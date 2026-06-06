@@ -8,7 +8,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var CommentService = newCommentService()
@@ -28,19 +28,19 @@ func (s *commentService) Take(where ...interface{}) *model.Comment {
 	return dao.CommentDao.Take(where...)
 }
 
-func (s *commentService) Find(cnd *sqlcnd.SqlCnd) []model.Comment {
+func (s *commentService) Find(cnd *querybuilder.QueryBuilder) []model.Comment {
 	return dao.CommentDao.Find(cnd)
 }
 
-func (s *commentService) FindOne(cnd *sqlcnd.SqlCnd) *model.Comment {
+func (s *commentService) FindOne(cnd *querybuilder.QueryBuilder) *model.Comment {
 	return dao.CommentDao.FindOne(cnd)
 }
 
-func (s *commentService) List(cnd *sqlcnd.SqlCnd) (list []model.Comment, paging *sqlcnd.Paging) {
+func (s *commentService) List(cnd *querybuilder.QueryBuilder) (list []model.Comment, paging *querybuilder.Paging) {
 	return dao.CommentDao.List(cnd)
 }
 
-func (s *commentService) Count(cnd *sqlcnd.SqlCnd) int {
+func (s *commentService) Count(cnd *querybuilder.QueryBuilder) int {
 	return dao.CommentDao.Count(cnd)
 }
 
@@ -140,7 +140,7 @@ func (s *commentService) Publish(userId int64, createForm *form.CommentCreateFor
 
 // 列表
 func (s *commentService) GetComments(entityType string, entityId int64, cursor int64) (comments []model.Comment, nextCursor int64) {
-	cnd := sqlcnd.NewSqlCnd().
+	cnd := querybuilder.NewQueryBuilder().
 		Eq("entity_type", entityType).
 		Eq("entity_id", entityId).
 		Eq("status", model.StatusOk).

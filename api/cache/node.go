@@ -7,7 +7,7 @@ import (
 
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var (
@@ -33,7 +33,7 @@ func newNodeCache() *nodeCache {
 		),
 		allCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.NodeDao.Find(sqlcnd.NewSqlCnd().Eq("status", model.StatusOk).Asc("sort_no").Desc("id"))
+				value = dao.NodeDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Asc("sort_no").Desc("id"))
 				return
 			},
 			cache.WithMaximumSize(10),

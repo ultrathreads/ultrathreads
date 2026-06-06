@@ -6,7 +6,7 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type ScanTagCallback func(tags []model.Tag) bool
@@ -28,15 +28,15 @@ func (s *tagService) Take(where ...interface{}) *model.Tag {
 	return dao.TagDao.Take(where...)
 }
 
-func (s *tagService) Find(cnd *sqlcnd.SqlCnd) []model.Tag {
+func (s *tagService) Find(cnd *querybuilder.QueryBuilder) []model.Tag {
 	return dao.TagDao.Find(cnd)
 }
 
-func (s *tagService) FindOne(cnd *sqlcnd.SqlCnd) *model.Tag {
+func (s *tagService) FindOne(cnd *querybuilder.QueryBuilder) *model.Tag {
 	return dao.TagDao.FindOne(cnd)
 }
 
-func (s *tagService) List(cnd *sqlcnd.SqlCnd) (list []model.Tag, paging *sqlcnd.Paging) {
+func (s *tagService) List(cnd *querybuilder.QueryBuilder) (list []model.Tag, paging *querybuilder.Paging) {
 	return dao.TagDao.List(cnd)
 }
 
@@ -58,7 +58,7 @@ func (s *tagService) Autocomplete(input string) []model.Tag {
 	if len(input) == 0 {
 		return nil
 	}
-	return dao.TagDao.Find(sqlcnd.NewSqlCnd().Where("status = ? and name like ?",
+	return dao.TagDao.Find(querybuilder.NewQueryBuilder().Where("status = ? and name like ?",
 		model.StatusOk, "%"+input+"%").Limit(6))
 }
 
@@ -71,7 +71,7 @@ func (s *tagService) GetByName(name string) *model.Tag {
 }
 
 func (s *tagService) GetTags() []model.TagResponse {
-	list := dao.TagDao.Find(sqlcnd.NewSqlCnd().Where("status = ?", model.StatusOk))
+	list := dao.TagDao.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk))
 
 	var tags []model.TagResponse
 	for _, tag := range list {
@@ -88,7 +88,7 @@ func (s *tagService) GetTagInIds(tagIds []int64) []model.Tag {
 func (s *tagService) Scan(cb ScanTagCallback) {
 	var cursor int64
 	for {
-		list := dao.TagDao.Find(sqlcnd.NewSqlCnd().Where("id > ?", cursor).Asc("id").Limit(100))
+		list := dao.TagDao.Find(querybuilder.NewQueryBuilder().Where("id > ?", cursor).Asc("id").Limit(100))
 		if list == nil || len(list) == 0 {
 			break
 		}

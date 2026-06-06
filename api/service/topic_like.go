@@ -8,7 +8,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var TopicLikeService = newTopicLikeService()
@@ -28,15 +28,15 @@ func (s *topicLikeService) Take(where ...interface{}) *model.TopicLike {
 	return dao.TopicLikeDao.Take(where...)
 }
 
-func (s *topicLikeService) Find(cnd *sqlcnd.SqlCnd) []model.TopicLike {
+func (s *topicLikeService) Find(cnd *querybuilder.QueryBuilder) []model.TopicLike {
 	return dao.TopicLikeDao.Find(cnd)
 }
 
-func (s *topicLikeService) FindOne(cnd *sqlcnd.SqlCnd) *model.TopicLike {
+func (s *topicLikeService) FindOne(cnd *querybuilder.QueryBuilder) *model.TopicLike {
 	return dao.TopicLikeDao.FindOne(cnd)
 }
 
-func (s *topicLikeService) List(cnd *sqlcnd.SqlCnd) (list []model.TopicLike, paging *sqlcnd.Paging) {
+func (s *topicLikeService) List(cnd *querybuilder.QueryBuilder) (list []model.TopicLike, paging *querybuilder.Paging) {
 	return dao.TopicLikeDao.List(cnd)
 }
 
@@ -69,7 +69,7 @@ func (s *topicLikeService) Count(topicId int64) int64 {
 
 // 最近点赞
 func (s *topicLikeService) Recent(topicId int64, count int) []model.TopicLike {
-	return s.Find(sqlcnd.NewSqlCnd().Eq("topic_id", topicId).Desc("id").Limit(count))
+	return s.Find(querybuilder.NewQueryBuilder().Eq("topic_id", topicId).Desc("id").Limit(count))
 }
 
 func (s *topicLikeService) Like(userId int64, topicId int64) error {

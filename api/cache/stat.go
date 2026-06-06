@@ -3,7 +3,7 @@ package cache
 import (
 	"time"
 	"ultrathreads/dao"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"github.com/goburrow/cache"
 )
 
@@ -19,7 +19,7 @@ func newStatCache() *statCache {
 	return &statCache{
 		userCountCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.UserDao.Count(sqlcnd.NewSqlCnd())
+				value = dao.UserDao.Count(querybuilder.NewQueryBuilder())
 				return
 			},
 			cache.WithMaximumSize(10),
@@ -27,7 +27,7 @@ func newStatCache() *statCache {
 		),
 		topicCountCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.TopicDao.Count(sqlcnd.NewSqlCnd())
+				value = dao.TopicDao.Count(querybuilder.NewQueryBuilder())
 				return
 			},
 			cache.WithMaximumSize(10),
@@ -35,7 +35,7 @@ func newStatCache() *statCache {
 		),
 		commentCountCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.CommentDao.Count(sqlcnd.NewSqlCnd())
+				value = dao.CommentDao.Count(querybuilder.NewQueryBuilder())
 				return
 			},
 			cache.WithMaximumSize(10),

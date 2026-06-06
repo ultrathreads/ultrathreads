@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var StatisticService = newStatisticService()
@@ -29,9 +29,9 @@ func (s *statisticService) GenerateData() {
 	}()
 
 	var (
-		statUserCount    = strconv.Itoa(UserService.Count(sqlcnd.NewSqlCnd()))
-		statTopicCount   = strconv.Itoa(TopicService.Count(sqlcnd.NewSqlCnd()))
-		statCommentCount = strconv.Itoa(CommentService.Count(sqlcnd.NewSqlCnd()))
+		statUserCount    = strconv.Itoa(UserService.Count(querybuilder.NewQueryBuilder()))
+		statTopicCount   = strconv.Itoa(TopicService.Count(querybuilder.NewQueryBuilder()))
+		statCommentCount = strconv.Itoa(CommentService.Count(querybuilder.NewQueryBuilder()))
 	)
 
 	SettingService.Set("statUserCount", statUserCount, "社区会员", "社区会员总数")

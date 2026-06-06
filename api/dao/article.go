@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var ArticleDao = newArticleDao()
@@ -23,16 +23,16 @@ func (d *articleDao) Get(id int64) *model.Article {
 	return ret
 }
 
-func (d *articleDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Article) {
+func (d *articleDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Article) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *articleDao) List(cnd *sqlcnd.SqlCnd) (list []model.Article, paging *sqlcnd.Paging) {
+func (d *articleDao) List(cnd *querybuilder.QueryBuilder) (list []model.Article, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Article{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

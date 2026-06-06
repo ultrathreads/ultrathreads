@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var NodeDao = newNodeDao()
@@ -30,12 +30,12 @@ func (d *nodeDao) Take(where ...interface{}) *model.Node {
 	return ret
 }
 
-func (d *nodeDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Node) {
+func (d *nodeDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Node) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *nodeDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Node {
+func (d *nodeDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Node {
 	ret := &model.Node{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *nodeDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Node {
 	return ret
 }
 
-func (d *nodeDao) List(cnd *sqlcnd.SqlCnd) (list []model.Node, paging *sqlcnd.Paging) {
+func (d *nodeDao) List(cnd *querybuilder.QueryBuilder) (list []model.Node, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Node{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

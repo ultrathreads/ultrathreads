@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var TopicLikeDao = newTopicLikeDao()
@@ -30,12 +30,12 @@ func (d *topicLikeDao) Take(where ...interface{}) *model.TopicLike {
 	return ret
 }
 
-func (d *topicLikeDao) Find(cnd *sqlcnd.SqlCnd) (list []model.TopicLike) {
+func (d *topicLikeDao) Find(cnd *querybuilder.QueryBuilder) (list []model.TopicLike) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *topicLikeDao) FindOne(cnd *sqlcnd.SqlCnd) *model.TopicLike {
+func (d *topicLikeDao) FindOne(cnd *querybuilder.QueryBuilder) *model.TopicLike {
 	ret := &model.TopicLike{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *topicLikeDao) FindOne(cnd *sqlcnd.SqlCnd) *model.TopicLike {
 	return ret
 }
 
-func (d *topicLikeDao) List(cnd *sqlcnd.SqlCnd) (list []model.TopicLike, paging *sqlcnd.Paging) {
+func (d *topicLikeDao) List(cnd *querybuilder.QueryBuilder) (list []model.TopicLike, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.TopicLike{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

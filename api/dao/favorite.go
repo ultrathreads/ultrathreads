@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var FavoriteDao = newFavoriteDao()
@@ -30,12 +30,12 @@ func (d *favoriteDao) Take(where ...interface{}) *model.Favorite {
 	return ret
 }
 
-func (d *favoriteDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Favorite) {
+func (d *favoriteDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Favorite) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *favoriteDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Favorite {
+func (d *favoriteDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Favorite {
 	ret := &model.Favorite{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *favoriteDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Favorite {
 	return ret
 }
 
-func (d *favoriteDao) List(cnd *sqlcnd.SqlCnd) (list []model.Favorite, paging *sqlcnd.Paging) {
+func (d *favoriteDao) List(cnd *querybuilder.QueryBuilder) (list []model.Favorite, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Favorite{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

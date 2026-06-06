@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var LinkDao = newLinkDao()
@@ -30,12 +30,12 @@ func (d *linkDao) Take(where ...interface{}) *model.Link {
 	return ret
 }
 
-func (d *linkDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Link) {
+func (d *linkDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Link) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *linkDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Link {
+func (d *linkDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Link {
 	ret := &model.Link{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *linkDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Link {
 	return ret
 }
 
-func (d *linkDao) List(cnd *sqlcnd.SqlCnd) (list []model.Link, paging *sqlcnd.Paging) {
+func (d *linkDao) List(cnd *querybuilder.QueryBuilder) (list []model.Link, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Link{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

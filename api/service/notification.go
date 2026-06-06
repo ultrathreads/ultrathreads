@@ -9,7 +9,7 @@ import (
 	"ultrathreads/util"
 	"ultrathreads/util/email"
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
 )
 
@@ -34,15 +34,15 @@ func (s *notificationService) Take(where ...interface{}) *model.Notification {
 	return dao.NotificationDao.Take(where...)
 }
 
-func (s *notificationService) Find(cnd *sqlcnd.SqlCnd) []model.Notification {
+func (s *notificationService) Find(cnd *querybuilder.QueryBuilder) []model.Notification {
 	return dao.NotificationDao.Find(cnd)
 }
 
-func (s *notificationService) FindOne(cnd *sqlcnd.SqlCnd) *model.Notification {
+func (s *notificationService) FindOne(cnd *querybuilder.QueryBuilder) *model.Notification {
 	return dao.NotificationDao.FindOne(cnd)
 }
 
-func (s *notificationService) List(cnd *sqlcnd.SqlCnd) (list []model.Notification, paging *sqlcnd.Paging) {
+func (s *notificationService) List(cnd *querybuilder.QueryBuilder) (list []model.Notification, paging *querybuilder.Paging) {
 	return dao.NotificationDao.List(cnd)
 }
 

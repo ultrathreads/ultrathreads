@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var NotificationDao = newNotificationDao()
@@ -30,12 +30,12 @@ func (d *notificationDao) Take(where ...interface{}) *model.Notification {
 	return ret
 }
 
-func (d *notificationDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Notification) {
+func (d *notificationDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Notification) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *notificationDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Notification {
+func (d *notificationDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Notification {
 	ret := &model.Notification{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *notificationDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Notification {
 	return ret
 }
 
-func (d *notificationDao) List(cnd *sqlcnd.SqlCnd) (list []model.Notification, paging *sqlcnd.Paging) {
+func (d *notificationDao) List(cnd *querybuilder.QueryBuilder) (list []model.Notification, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Notification{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

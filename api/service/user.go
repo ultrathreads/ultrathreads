@@ -17,7 +17,7 @@ import (
 	"ultrathreads/util"
 	"ultrathreads/util/avatar"
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/uploader"
 )
 
@@ -40,19 +40,19 @@ func (s *userService) Take(where ...interface{}) *model.User {
 	return dao.UserDao.Take(where...)
 }
 
-func (s *userService) Find(cnd *sqlcnd.SqlCnd) []model.User {
+func (s *userService) Find(cnd *querybuilder.QueryBuilder) []model.User {
 	return dao.UserDao.Find(cnd)
 }
 
-func (s *userService) FindOne(cnd *sqlcnd.SqlCnd) *model.User {
+func (s *userService) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
 	return dao.UserDao.FindOne(cnd)
 }
 
-func (s *userService) List(cnd *sqlcnd.SqlCnd) (list []model.User, paging *sqlcnd.Paging) {
+func (s *userService) List(cnd *querybuilder.QueryBuilder) (list []model.User, paging *querybuilder.Paging) {
 	return dao.UserDao.List(cnd)
 }
 
-func (s *userService) Count(cnd *sqlcnd.SqlCnd) int {
+func (s *userService) Count(cnd *querybuilder.QueryBuilder) int {
 	return dao.UserDao.Count(cnd)
 }
 
@@ -103,7 +103,7 @@ func (s *userService) GetCurrent(ctx *gin.Context) *model.User {
 func (s *userService) Scan(cb ScanUserCallback) {
 	var cursor int64
 	for {
-		list := dao.UserDao.Find(sqlcnd.NewSqlCnd().Where("id > ?", cursor).Asc("id").Limit(100))
+		list := dao.UserDao.Find(querybuilder.NewQueryBuilder().Where("id > ?", cursor).Asc("id").Limit(100))
 		if list == nil || len(list) == 0 {
 			break
 		}
@@ -375,8 +375,8 @@ func (s *userService) IncrCommentCount(userId int64) int {
 func (s *userService) SyncUserCount() {
 	s.Scan(func(users []model.User) {
 		for _, user := range users {
-			topicCount := dao.TopicDao.Count(sqlcnd.NewSqlCnd().Eq("user_id", user.ID).Eq("status", model.StatusOk))
-			commentCount := dao.CommentDao.Count(sqlcnd.NewSqlCnd().Eq("user_id", user.ID).Eq("status", model.StatusOk))
+			topicCount := dao.TopicDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
+			commentCount := dao.CommentDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
 			_ = dao.UserDao.UpdateColumn(user.ID, "topic_count", topicCount)
 			_ = dao.UserDao.UpdateColumn(user.ID, "comment_count", commentCount)
 			cache.UserCache.Invalidate(user.ID)

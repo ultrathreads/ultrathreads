@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var UserDao = newUserDao()
@@ -30,12 +30,12 @@ func (d *userDao) Take(where ...interface{}) *model.User {
 	return ret
 }
 
-func (d *userDao) Find(cnd *sqlcnd.SqlCnd) (list []model.User) {
+func (d *userDao) Find(cnd *querybuilder.QueryBuilder) (list []model.User) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *userDao) FindOne(cnd *sqlcnd.SqlCnd) *model.User {
+func (d *userDao) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
 	ret := &model.User{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *userDao) FindOne(cnd *sqlcnd.SqlCnd) *model.User {
 	return ret
 }
 
-func (d *userDao) List(cnd *sqlcnd.SqlCnd) (list []model.User, paging *sqlcnd.Paging) {
+func (d *userDao) List(cnd *querybuilder.QueryBuilder) (list []model.User, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.User{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,
@@ -55,7 +55,7 @@ func (d *userDao) List(cnd *sqlcnd.SqlCnd) (list []model.User, paging *sqlcnd.Pa
 	return
 }
 
-func (d *userDao) Count(cnd *sqlcnd.SqlCnd) int {
+func (d *userDao) Count(cnd *querybuilder.QueryBuilder) int {
 	return cnd.Count(db, &model.User{})
 }
 

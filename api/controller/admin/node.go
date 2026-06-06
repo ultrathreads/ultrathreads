@@ -8,7 +8,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 // NodeController node controller
@@ -85,7 +85,7 @@ func (c *NodeController) List(ctx *gin.Context) {
 	id := ctx.Request.FormValue("id")
 	name := ctx.Request.FormValue("name")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(id) > 0 {
 		conditions.Eq("id", id)
 	}
@@ -99,5 +99,5 @@ func (c *NodeController) List(ctx *gin.Context) {
 		results = append(results, item)
 	}
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: results, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }

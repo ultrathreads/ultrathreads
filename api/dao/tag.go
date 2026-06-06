@@ -6,7 +6,7 @@ import (
 
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var TagDao = newTagDao()
@@ -34,12 +34,12 @@ func (d *tagDao) Take(where ...interface{}) *model.Tag {
 	return ret
 }
 
-func (d *tagDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Tag) {
+func (d *tagDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Tag) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *tagDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Tag {
+func (d *tagDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Tag {
 	ret := &model.Tag{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -47,11 +47,11 @@ func (d *tagDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Tag {
 	return ret
 }
 
-func (d *tagDao) List(cnd *sqlcnd.SqlCnd) (list []model.Tag, paging *sqlcnd.Paging) {
+func (d *tagDao) List(cnd *querybuilder.QueryBuilder) (list []model.Tag, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Tag{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

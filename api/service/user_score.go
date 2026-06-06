@@ -9,7 +9,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var UserScoreService = newUserScoreService()
@@ -29,15 +29,15 @@ func (s *userScoreService) Take(where ...interface{}) *model.UserScore {
 	return dao.UserScoreDao.Take(where...)
 }
 
-func (s *userScoreService) Find(cnd *sqlcnd.SqlCnd) []model.UserScore {
+func (s *userScoreService) Find(cnd *querybuilder.QueryBuilder) []model.UserScore {
 	return dao.UserScoreDao.Find(cnd)
 }
 
-func (s *userScoreService) FindOne(cnd *sqlcnd.SqlCnd) *model.UserScore {
+func (s *userScoreService) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScore {
 	return dao.UserScoreDao.FindOne(cnd)
 }
 
-func (s *userScoreService) List(cnd *sqlcnd.SqlCnd) (list []model.UserScore, paging *sqlcnd.Paging) {
+func (s *userScoreService) List(cnd *querybuilder.QueryBuilder) (list []model.UserScore, paging *querybuilder.Paging) {
 	return dao.UserScoreDao.List(cnd)
 }
 
@@ -62,7 +62,7 @@ func (s *userScoreService) Delete(id int64) {
 }
 
 func (s *userScoreService) GetByUserId(userId int64) *model.UserScore {
-	return s.FindOne(sqlcnd.NewSqlCnd().Eq("user_id", userId))
+	return s.FindOne(querybuilder.NewQueryBuilder().Eq("user_id", userId))
 }
 
 func (s *userScoreService) CreateOrUpdate(t *model.UserScore) error {

@@ -7,7 +7,7 @@ import (
 
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type userCache struct {
@@ -29,7 +29,7 @@ func newUserCache() *userCache {
 		),
 		scoreCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, err error) {
-				userScore := dao.UserScoreDao.FindOne(sqlcnd.NewSqlCnd().Eq("user_id", key2Int64(key)))
+				userScore := dao.UserScoreDao.FindOne(querybuilder.NewQueryBuilder().Eq("user_id", key2Int64(key)))
 				if userScore == nil {
 					value = 0
 				} else {

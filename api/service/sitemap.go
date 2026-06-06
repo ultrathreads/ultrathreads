@@ -10,7 +10,7 @@ import (
 	"ultrathreads/util"
 	"ultrathreads/util/log"
 	"ultrathreads/util/sitemap"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
 )
 
@@ -36,15 +36,15 @@ func (s *sitemapService) Take(where ...interface{}) *model.Sitemap {
 	return dao.SitemapDao.Take(where...)
 }
 
-func (s *sitemapService) Find(cnd *sqlcnd.SqlCnd) []model.Sitemap {
+func (s *sitemapService) Find(cnd *querybuilder.QueryBuilder) []model.Sitemap {
 	return dao.SitemapDao.Find(cnd)
 }
 
-func (s *sitemapService) FindOne(cnd *sqlcnd.SqlCnd) *model.Sitemap {
+func (s *sitemapService) FindOne(cnd *querybuilder.QueryBuilder) *model.Sitemap {
 	return dao.SitemapDao.FindOne(cnd)
 }
 
-func (s *sitemapService) List(cnd *sqlcnd.SqlCnd) (list []model.Sitemap, paging *sqlcnd.Paging) {
+func (s *sitemapService) List(cnd *querybuilder.QueryBuilder) (list []model.Sitemap, paging *querybuilder.Paging) {
 	return dao.SitemapDao.List(cnd)
 }
 
@@ -190,7 +190,7 @@ func (s *sitemapService) GenerateUser() {
 
 func (s *sitemapService) AddSitemapIndex(sm *sitemap.Generator, sitemapLoc string) {
 	locName := util.MD5(sitemapLoc)
-	t := s.FindOne(sqlcnd.NewSqlCnd().Eq("loc_name", locName))
+	t := s.FindOne(querybuilder.NewQueryBuilder().Eq("loc_name", locName))
 	if t == nil {
 		_ = s.Create(&model.Sitemap{
 			Model:      model.Model{},
@@ -210,7 +210,7 @@ func (s *sitemapService) AddSitemapIndex(sm *sitemap.Generator, sitemapLoc strin
 }
 
 func (s *sitemapService) GenerateSitemapIndex(sm *sitemap.Generator) {
-	sitemaps := s.Find(sqlcnd.NewSqlCnd().Desc("id"))
+	sitemaps := s.Find(querybuilder.NewQueryBuilder().Desc("id"))
 
 	if len(sitemaps) == 0 {
 		return

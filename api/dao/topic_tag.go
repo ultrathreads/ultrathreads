@@ -3,7 +3,7 @@ package dao
 import (
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var TopicTagDao = newTopicTagDao()
@@ -31,12 +31,12 @@ func (d *topicTagDao) Take(where ...interface{}) *model.TopicTag {
 	return ret
 }
 
-func (d *topicTagDao) Find(cnd *sqlcnd.SqlCnd) (list []model.TopicTag) {
+func (d *topicTagDao) Find(cnd *querybuilder.QueryBuilder) (list []model.TopicTag) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *topicTagDao) FindOne(cnd *sqlcnd.SqlCnd) *model.TopicTag {
+func (d *topicTagDao) FindOne(cnd *querybuilder.QueryBuilder) *model.TopicTag {
 	ret := &model.TopicTag{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -44,11 +44,11 @@ func (d *topicTagDao) FindOne(cnd *sqlcnd.SqlCnd) *model.TopicTag {
 	return ret
 }
 
-func (d *topicTagDao) List(cnd *sqlcnd.SqlCnd) (list []model.TopicTag, paging *sqlcnd.Paging) {
+func (d *topicTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.TopicTag, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.TopicTag{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

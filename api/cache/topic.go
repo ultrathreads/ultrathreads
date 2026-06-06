@@ -7,7 +7,7 @@ import (
 
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var (
@@ -24,7 +24,7 @@ func newTopicCache() *topicCache {
 	return &topicCache{
 		recommendCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.TopicDao.Find(sqlcnd.NewSqlCnd().Eq("recommend", true).Eq("status", model.StatusOk).Limit(20).Desc("last_comment_time"))
+				value = dao.TopicDao.Find(querybuilder.NewQueryBuilder().Eq("recommend", true).Eq("status", model.StatusOk).Limit(20).Desc("last_comment_time"))
 				return
 			},
 			cache.WithMaximumSize(10),

@@ -10,7 +10,7 @@ import (
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/markdown"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 // TopicController topic controller
@@ -86,7 +86,7 @@ func (c *TopicController) List(ctx *gin.Context) {
 	recommend := ctx.Request.FormValue("recommend")
 	title := ctx.Request.FormValue("title")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(id) > 0 {
 		conditions.Eq("id", id)
 	}
@@ -118,7 +118,7 @@ func (c *TopicController) List(ctx *gin.Context) {
 		results = append(results, result)
 	}
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: results, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }
 
 // Recommend 推荐

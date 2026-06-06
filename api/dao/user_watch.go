@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var UserWatchDao = newUserWatchDao()
@@ -30,12 +30,12 @@ func (d *userWatchDao) Take(where ...interface{}) *model.UserWatch {
 	return ret
 }
 
-func (d *userWatchDao) Find(cnd *sqlcnd.SqlCnd) (list []model.UserWatch) {
+func (d *userWatchDao) Find(cnd *querybuilder.QueryBuilder) (list []model.UserWatch) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *userWatchDao) FindOne(cnd *sqlcnd.SqlCnd) *model.UserWatch {
+func (d *userWatchDao) FindOne(cnd *querybuilder.QueryBuilder) *model.UserWatch {
 	ret := &model.UserWatch{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *userWatchDao) FindOne(cnd *sqlcnd.SqlCnd) *model.UserWatch {
 	return ret
 }
 
-func (d *userWatchDao) List(cnd *sqlcnd.SqlCnd) (list []model.UserWatch, paging *sqlcnd.Paging) {
+func (d *userWatchDao) List(cnd *querybuilder.QueryBuilder) (list []model.UserWatch, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.UserWatch{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

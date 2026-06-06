@@ -1,4 +1,4 @@
-package sqlcnd
+package querybuilder
 
 import (
 	"github.com/jinzhu/gorm"
@@ -6,7 +6,7 @@ import (
 	"ultrathreads/util/log"
 )
 
-type SqlCnd struct {
+type QueryBuilder struct {
 	SelectCols []string     // 要查询的字段，如果为空，表示查询所有字段
 	Params     []ParamPair  // 参数
 	Orders     []OrderByCol // 排序
@@ -14,85 +14,85 @@ type SqlCnd struct {
 }
 
 // selectCols: 需要查询的列
-func NewSqlCnd(selectCols ...string) *SqlCnd {
-	s := &SqlCnd{}
+func NewQueryBuilder(selectCols ...string) *QueryBuilder {
+	s := &QueryBuilder{}
 	if len(selectCols) > 0 {
 		s.SelectCols = append(s.SelectCols, selectCols...)
 	}
 	return s
 }
 
-func (s *SqlCnd) Eq(column string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) Eq(column string, args ...interface{}) *QueryBuilder {
 	s.Where(column+" = ?", args)
 	return s
 }
 
-func (s *SqlCnd) NotEq(column string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) NotEq(column string, args ...interface{}) *QueryBuilder {
 	s.Where(column+" <> ?", args)
 	return s
 }
 
-func (s *SqlCnd) Gt(column string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) Gt(column string, args ...interface{}) *QueryBuilder {
 	s.Where(column+" > ?", args)
 	return s
 }
 
-func (s *SqlCnd) Gte(column string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) Gte(column string, args ...interface{}) *QueryBuilder {
 	s.Where(column+" >= ?", args)
 	return s
 }
 
-func (s *SqlCnd) Lt(column string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) Lt(column string, args ...interface{}) *QueryBuilder {
 	s.Where(column+" < ?", args)
 	return s
 }
 
-func (s *SqlCnd) Lte(column string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) Lte(column string, args ...interface{}) *QueryBuilder {
 	s.Where(column+" <= ?", args)
 	return s
 }
 
-func (s *SqlCnd) Like(column string, str string) *SqlCnd {
+func (s *QueryBuilder) Like(column string, str string) *QueryBuilder {
 	s.Where(column+" LIKE ?", "%"+str+"%")
 	return s
 }
 
-func (s *SqlCnd) Starting(column string, str string) *SqlCnd {
+func (s *QueryBuilder) Starting(column string, str string) *QueryBuilder {
 	s.Where(column+" LIKE ?", str+"%")
 	return s
 }
 
-func (s *SqlCnd) Ending(column string, str string) *SqlCnd {
+func (s *QueryBuilder) Ending(column string, str string) *QueryBuilder {
 	s.Where(column+" LIKE ?", "%"+str)
 	return s
 }
 
-func (s *SqlCnd) In(column string, params interface{}) *SqlCnd {
+func (s *QueryBuilder) In(column string, params interface{}) *QueryBuilder {
 	s.Where(column+" in (?) ", params)
 	return s
 }
 
-func (s *SqlCnd) Where(query string, args ...interface{}) *SqlCnd {
+func (s *QueryBuilder) Where(query string, args ...interface{}) *QueryBuilder {
 	s.Params = append(s.Params, ParamPair{query, args})
 	return s
 }
 
-func (s *SqlCnd) Asc(column string) *SqlCnd {
+func (s *QueryBuilder) Asc(column string) *QueryBuilder {
 	s.Orders = append(s.Orders, OrderByCol{Column: column, Asc: true})
 	return s
 }
 
-func (s *SqlCnd) Desc(column string) *SqlCnd {
+func (s *QueryBuilder) Desc(column string) *QueryBuilder {
 	s.Orders = append(s.Orders, OrderByCol{Column: column, Asc: false})
 	return s
 }
 
-func (s *SqlCnd) Limit(limit int) *SqlCnd {
+func (s *QueryBuilder) Limit(limit int) *QueryBuilder {
 	s.Page(1, limit)
 	return s
 }
 
-func (s *SqlCnd) Page(page, limit int) *SqlCnd {
+func (s *QueryBuilder) Page(page, limit int) *QueryBuilder {
 	if s.Paging == nil {
 		s.Paging = &Paging{Page: page, Limit: limit}
 	} else {
@@ -102,7 +102,7 @@ func (s *SqlCnd) Page(page, limit int) *SqlCnd {
 	return s
 }
 
-func (s *SqlCnd) Build(db *gorm.DB) *gorm.DB {
+func (s *QueryBuilder) Build(db *gorm.DB) *gorm.DB {
 	ret := db
 
 	if len(s.SelectCols) > 0 {
@@ -139,20 +139,20 @@ func (s *SqlCnd) Build(db *gorm.DB) *gorm.DB {
 	return ret
 }
 
-func (s *SqlCnd) Find(db *gorm.DB, out interface{}) {
+func (s *QueryBuilder) Find(db *gorm.DB, out interface{}) {
 	if err := s.Build(db).Find(out).Error; err != nil {
 		log.Error(err.Error())
 	}
 }
 
-func (s *SqlCnd) FindOne(db *gorm.DB, out interface{}) error {
+func (s *QueryBuilder) FindOne(db *gorm.DB, out interface{}) error {
 	if err := s.Limit(1).Build(db).Find(out).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *SqlCnd) Count(db *gorm.DB, model interface{}) int {
+func (s *QueryBuilder) Count(db *gorm.DB, model interface{}) int {
 	ret := db.Model(model)
 
 	// where

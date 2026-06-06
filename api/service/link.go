@@ -10,7 +10,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var LinkService = newLinkService()
@@ -26,11 +26,11 @@ func (s *linkService) Get(id int64) *model.Link {
 	return dao.LinkDao.Get(id)
 }
 
-func (s *linkService) Find(cnd *sqlcnd.SqlCnd) []model.Link {
+func (s *linkService) Find(cnd *querybuilder.QueryBuilder) []model.Link {
 	return dao.LinkDao.Find(cnd)
 }
 
-func (s *linkService) List(cnd *sqlcnd.SqlCnd) (list []model.Link, paging *sqlcnd.Paging) {
+func (s *linkService) List(cnd *querybuilder.QueryBuilder) (list []model.Link, paging *querybuilder.Paging) {
 	return dao.LinkDao.List(cnd)
 }
 

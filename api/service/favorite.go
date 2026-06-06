@@ -6,7 +6,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var FavoriteService = newFavoriteService()
@@ -26,15 +26,15 @@ func (s *favoriteService) Take(where ...interface{}) *model.Favorite {
 	return dao.FavoriteDao.Take(where...)
 }
 
-func (s *favoriteService) Find(cnd *sqlcnd.SqlCnd) []model.Favorite {
+func (s *favoriteService) Find(cnd *querybuilder.QueryBuilder) []model.Favorite {
 	return dao.FavoriteDao.Find(cnd)
 }
 
-func (s *favoriteService) FindOne(cnd *sqlcnd.SqlCnd) *model.Favorite {
+func (s *favoriteService) FindOne(cnd *querybuilder.QueryBuilder) *model.Favorite {
 	return dao.FavoriteDao.FindOne(cnd)
 }
 
-func (s *favoriteService) List(cnd *sqlcnd.SqlCnd) (list []model.Favorite, paging *sqlcnd.Paging) {
+func (s *favoriteService) List(cnd *querybuilder.QueryBuilder) (list []model.Favorite, paging *querybuilder.Paging) {
 	return dao.FavoriteDao.List(cnd)
 }
 

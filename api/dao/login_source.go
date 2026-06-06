@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var LoginSourceDao = newLoginSourceDao()
@@ -30,11 +30,11 @@ func (d *loginSourceDao) Take(where ...interface{}) *model.LoginSource {
 	return ret
 }
 
-func (d *loginSourceDao) List(cnd *sqlcnd.SqlCnd) (list []model.LoginSource, paging *sqlcnd.Paging) {
+func (d *loginSourceDao) List(cnd *querybuilder.QueryBuilder) (list []model.LoginSource, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.LoginSource{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

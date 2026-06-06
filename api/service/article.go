@@ -16,7 +16,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
 )
 
@@ -35,11 +35,11 @@ func (s *articleService) Get(id int64) *model.Article {
 	return dao.ArticleDao.Get(id)
 }
 
-func (s *articleService) Find(cnd *sqlcnd.SqlCnd) []model.Article {
+func (s *articleService) Find(cnd *querybuilder.QueryBuilder) []model.Article {
 	return dao.ArticleDao.Find(cnd)
 }
 
-func (s *articleService) List(cnd *sqlcnd.SqlCnd) (list []model.Article, paging *sqlcnd.Paging) {
+func (s *articleService) List(cnd *querybuilder.QueryBuilder) (list []model.Article, paging *querybuilder.Paging) {
 	return dao.ArticleDao.List(cnd)
 }
 
@@ -111,7 +111,7 @@ func (s *articleService) GetArticleInIds(articleIds []int64) []model.Article {
 
 // 文章列表
 func (s *articleService) GetArticles(cursor int64) (articles []model.Article, nextCursor int64) {
-	cnd := sqlcnd.NewSqlCnd().Eq("status", model.StatusOk).Desc("id").Limit(20)
+	cnd := querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Desc("id").Limit(20)
 	if cursor > 0 {
 		cnd.Lt("id", cursor)
 	}
@@ -126,7 +126,7 @@ func (s *articleService) GetArticles(cursor int64) (articles []model.Article, ne
 
 // GetArticleTags 获取文章对应的标签
 func (s *articleService) GetArticleTags(articleId int64) []model.Tag {
-	articleTags := dao.ArticleTagDao.Find(sqlcnd.NewSqlCnd().Where("article_id = ?", articleId))
+	articleTags := dao.ArticleTagDao.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
 	var tagIds []int64
 	for _, articleTag := range articleTags {
 		tagIds = append(tagIds, articleTag.TagId)
@@ -136,7 +136,7 @@ func (s *articleService) GetArticleTags(articleId int64) []model.Tag {
 
 // GetTagArticles 标签文章列表
 func (s *articleService) GetTagArticles(tagId int64, cursor int64) (articles []model.Article, nextCursor int64) {
-	cnd := sqlcnd.NewSqlCnd().Eq("tag_id", tagId).Eq("status", model.StatusOk).Desc("id").Limit(20)
+	cnd := querybuilder.NewQueryBuilder().Eq("tag_id", tagId).Eq("status", model.StatusOk).Desc("id").Limit(20)
 	if cursor > 0 {
 		cnd.Lt("id", cursor)
 	}
@@ -181,7 +181,7 @@ func (s *articleService) GetRelatedArticles(articleId int64) []model.Article {
 
 // 最新文章
 func (s *articleService) GetUserNewestArticles(userId int64) []model.Article {
-	return dao.ArticleDao.Find(sqlcnd.NewSqlCnd().Where("user_id = ? and status = ?",
+	return dao.ArticleDao.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 		userId, model.StatusOk).Desc("id").Limit(10))
 }
 
@@ -189,7 +189,7 @@ func (s *articleService) GetUserNewestArticles(userId int64) []model.Article {
 func (s *articleService) ScanDesc(dateFrom, dateTo int64, cb ScanArticleCallback) {
 	var cursor int64 = math.MaxInt64
 	for {
-		list := dao.ArticleDao.Find(sqlcnd.NewSqlCnd("id", "status", "create_time", "update_time").
+		list := dao.ArticleDao.Find(querybuilder.NewQueryBuilder("id", "status", "create_time", "update_time").
 			Lt("id", cursor).Gte("create_time", dateFrom).Lt("create_time", dateTo).Desc("id").Limit(1000))
 		if list == nil || len(list) == 0 {
 			break
@@ -201,7 +201,7 @@ func (s *articleService) ScanDesc(dateFrom, dateTo int64, cb ScanArticleCallback
 
 // rss
 func (s *articleService) GenerateRss() {
-	articles := dao.ArticleDao.Find(sqlcnd.NewSqlCnd().Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
+	articles := dao.ArticleDao.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
 
 	var items []*feeds.Item
 	for _, article := range articles {

@@ -10,7 +10,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type UserController struct {
@@ -72,7 +72,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 
 // GetScoreRank 积分排行
 func (c *UserController) GetScoreRank(ctx *gin.Context) {
-	userScores := service.UserScoreService.Find(sqlcnd.NewSqlCnd().Desc("score").Limit(10))
+	userScores := service.UserScoreService.Find(querybuilder.NewQueryBuilder().Desc("score").Limit(10))
 	var results []*model.UserInfo
 	for _, userScore := range userScores {
 		results = append(results, convert.ToUserDefaultIfNull(userScore.UserId))
@@ -85,7 +85,7 @@ func (c *UserController) GetScorelogs(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 	user := c.GetCurrentUser(ctx)
 
-	logs, paging := service.UserScoreLogService.List(sqlcnd.NewSqlCnd().
+	logs, paging := service.UserScoreLogService.List(querybuilder.NewQueryBuilder().
 		Eq("user_id", user.ID).
 		Page(page, 20).Desc("id"))
 
@@ -102,7 +102,7 @@ func (c *UserController) GetNotificationsRecent(ctx *gin.Context) {
 	var notifications []model.Notification
 	if user != nil {
 		count = service.NotificationService.GetUnReadCount(user.ID)
-		notifications = service.NotificationService.Find(sqlcnd.NewSqlCnd().Eq("user_id", user.ID).Eq("status", model.NotificationStatusUnread).Limit(3).Desc("id"))
+		notifications = service.NotificationService.Find(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.NotificationStatusUnread).Limit(3).Desc("id"))
 	}
 	data := make(map[string]interface{})
 	data["count"] = count
@@ -115,7 +115,7 @@ func (c *UserController) GetNotifications(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	messages, paging := service.NotificationService.List(sqlcnd.NewSqlCnd().
+	messages, paging := service.NotificationService.List(querybuilder.NewQueryBuilder().
 		Eq("user_id", user.ID).
 		Page(page, 20).Desc("id"))
 
@@ -136,10 +136,10 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 	// 查询列表
 	var favorites []model.Favorite
 	if cursor > 0 {
-		favorites = service.FavoriteService.Find(sqlcnd.NewSqlCnd().Where("user_id = ? and id < ?",
+		favorites = service.FavoriteService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and id < ?",
 			user.ID, cursor).Desc("id").Limit(20))
 	} else {
-		favorites = service.FavoriteService.Find(sqlcnd.NewSqlCnd().Where("user_id = ?", user.ID).Desc("id").Limit(20))
+		favorites = service.FavoriteService.Find(querybuilder.NewQueryBuilder().Where("user_id = ?", user.ID).Desc("id").Limit(20))
 	}
 
 	if len(favorites) > 0 {

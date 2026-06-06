@@ -9,7 +9,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/cache"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var NodeService = newNodeService()
@@ -25,7 +25,7 @@ func (s *nodeService) Get(id int64) *model.Node {
 	return dao.NodeDao.Get(id)
 }
 
-func (s *nodeService) List(cnd *sqlcnd.SqlCnd) (list []model.Node, paging *sqlcnd.Paging) {
+func (s *nodeService) List(cnd *querybuilder.QueryBuilder) (list []model.Node, paging *querybuilder.Paging) {
 	return dao.NodeDao.List(cnd)
 }
 
@@ -66,9 +66,9 @@ func (s *nodeService) IncrTopicCount(nodeId int64) {
 }
 
 func (s *nodeService) GetRecommendNodes() []model.Node {
-	return dao.NodeDao.Find(sqlcnd.NewSqlCnd().Eq("status", model.StatusOk).Asc("sort_no").Desc("id").Limit(3))
+	return dao.NodeDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Asc("sort_no").Desc("id").Limit(3))
 }
 
 func (s *nodeService) GetNodes() []model.Node {
-	return dao.NodeDao.Find(sqlcnd.NewSqlCnd().Eq("status", model.StatusOk).Asc("sort_no").Desc("id"))
+	return dao.NodeDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Asc("sort_no").Desc("id"))
 }

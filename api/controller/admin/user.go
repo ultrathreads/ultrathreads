@@ -10,7 +10,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 // UserController user controller
@@ -79,7 +79,7 @@ func (c *UserController) List(ctx *gin.Context) {
 	nickname := ctx.Request.FormValue("nickname")
 	username := ctx.Request.FormValue("username")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(id) > 0 {
 		conditions.Eq("id", id)
 	}
@@ -96,7 +96,7 @@ func (c *UserController) List(ctx *gin.Context) {
 		results = append(results, c.buildUserItem(&user))
 	}
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: results, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }
 
 func (c *UserController) buildUserItem(user *model.User) map[string]interface{} {

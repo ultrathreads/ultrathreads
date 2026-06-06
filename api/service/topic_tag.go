@@ -3,7 +3,7 @@ package service
 import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var TopicTagService = newTopicTagService()
@@ -23,15 +23,15 @@ func (s *topicTagService) Take(where ...interface{}) *model.TopicTag {
 	return dao.TopicTagDao.Take(where...)
 }
 
-func (s *topicTagService) Find(cnd *sqlcnd.SqlCnd) []model.TopicTag {
+func (s *topicTagService) Find(cnd *querybuilder.QueryBuilder) []model.TopicTag {
 	return dao.TopicTagDao.Find(cnd)
 }
 
-func (s *topicTagService) FindOne(cnd *sqlcnd.SqlCnd) *model.TopicTag {
+func (s *topicTagService) FindOne(cnd *querybuilder.QueryBuilder) *model.TopicTag {
 	return dao.TopicTagDao.FindOne(cnd)
 }
 
-func (s *topicTagService) List(cnd *sqlcnd.SqlCnd) (list []model.TopicTag, paging *sqlcnd.Paging) {
+func (s *topicTagService) List(cnd *querybuilder.QueryBuilder) (list []model.TopicTag, paging *querybuilder.Paging) {
 	return dao.TopicTagDao.List(cnd)
 }
 

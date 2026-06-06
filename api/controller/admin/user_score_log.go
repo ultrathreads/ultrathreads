@@ -9,7 +9,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 // UserScoreLogController user score controller
@@ -39,7 +39,7 @@ func (c *UserScoreLogController) List(ctx *gin.Context) {
 	sourceId := ctx.Request.FormValue("sourceId")
 	ltype := ctx.Request.FormValue("type")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(userId) > 0 {
 		conditions.Eq("user_id", userId)
 	}
@@ -62,5 +62,5 @@ func (c *UserScoreLogController) List(ctx *gin.Context) {
 		results = append(results, item)
 	}
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: results, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }

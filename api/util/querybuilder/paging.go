@@ -1,4 +1,4 @@
-package sqlcnd
+package querybuilder
 
 // 分页请求数据
 type Paging struct {

@@ -8,7 +8,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var UserWatchService = newUserWatchService()
@@ -28,15 +28,15 @@ func (s *userWatchService) Take(where ...interface{}) *model.UserWatch {
 	return dao.UserWatchDao.Take(where...)
 }
 
-func (s *userWatchService) Find(cnd *sqlcnd.SqlCnd) []model.UserWatch {
+func (s *userWatchService) Find(cnd *querybuilder.QueryBuilder) []model.UserWatch {
 	return dao.UserWatchDao.Find(cnd)
 }
 
-func (s *userWatchService) FindOne(cnd *sqlcnd.SqlCnd) *model.UserWatch {
+func (s *userWatchService) FindOne(cnd *querybuilder.QueryBuilder) *model.UserWatch {
 	return dao.UserWatchDao.FindOne(cnd)
 }
 
-func (s *userWatchService) List(cnd *sqlcnd.SqlCnd) (list []model.UserWatch, paging *sqlcnd.Paging) {
+func (s *userWatchService) List(cnd *querybuilder.QueryBuilder) (list []model.UserWatch, paging *querybuilder.Paging) {
 	return dao.UserWatchDao.List(cnd)
 }
 
@@ -74,7 +74,7 @@ func (s *userWatchService) Count(userId int64) int64 {
 
 // 最近关注
 func (s *userWatchService) Recent(userId int64, count int) []model.UserWatch {
-	return s.Find(sqlcnd.NewSqlCnd().Eq("user_id", userId).Desc("id").Limit(count))
+	return s.Find(querybuilder.NewQueryBuilder().Eq("user_id", userId).Desc("id").Limit(count))
 }
 
 func (s *userWatchService) Watch(userID int64, watcherID int64) error {

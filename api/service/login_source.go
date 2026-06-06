@@ -11,7 +11,7 @@ import (
 	"ultrathreads/oauth/github"
 	"ultrathreads/oauth/qq"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var LoginSourceService = newLoginSourceService()
@@ -27,7 +27,7 @@ func (s *loginSourceService) Get(id int64) *model.LoginSource {
 	return dao.LoginSourceDao.Get(id)
 }
 
-func (s *loginSourceService) List(cnd *sqlcnd.SqlCnd) (list []model.LoginSource, paging *sqlcnd.Paging) {
+func (s *loginSourceService) List(cnd *querybuilder.QueryBuilder) (list []model.LoginSource, paging *querybuilder.Paging) {
 	return dao.LoginSourceDao.List(cnd)
 }
 

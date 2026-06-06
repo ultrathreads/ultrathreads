@@ -3,7 +3,7 @@ package dao
 import (
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var ArticleTagDao = newArticleTagDao()
@@ -31,16 +31,16 @@ func (d *articleTagDao) Take(where ...interface{}) *model.ArticleTag {
 	return ret
 }
 
-func (d *articleTagDao) Find(cnd *sqlcnd.SqlCnd) (list []model.ArticleTag) {
+func (d *articleTagDao) Find(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *articleTagDao) List(cnd *sqlcnd.SqlCnd) (list []model.ArticleTag, paging *sqlcnd.Paging) {
+func (d *articleTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.ArticleTag{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,
@@ -94,5 +94,5 @@ func (d *articleTagDao) DeleteArticleTags(articleId int64) {
 }
 
 func (d *articleTagDao) FindByArticleId(articleId int64) []model.ArticleTag {
-	return d.Find(sqlcnd.NewSqlCnd().Where("article_id = ?", articleId))
+	return d.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
 }

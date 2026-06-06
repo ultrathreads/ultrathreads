@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var SitemapDao = newSitemapDao()
@@ -30,12 +30,12 @@ func (d *sitemapDao) Take(where ...interface{}) *model.Sitemap {
 	return ret
 }
 
-func (d *sitemapDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Sitemap) {
+func (d *sitemapDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Sitemap) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *sitemapDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Sitemap {
+func (d *sitemapDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Sitemap {
 	ret := &model.Sitemap{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *sitemapDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Sitemap {
 	return ret
 }
 
-func (d *sitemapDao) List(cnd *sqlcnd.SqlCnd) (list []model.Sitemap, paging *sqlcnd.Paging) {
+func (d *sitemapDao) List(cnd *querybuilder.QueryBuilder) (list []model.Sitemap, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Sitemap{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

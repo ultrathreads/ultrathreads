@@ -9,7 +9,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type TopicController struct {
@@ -34,7 +34,7 @@ func (c *TopicController) Show(ctx *gin.Context) {
 func (c *TopicController) List(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	topics, paging := service.TopicService.List(sqlcnd.NewSqlCnd().
+	topics, paging := service.TopicService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
 		Page(page, 20).Desc("last_comment_time"))
 
@@ -164,7 +164,7 @@ func (c *TopicController) GetTopicsExcellent(ctx *gin.Context) {
 func (c *TopicController) GetTopicsRecommend(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	topics, paging := service.TopicService.List(sqlcnd.NewSqlCnd().
+	topics, paging := service.TopicService.List(querybuilder.NewQueryBuilder().
 		Eq("recommend", true).
 		Eq("status", model.StatusOk).
 		Page(page, 20).Desc("last_comment_time"))
@@ -179,7 +179,7 @@ func (c *TopicController) GetTopicsRecommend(ctx *gin.Context) {
 func (c *TopicController) GetTopicsLast(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	topics, paging := service.TopicService.List(sqlcnd.NewSqlCnd().
+	topics, paging := service.TopicService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
 		Page(page, 20).Desc("id"))
 
@@ -193,7 +193,7 @@ func (c *TopicController) GetTopicsLast(ctx *gin.Context) {
 func (c *TopicController) GetTopicsNoreply(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	topics, paging := service.TopicService.List(sqlcnd.NewSqlCnd().
+	topics, paging := service.TopicService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
 		Eq("comment_count", 0).
 		Page(page, 20).Desc("last_comment_time"))
@@ -209,7 +209,7 @@ func (c *TopicController) GetNodeTopics(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 	nodeId := form.FormValueInt64Default(ctx, "nodeId", 0)
 
-	topics, paging := service.TopicService.List(sqlcnd.NewSqlCnd().
+	topics, paging := service.TopicService.List(querybuilder.NewQueryBuilder().
 		Eq("node_id", nodeId).
 		Eq("status", model.StatusOk).
 		Page(page, 20).Desc("last_comment_time"))
@@ -241,7 +241,7 @@ func (c *TopicController) GetTagTopics(ctx *gin.Context) {
 func (c *TopicController) GetUserRecent(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		topics := service.TopicService.Find(sqlcnd.NewSqlCnd().Where("user_id = ? and status = ?",
+		topics := service.TopicService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, convert.ToSimpleTopics(topics))
 	}
@@ -252,7 +252,7 @@ func (c *TopicController) GetUserTopics(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		topics, paging := service.TopicService.List(sqlcnd.NewSqlCnd().
+		topics, paging := service.TopicService.List(querybuilder.NewQueryBuilder().
 			Eq("user_id", gDto.ID).
 			Eq("status", model.StatusOk).
 			Page(page, 20).Desc("id"))

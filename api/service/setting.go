@@ -12,7 +12,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var SettingService = newSettingService()
@@ -32,20 +32,20 @@ func (s *settingService) Take(where ...interface{}) *model.Setting {
 	return dao.SettingDao.Take(where...)
 }
 
-func (s *settingService) Find(cnd *sqlcnd.SqlCnd) []model.Setting {
+func (s *settingService) Find(cnd *querybuilder.QueryBuilder) []model.Setting {
 	return dao.SettingDao.Find(cnd)
 }
 
-func (s *settingService) FindOne(cnd *sqlcnd.SqlCnd) *model.Setting {
+func (s *settingService) FindOne(cnd *querybuilder.QueryBuilder) *model.Setting {
 	return dao.SettingDao.FindOne(cnd)
 }
 
-func (s *settingService) List(cnd *sqlcnd.SqlCnd) (list []model.Setting, paging *sqlcnd.Paging) {
+func (s *settingService) List(cnd *querybuilder.QueryBuilder) (list []model.Setting, paging *querybuilder.Paging) {
 	return dao.SettingDao.List(cnd)
 }
 
 func (s *settingService) GetAll() []model.Setting {
-	return dao.SettingDao.Find(sqlcnd.NewSqlCnd().Asc("id"))
+	return dao.SettingDao.Find(querybuilder.NewQueryBuilder().Asc("id"))
 }
 
 func (s *settingService) SetAll(configStr string) error {

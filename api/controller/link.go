@@ -6,7 +6,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type LinkController struct {
@@ -17,7 +17,7 @@ type LinkController struct {
 func (c *LinkController) List(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	links, paging := service.LinkService.List(sqlcnd.NewSqlCnd().
+	links, paging := service.LinkService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Page(page, 20).Asc("id"))
 
 	var results []map[string]interface{}
@@ -32,7 +32,7 @@ func (c *LinkController) List(ctx *gin.Context) {
 
 // 前10个链接
 func (c *LinkController) GetToplinks(ctx *gin.Context) {
-	links := service.LinkService.Find(sqlcnd.NewSqlCnd().
+	links := service.LinkService.Find(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Limit(10).Asc("id"))
 
 	var results []map[string]interface{}

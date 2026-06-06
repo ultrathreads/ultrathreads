@@ -16,7 +16,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
 )
 
@@ -34,15 +34,15 @@ func (s *topicService) Get(id int64) *model.Topic {
 	return dao.TopicDao.Get(id)
 }
 
-func (s *topicService) Find(cnd *sqlcnd.SqlCnd) []model.Topic {
+func (s *topicService) Find(cnd *querybuilder.QueryBuilder) []model.Topic {
 	return dao.TopicDao.Find(cnd)
 }
 
-func (s *topicService) List(cnd *sqlcnd.SqlCnd) (list []model.Topic, paging *sqlcnd.Paging) {
+func (s *topicService) List(cnd *querybuilder.QueryBuilder) (list []model.Topic, paging *querybuilder.Paging) {
 	return dao.TopicDao.List(cnd)
 }
 
-func (s *topicService) Count(cnd *sqlcnd.SqlCnd) int {
+func (s *topicService) Count(cnd *querybuilder.QueryBuilder) int {
 	return dao.TopicDao.Count(cnd)
 }
 
@@ -145,7 +145,7 @@ func (s *topicService) SetRecommend(topicId int64, recommend bool) error {
 
 // 话题的标签
 func (s *topicService) GetTopicTags(topicId int64) []model.Tag {
-	topicTags := dao.TopicTagDao.Find(sqlcnd.NewSqlCnd().Where("topic_id = ?", topicId))
+	topicTags := dao.TopicTagDao.Find(querybuilder.NewQueryBuilder().Where("topic_id = ?", topicId))
 
 	var tagIds []int64
 	for _, topicTag := range topicTags {
@@ -155,8 +155,8 @@ func (s *topicService) GetTopicTags(topicId int64) []model.Tag {
 }
 
 // 指定标签下话题列表
-func (s *topicService) GetTagTopics(tagId int64, page int) (topics []model.Topic, paging *sqlcnd.Paging) {
-	topicTags, paging := dao.TopicTagDao.List(sqlcnd.NewSqlCnd().
+func (s *topicService) GetTagTopics(tagId int64, page int) (topics []model.Topic, paging *querybuilder.Paging) {
+	topicTags, paging := dao.TopicTagDao.List(querybuilder.NewQueryBuilder().
 		Eq("tag_id", tagId).
 		Eq("status", model.StatusOk).
 		Page(page, 20).Desc("last_comment_time"))
@@ -213,7 +213,7 @@ func (s *topicService) OnComment(topicId, lastCommentUserId, lastCommentTime int
 
 // rss
 func (s *topicService) GenerateRss() {
-	topics := dao.TopicDao.Find(sqlcnd.NewSqlCnd().Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
+	topics := dao.TopicDao.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
 
 	var items []*feeds.Item
 	for _, topic := range topics {
@@ -260,7 +260,7 @@ func (s *topicService) GenerateRss() {
 func (s *topicService) ScanDesc(dateFrom, dateTo int64, cb ScanTopicCallback) {
 	var cursor int64 = math.MaxInt64
 	for {
-		list := dao.TopicDao.Find(sqlcnd.NewSqlCnd().Lt("id", cursor).
+		list := dao.TopicDao.Find(querybuilder.NewQueryBuilder().Lt("id", cursor).
 			Gte("create_time", dateFrom).Lt("create_time", dateTo).Desc("id").Limit(1000))
 		if list == nil || len(list) == 0 {
 			break

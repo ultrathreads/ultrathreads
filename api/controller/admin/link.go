@@ -8,7 +8,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 // LinkController link controller
@@ -84,11 +84,11 @@ func (c *LinkController) List(ctx *gin.Context) {
 	limit := form.FormValueIntDefault(ctx, "limit", 20)
 	name := ctx.Request.FormValue("name")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
 	list, paging := service.LinkService.List(conditions.Page(page, limit).Desc("id"))
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: list, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: list, Page: paging})
 }

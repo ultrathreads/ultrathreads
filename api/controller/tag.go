@@ -9,7 +9,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 type TagController struct {
@@ -33,7 +33,7 @@ func (c *TagController) Show(ctx *gin.Context) {
 func (c *TagController) List(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 
-	tags, paging := service.TagService.List(sqlcnd.NewSqlCnd().
+	tags, paging := service.TagService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
 		Page(page, 200).Desc("id"))
 

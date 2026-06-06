@@ -2,7 +2,7 @@ package dao
 
 import (
 	"ultrathreads/model"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 var SettingDao = newSettingDao()
@@ -30,12 +30,12 @@ func (d *settingDao) Take(where ...interface{}) *model.Setting {
 	return ret
 }
 
-func (d *settingDao) Find(cnd *sqlcnd.SqlCnd) (list []model.Setting) {
+func (d *settingDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Setting) {
 	cnd.Find(db, &list)
 	return
 }
 
-func (d *settingDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Setting {
+func (d *settingDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Setting {
 	ret := &model.Setting{}
 	if err := cnd.FindOne(db, &ret); err != nil {
 		return nil
@@ -43,11 +43,11 @@ func (d *settingDao) FindOne(cnd *sqlcnd.SqlCnd) *model.Setting {
 	return ret
 }
 
-func (d *settingDao) List(cnd *sqlcnd.SqlCnd) (list []model.Setting, paging *sqlcnd.Paging) {
+func (d *settingDao) List(cnd *querybuilder.QueryBuilder) (list []model.Setting, paging *querybuilder.Paging) {
 	cnd.Find(db, &list)
 	count := cnd.Count(db, &model.Setting{})
 
-	paging = &sqlcnd.Paging{
+	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
 		Total: count,

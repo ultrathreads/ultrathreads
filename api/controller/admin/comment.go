@@ -10,7 +10,7 @@ import (
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/markdown"
-	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/querybuilder"
 )
 
 // CommentController comment controller
@@ -75,7 +75,7 @@ func (c *CommentController) List(ctx *gin.Context) {
 	entityID := ctx.Request.FormValue("entityId")
 	userID := ctx.Request.FormValue("userId")
 
-	conditions := sqlcnd.NewSqlCnd()
+	conditions := querybuilder.NewQueryBuilder()
 	if len(status) > 0 {
 		conditions.Eq("status", status)
 	}
@@ -99,5 +99,5 @@ func (c *CommentController) List(ctx *gin.Context) {
 		results = append(results, result)
 	}
 
-	c.Success(ctx, &sqlcnd.PageResult{Results: results, Page: paging})
+	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }
