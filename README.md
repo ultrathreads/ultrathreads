@@ -95,6 +95,8 @@ The project is still in early development. Refer to the README files of the `api
     ├── 💬 [ID:49] Second reply (ParentId:10, ThreadId:10)
     ├── 💬 [ID:50] Third reply (ParentId:10, ThreadId:10)
     ├── 💬 [ID:51] Fourth reply (ParentId:10, ThreadId:10)
+    │   └── 💬 [ID:54] Deep nested (ParentId:51, ThreadId:10)
+    │       └── 💬 [ID:55] Deep nested (ParentId:54, ThreadId:10)    
     └── 💬 [ID:52] Fifth reply (ParentId:10, ThreadId:10)
         └── 💬 [ID:53] Deep nested (ParentId:52, ThreadId:10)
 
