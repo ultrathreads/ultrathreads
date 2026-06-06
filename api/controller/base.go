@@ -10,6 +10,13 @@ import (
 	"ultrathreads/util"
 )
 
+type R struct {
+	Code    int         `json:"code"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
 // BaseController controller
 type BaseController struct {
 }
@@ -23,7 +30,7 @@ func (c *BaseController) BindAndValidate(ctx *gin.Context, obj interface{}) bool
 	return true
 }
 
-// GetCurrentUser get current user from contexg
+// GetCurrentUser get current user from contex
 func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 	if currentUser, ok := ctx.Get("CurrentUser"); ok {
 		return currentUser.(*model.User)
@@ -33,20 +40,24 @@ func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 
 // Success output json data
 func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
-	ctx.IndentedJSON(http.StatusOK, gin.H{
-		"code":    0,
-		"success": true,
-		"message": "ok",
-		"data":    data,
-	})
+	resp := R{Code: 0, Success: true, Message: "ok", Data: data}
+
+	// 仅 debug 模式使用格式化JSON
+	if gin.Mode() == gin.DebugMode {
+		ctx.IndentedJSON(http.StatusOK, resp)
+	} else {
+		ctx.JSON(http.StatusOK, resp)
+	}
 }
 
 // Fail output error
 func (c *BaseController) Fail(ctx *gin.Context, error *util.CodeError) {
-	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
-		"code":    error.Code,
-		"success": false,
-		"message": error.Message,
-	})
-	return
+	resp := R{Code: error.Code, Success: false, Message: error.Message}
+
+	if gin.Mode() == gin.DebugMode {
+		ctx.IndentedJSON(http.StatusOK, resp)
+	} else {
+		ctx.JSON(http.StatusOK, resp)
+	}
+	ctx.Abort()
 }
