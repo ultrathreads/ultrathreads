@@ -1,14 +1,18 @@
 // src/components/Footer.tsx
 import Link from 'next/link';
 
-export default function Footer() {
+interface FooterProps {
+  appVersion: string;
+}
+
+export default function Footer({ appVersion }: FooterProps) {
   return (
     <footer className="main-footer">
       <div className="footer-container">
         {/* 左侧：版权信息 */}
         <div className="footer-left">
           <p className="footer-copyright">
-            &copy; {new Date().getFullYear()} UltraThreads. All rights reserved.
+            &copy; {new Date().getFullYear()} UltraThreads v{appVersion}. All rights reserved.
           </p>
           <p className="footer-slogan">连接每一个有趣的灵魂</p>
         </div>

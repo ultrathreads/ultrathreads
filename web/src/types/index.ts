@@ -1,4 +1,9 @@
 
+export type FeConfigsType = {
+  siteTitle?: string;
+  siteDescription:? string;
+}
+
 export interface Thread {
   id: string;
   title: string;

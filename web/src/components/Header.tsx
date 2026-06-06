@@ -5,7 +5,11 @@ import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n-client';
 import UserMenu from './UserMenu';
 
-export default function Header() {
+interface HeaderProps {
+  siteTitle: string;
+}
+
+export default function Header({ siteTitle }: HeaderProps) {
   const { t } = useTranslation(['common']);
   // 2. 定义一个状态来存储用户的登录状态
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -30,7 +34,7 @@ export default function Header() {
           <svg className="ut-logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" aria-hidden="true">
             <path d="M443.52 318.72h-166.4v136.96h303.36v-83.2H976v262.4H580.48v-83.2H277.12v156.8a80 80 0 0 0 80 80h223.36v-83.2H976v262.4H580.48v-83.2h-223.36a176 176 0 0 1-176-176V318.72H48v-262.4h395.52v262.4z m232.96 552.96h203.52v-70.4h-203.52v70.4z m0-332.8h203.52v-70.4h-203.52v70.4zM144 222.72h203.52v-70.4H144v70.4z"></path>
           </svg>
-          UltraThreads
+          {siteTitle}
         </Link>
         <div className="search-box">
           <span className="search-icon">🔍</span>

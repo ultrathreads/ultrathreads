@@ -53,7 +53,7 @@ func Setup(e *gin.Engine) {
 
 	// Configs
 	configController := &controller.ConfigController{}
-	api.GET("/config/configs", configController.List)
+	api.GET("/config/site-config", configController.List)
 
 	// Nodes
 	nodeController := &controller.NodeController{}
