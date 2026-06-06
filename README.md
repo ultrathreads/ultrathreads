@@ -8,18 +8,18 @@
 
 ### api
 
-> 基于`Go`语言开发，提供Restful风格接口。
+> Developed with `Go`, providing RESTful-style APIs.
 
-*技术栈*
-- gin (https://github.com/gin-gonic/gin) Go web 框架
+*Tech Stack*
+- gin (https://github.com/gin-gonic/gin) Go web framework
 - JWT (https://github.com/appleboy/gin-jwt) JWT Middleware for Gin framework
-- gorm (http://gorm.io/) Go 语言 orm 框架
+- gorm (http://gorm.io/) ORM framework for Go language
 
 ### web
 
-> 前端页面渲染服务，基于`Next.js`实现。
+> Frontend page rendering service implemented based on `Next.js`.
 
-*技术栈*
+*Tech Stack*
 - Nuxt.js (https://nextjs.org) The React Framework for the Web
 
 ## License
