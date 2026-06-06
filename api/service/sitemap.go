@@ -93,13 +93,13 @@ func (s *sitemapService) Generate(dateFrom, dateTo int64) {
 		s.AddSitemapIndex(sm, sitemapLoc)
 	})
 
-	// topics
-	TopicService.ScanDesc(dateFrom, dateTo, func(topics []model.Topic) {
-		for _, topic := range topics {
-			if topic.Status == model.StatusOk {
+	// posts
+	PostService.ScanDesc(dateFrom, dateTo, func(posts []model.Post) {
+		for _, post := range posts {
+			if post.Status == model.StatusOk {
 				sm.AddURL(sitemap.URL{
-					Loc:        urls.TopicUrl(topic.ID),
-					Lastmod:    util.TimeFromTimestamp(topic.LastCommentTime),
+					Loc:        urls.PostUrl(post.ID),
+					Lastmod:    util.TimeFromTimestamp(post.LastCommentTime),
 					Changefreq: sitemap.ChangefreqDaily,
 					Priority:   "0.8",
 				})
@@ -135,7 +135,7 @@ func (s *sitemapService) GenerateMisc() {
 		Priority:   "1.0",
 	})
 	sm.AddURL(sitemap.URL{
-		Loc:        urls.AbsUrl("/topics"),
+		Loc:        urls.AbsUrl("/posts"),
 		Lastmod:    time.Now(),
 		Changefreq: sitemap.ChangefreqDaily,
 		Priority:   "1.0",

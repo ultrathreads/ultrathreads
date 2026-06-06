@@ -13,71 +13,71 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// TopicController topic controller
-type TopicController struct {
+// PostController post controller
+type PostController struct {
 	controller.BaseController
 }
 
-// Show show topic
-func (c *TopicController) Show(ctx *gin.Context) {
+// Show show post
+func (c *PostController) Show(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		topic := service.TopicService.Get(gDto.ID)
-		if topic == nil {
-			c.Fail(ctx, util.NewErrorMsg("Topic not found, id="+strconv.FormatInt(gDto.ID, 10)))
+		post := service.PostService.Get(gDto.ID)
+		if post == nil {
+			c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
 		}
-		c.Success(ctx, topic)
+		c.Success(ctx, post)
 	}
 }
 
-// Update update a topic
-func (c *TopicController) Update(ctx *gin.Context) {
+// Update update a post
+func (c *PostController) Update(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	topic := service.TopicService.Get(gDto.ID)
-	if topic == nil {
-		c.Fail(ctx, util.NewErrorMsg("Topic not found, id="+strconv.FormatInt(gDto.ID, 10)))
+	post := service.PostService.Get(gDto.ID)
+	if post == nil {
+		c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(gDto.ID, 10)))
 		return
 	}
 
-	var topicForm form.TopicUpdateForm
-	if !c.BindAndValidate(ctx, &topicForm) {
+	var postForm form.PostUpdateForm
+	if !c.BindAndValidate(ctx, &postForm) {
 		return
 	}
-	topicForm.ID = gDto.ID
-	err := service.TopicService.Update(topicForm)
+	postForm.ID = gDto.ID
+	err := service.PostService.Update(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, topic)
+	c.Success(ctx, post)
 }
 
-// Delete delete topic
-func (c *TopicController) Delete(ctx *gin.Context) {
+// Delete delete post
+func (c *PostController) Delete(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.TopicService.Delete(gDto.ID)
+	service.PostService.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
-// Undelete delete topic
-func (c *TopicController) Undelete(ctx *gin.Context) {
+// Undelete delete post
+func (c *PostController) Undelete(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.TopicService.Undelete(gDto.ID)
+	service.PostService.Undelete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
-// List list topics
-func (c *TopicController) List(ctx *gin.Context) {
+// List list posts
+func (c *PostController) List(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 	limit := form.FormValueIntDefault(ctx, "limit", 20)
 	id := ctx.Request.FormValue("id")
@@ -103,16 +103,16 @@ func (c *TopicController) List(ctx *gin.Context) {
 		conditions.Like("title", title)
 	}
 
-	list, paging := service.TopicService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := service.PostService.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
-	for _, topic := range list {
-		result := util.StructToMap(topic, "content")
-		result["user"] = converter.ToUserDefaultIfNull(topic.UserId)
-		result["node"] = service.NodeService.Get(topic.NodeId)
-		result["tags"] = converter.ToTags(service.TopicService.GetTopicTags(topic.ID))
+	for _, post := range list {
+		result := util.StructToMap(post, "content")
+		result["user"] = converter.ToUserDefaultIfNull(post.UserId)
+		result["node"] = service.NodeService.Get(post.NodeId)
+		result["tags"] = converter.ToTags(service.PostService.GetPostTags(post.ID))
 		// 简介
-		mr := markdown.NewMd().Run(topic.Content)
+		mr := markdown.NewMd().Run(post.Content)
 		result["summary"] = mr.SummaryText
 
 		results = append(results, result)
@@ -122,12 +122,12 @@ func (c *TopicController) List(ctx *gin.Context) {
 }
 
 // Recommend 推荐
-func (c *TopicController) Recommend(ctx *gin.Context) {
+func (c *PostController) Recommend(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	err := service.TopicService.SetRecommend(gDto.ID, true)
+	err := service.PostService.SetRecommend(gDto.ID, true)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -136,12 +136,12 @@ func (c *TopicController) Recommend(ctx *gin.Context) {
 }
 
 // Unrecommend 取消推荐
-func (c *TopicController) Unrecommend(ctx *gin.Context) {
+func (c *PostController) Unrecommend(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	err := service.TopicService.SetRecommend(gDto.ID, false)
+	err := service.PostService.SetRecommend(gDto.ID, false)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return

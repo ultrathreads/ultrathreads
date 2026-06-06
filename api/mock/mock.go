@@ -15,7 +15,7 @@ func dropAndCreateTable(table interface{}) {
 func Mock() {
 	UserTableSeeder(true)
 	NodeTableSeeder(true)
-	TopicTableSeeder(true)
+	PostTableSeeder(true)
 	LinkTableSeeder(true)
 	SettingTableSeeder(true)
 }

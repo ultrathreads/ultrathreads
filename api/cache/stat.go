@@ -9,7 +9,7 @@ import (
 
 type statCache struct {
 	userCountCache    cache.LoadingCache
-	topicCountCache   cache.LoadingCache
+	postCountCache   cache.LoadingCache
 }
 
 var StatCache = newStatCache()
@@ -24,9 +24,9 @@ func newStatCache() *statCache {
 			cache.WithMaximumSize(10),
 			cache.WithExpireAfterAccess(1*time.Hour),
 		),
-		topicCountCache: cache.NewLoadingCache(
+		postCountCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.TopicDao.Count(querybuilder.NewQueryBuilder())
+				value = dao.PostDao.Count(querybuilder.NewQueryBuilder())
 				return
 			},
 			cache.WithMaximumSize(10),
@@ -43,8 +43,8 @@ func (c *statCache) GetUserCount() int {
 	return val.(int)
 }
 
-func (c *statCache) GetTopicCount() int {
-	val, err := c.topicCountCache.Get("data")
+func (c *statCache) GetPostCount() int {
+	val, err := c.postCountCache.Get("data")
 	if err != nil {
 		return 0
 	}

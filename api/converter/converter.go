@@ -37,13 +37,13 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 		entityId := gjson.Get(notification.ExtraData, "entityId")
 		if entityType.String() == model.EntityTypeArticle {
 			detailUrl = urls.ArticleUrl(entityId.Int())
-		} else if entityType.String() == model.EntityTypeTopic {
-			detailUrl = urls.TopicUrl(entityId.Int())
+		} else if entityType.String() == model.EntityTypePost {
+			detailUrl = urls.PostUrl(entityId.Int())
 		}
 		icon = "comment"
-	} else if notification.Type == model.MsgTypeTopicLike {
+	} else if notification.Type == model.MsgTypePostLike {
 		entityId := gjson.Get(notification.ExtraData, "entityId")
-		detailUrl = urls.TopicUrl(entityId.Int())
+		detailUrl = urls.PostUrl(entityId.Int())
 		icon = "heart"
 	} else if notification.Type == model.MsgTypeUserWatch {
 		entityId := gjson.Get(notification.ExtraData, "entityId")
@@ -96,14 +96,14 @@ func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 			}
 		}
 	} else {
-		topic := service.TopicService.Get(favorite.EntityId)
-		if topic == nil || topic.Status != model.StatusOk {
+		post := service.PostService.Get(favorite.EntityId)
+		if post == nil || post.Status != model.StatusOk {
 			rsp.Deleted = true
 		} else {
-			rsp.Url = urls.TopicUrl(topic.ID)
-			rsp.User = ToUserById(topic.UserId)
-			rsp.Title = topic.Title
-			rsp.Content = util.GetMarkdownSummary(topic.Content)
+			rsp.Url = urls.PostUrl(post.ID)
+			rsp.User = ToUserById(post.UserId)
+			rsp.Title = post.Title
+			rsp.Content = util.GetMarkdownSummary(post.Content)
 		}
 	}
 	return rsp

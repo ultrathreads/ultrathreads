@@ -61,8 +61,8 @@ func (s *nodeService) Delete(id int64) {
 }
 
 // 主题数+1
-func (s *nodeService) IncrTopicCount(nodeId int64) {
-	dao.DB().Model(&model.Node{}).Where("id = ?", nodeId).UpdateColumn("topic_count", gorm.Expr("topic_count + ?", 1))
+func (s *nodeService) IncrPostCount(nodeId int64) {
+	dao.DB().Model(&model.Node{}).Where("id = ?", nodeId).UpdateColumn("post_count", gorm.Expr("post_count + ?", 1))
 }
 
 func (s *nodeService) GetRecommendNodes() []model.Node {

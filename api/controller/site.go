@@ -13,7 +13,7 @@ type SiteController struct {
 func (c *SiteController) Stat(ctx *gin.Context) {
 	data := make(map[string]interface{})
 	data["userCount"] = cache.StatCache.GetUserCount()
-	data["topicCount"] = cache.StatCache.GetTopicCount()
+	data["postCount"] = cache.StatCache.GetPostCount()
 
 	c.Success(ctx, data)
 }

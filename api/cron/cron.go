@@ -25,7 +25,7 @@ func startSchedule() {
 	// Generate RSS
 	addCronFunc(c, "@every 30m", func() {
 		service.ArticleService.GenerateRss()
-		service.TopicService.GenerateRss()
+		service.PostService.GenerateRss()
 	})
 
 	// Generate sitemap

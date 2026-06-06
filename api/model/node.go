@@ -7,6 +7,6 @@ type Node struct {
 	Description string `json:"description" form:"description"`                                   // 描述
 	SortNo      int    `gorm:"index:idx_sort_no" json:"sortNo" form:"sortNo"`                    // 排序编号
 	Status      int    `gorm:"not null" json:"status" form:"status"`                             // 状态
-	TopicCount  int64  `gorm:"not null" json:"topicCount" form:"topicCount"`                     // 主题数量
+	PostCount  int64  `gorm:"not null" json:"postCount" form:"postCount"`                     // 主题数量
 	CreateTime  int64  `json:"createTime" form:"createTime"`                                     // 创建时间
 }

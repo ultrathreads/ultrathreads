@@ -103,19 +103,19 @@ func (s *notificationService) SendUserWatchNotification(userWatch *model.UserWat
 }
 
 // 内容被点赞
-func (s *notificationService) SendTopicLikeNotification(topicLike *model.TopicLike) {
-	user := cache.UserCache.Get(topicLike.UserId)
+func (s *notificationService) SendPostLikeNotification(postLike *model.PostLike) {
+	user := cache.UserCache.Get(postLike.UserId)
 
 	var (
-		fromId       = topicLike.UserId // 消息发送人
+		fromId       = postLike.UserId // 消息发送人
 		authorId     int64              // 点赞者编号
 		content      string             // 消息内容
 		quoteContent string             // 引用内容
 	)
-	topic := dao.TopicDao.Get(topicLike.TopicId)
-	if topic != nil {
-		authorId = topic.UserId
-		content = user.Username.String + " 点赞了你的话题：" + topic.Title
+	post := dao.PostDao.Get(postLike.PostId)
+	if post != nil {
+		authorId = post.UserId
+		content = user.Username.String + " 点赞了你的话题：" + post.Title
 		quoteContent = ""
 	}
 
@@ -123,10 +123,10 @@ func (s *notificationService) SendTopicLikeNotification(topicLike *model.TopicLi
 		return
 	}
 	// 给帖子作者发消息
-	s.Produce(fromId, authorId, content, quoteContent, model.MsgTypeTopicLike, map[string]interface{}{
-		"entityType":  model.EntityTypeTopic,
-		"entityId":    topic.ID,
-		"topicLikeId": topicLike.ID,
+	s.Produce(fromId, authorId, content, quoteContent, model.MsgTypePostLike, map[string]interface{}{
+		"entityType":  model.EntityTypePost,
+		"entityId":    post.ID,
+		"postLikeId": postLike.ID,
 	})
 }
 

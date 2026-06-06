@@ -73,12 +73,12 @@ func (s *favoriteService) AddArticleFavorite(userId, articleId int64) error {
 }
 
 // 收藏主题
-func (s *favoriteService) AddTopicFavorite(userId, topicId int64) error {
-	topic := dao.TopicDao.Get(topicId)
-	if topic == nil || topic.Status != model.StatusOk {
+func (s *favoriteService) AddPostFavorite(userId, postId int64) error {
+	post := dao.PostDao.Get(postId)
+	if post == nil || post.Status != model.StatusOk {
 		return errors.New("收藏的话题不存在")
 	}
-	return s.addFavorite(userId, model.EntityTypeTopic, topicId)
+	return s.addFavorite(userId, model.EntityTypePost, postId)
 }
 
 func (s *favoriteService) addFavorite(userId int64, entityType string, entityId int64) error {

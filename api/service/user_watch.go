@@ -106,6 +106,6 @@ func (s *userWatchService) Watch(userID int64, watcherID int64) error {
 		// 发送点赞通知
 		NotificationService.SendUserWatchNotification(userWatch)
 		return nil
-		// return dao.DB().Model(&topic).UpdateColumn("like_count", gorm.Expr("like_count + ?", 1)).Error
+		// return dao.DB().Model(&post).UpdateColumn("like_count", gorm.Expr("like_count + ?", 1)).Error
 	})
 }

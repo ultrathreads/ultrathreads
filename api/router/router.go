@@ -60,27 +60,27 @@ func Setup(e *gin.Engine) {
 	api.GET("/nodes", nodeController.List)
 	api.GET("/node/:id", nodeController.Show)
 
-	// Topics
-	topicController := &controller.TopicController{}
-	api.GET("/topics", topicController.List)
-	jwtApi.POST("/topics", topicController.Store)
-	api.GET("/topic/:id", topicController.Show)
+	// Posts
+	postController := &controller.PostController{}
+	api.GET("/posts", postController.List)
+	jwtApi.POST("/posts", postController.Store)
+	api.GET("/post/:id", postController.Show)
 
-	jwtApi.GET("/topic/:id/edit", topicController.Edit)
-	jwtApi.PUT("/topic/:id", topicController.Update)
+	jwtApi.GET("/post/:id/edit", postController.Edit)
+	jwtApi.PUT("/post/:id", postController.Update)
 
-	api.GET("/topics/node", topicController.GetNodeTopics)
-	api.GET("/topics/excellent", topicController.GetTopicsExcellent)
-	api.GET("/topics/recommend", topicController.GetTopicsRecommend)
-	api.GET("/topics/noreply", topicController.GetTopicsNoreply)
-	api.GET("/topics/last", topicController.GetTopicsLast)
-	api.GET("/topics/tag", topicController.GetTagTopics)
-	api.GET("/topics/user/recent/:id", topicController.GetUserRecent)
-	api.GET("/user/topics/:id", topicController.GetUserTopics)
+	api.GET("/posts/node", postController.GetNodePosts)
+	api.GET("/posts/excellent", postController.GetPostsExcellent)
+	api.GET("/posts/recommend", postController.GetPostsRecommend)
+	api.GET("/posts/noreply", postController.GetPostsNoreply)
+	api.GET("/posts/last", postController.GetPostsLast)
+	api.GET("/posts/tag", postController.GetTagPosts)
+	api.GET("/posts/user/recent/:id", postController.GetUserRecent)
+	api.GET("/user/posts/:id", postController.GetUserPosts)
 
-	api.GET("/topic/:id/recentlikes", topicController.GetRecentLikes)
-	jwtApi.POST("/topic/:id/like", topicController.Like)
-	jwtApi.POST("/topic/:id/favorite", topicController.Favorite)
+	api.GET("/post/:id/recentlikes", postController.GetRecentLikes)
+	jwtApi.POST("/post/:id/like", postController.Like)
+	jwtApi.POST("/post/:id/favorite", postController.Favorite)
 
 	// Favorites
 	favoriteController := &controller.FavoriteController{}
@@ -172,15 +172,15 @@ func Setup(e *gin.Engine) {
 	adminAPI.PUT("/nodes/:id", adminNodeController.Update)
 	adminAPI.DELETE("/nodes/:id", adminNodeController.Delete)
 
-	// Topic
-	adminTopicController := &admin.TopicController{}
-	adminAPI.GET("/topics", adminTopicController.List)
-	adminAPI.GET("/topics/:id", adminTopicController.Show)
-	adminAPI.PUT("/topics/:id", adminTopicController.Update)
-	adminAPI.DELETE("/topics/:id", adminTopicController.Delete)
-	adminAPI.POST("/topics/:id/recommend", adminTopicController.Recommend)
-	adminAPI.POST("/topics/:id/unrecommend", adminTopicController.Unrecommend)
-	adminAPI.POST("/topics/:id/undelete", adminTopicController.Undelete)
+	// Post
+	adminPostController := &admin.PostController{}
+	adminAPI.GET("/posts", adminPostController.List)
+	adminAPI.GET("/posts/:id", adminPostController.Show)
+	adminAPI.PUT("/posts/:id", adminPostController.Update)
+	adminAPI.DELETE("/posts/:id", adminPostController.Delete)
+	adminAPI.POST("/posts/:id/recommend", adminPostController.Recommend)
+	adminAPI.POST("/posts/:id/unrecommend", adminPostController.Unrecommend)
+	adminAPI.POST("/posts/:id/undelete", adminPostController.Undelete)
 
 	// Article
 	adminArticleController := &admin.ArticleController{}

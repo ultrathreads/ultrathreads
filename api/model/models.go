@@ -2,7 +2,7 @@ package model
 
 var Models = []interface{}{
 	&User{}, &Tag{}, &Article{}, &ArticleTag{}, &Favorite{},
-	&Topic{}, &Node{}, &TopicTag{}, &TopicLike{}, &Notification{}, &Setting{}, &Link{},
+	&Post{}, &Node{}, &PostTag{}, &PostLike{}, &Notification{}, &Setting{}, &Link{},
 	&LoginSource{}, &Sitemap{}, &UserWatch{}, &UserScore{}, &UserScoreLog{},
 }
 
@@ -22,7 +22,7 @@ const (
 	ContentTypeMarkdown = "markdown"
 
 	EntityTypeArticle = "article"
-	EntityTypeTopic   = "topic"
+	EntityTypePost   = "post"
 	EntityTypeComment = "comment"
 	EntityTypeUser    = "user"
 
@@ -30,7 +30,7 @@ const (
 	NotificationStatusReaded = 1 // 消息已读
 
 	MsgTypeComment   = 0 // 回复消息
-	MsgTypeTopicLike = 1 // 话题点赞
+	MsgTypePostLike = 1 // 话题点赞
 	MsgTypeUserWatch = 2 // 用户关注
 
 	LoginSourceTypeGithub = "github"
@@ -40,6 +40,6 @@ const (
 	ScoreTypeIncr = 0 // 积分+
 	ScoreTypeDecr = 1 // 积分-
 
-	TopicTypeNormal  = 0 // 普通帖子
-	TopicTypeTwitter = 1 // 推文
+	PostTypeNormal  = 0 // 普通帖子
+	PostTypeTwitter = 1 // 推文
 )

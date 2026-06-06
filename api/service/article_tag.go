@@ -47,6 +47,6 @@ func (s *articleTagService) UpdateColumn(id int64, name string, value interface{
 	return dao.ArticleTagDao.UpdateColumn(id, name, value)
 }
 
-func (s *articleTagService) DeleteByArticleId(topicId int64) {
-	dao.DB().Model(model.ArticleTag{}).Where("article_id = ?", topicId).UpdateColumn("status", model.StatusDeleted)
+func (s *articleTagService) DeleteByArticleId(postId int64) {
+	dao.DB().Model(model.ArticleTag{}).Where("article_id = ?", postId).UpdateColumn("status", model.StatusDeleted)
 }

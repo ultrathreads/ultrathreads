@@ -25,7 +25,7 @@ type SiteTip struct {
 
 // 积分配置
 type ScoreConfig struct {
-	PostTopicScore   int `json:"postTopicScore"`   // 发帖获得积分
+	PostPostScore   int `json:"postPostScore"`   // 发帖获得积分
 	PostCommentScore int `json:"postCommentScore"` // 跟帖获得积分
 }
 

@@ -73,15 +73,15 @@ func (s *userScoreService) CreateOrUpdate(t *model.UserScore) error {
 	}
 }
 
-// IncrementCreateTopicScore 发帖获积分
-func (s *userScoreService) IncrementPostTopicScore(topic *model.Topic) {
+// IncrementCreatePostScore 发帖获积分
+func (s *userScoreService) IncrementPostPostScore(post *model.Post) {
 	config := SettingService.GetSetting()
-	if config.ScoreConfig.PostTopicScore <= 0 {
+	if config.ScoreConfig.PostPostScore <= 0 {
 		log.Info("请配置发帖积分")
 		return
 	}
-	err := s.addScore(topic.UserId, config.ScoreConfig.PostTopicScore, model.EntityTypeTopic,
-		strconv.FormatInt(topic.ID, 10), "发表话题")
+	err := s.addScore(post.UserId, config.ScoreConfig.PostPostScore, model.EntityTypePost,
+		strconv.FormatInt(post.ID, 10), "发表话题")
 	if err != nil {
 		log.Error(err.Error())
 	}
