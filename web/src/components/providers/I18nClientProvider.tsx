@@ -1,4 +1,4 @@
-// src/components/I18nClientProvider.tsx
+// src/components/providers/I18nClientProvider.tsx
 'use client';
 
 import '@/lib/i18n-client';

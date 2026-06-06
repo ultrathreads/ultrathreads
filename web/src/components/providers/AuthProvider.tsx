@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 无论接口是否成功，前端都应重置内存状态并跳转
       setUser(null);
       setError(null);
-      window.location.href = '/auth/login';
+      window.location.href = '/';
     }
   }, []);
 

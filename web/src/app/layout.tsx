@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import { headers } from 'next/headers';
-import { I18nClientProvider } from '@/components/I18nClientProvider';
+import { I18nClientProvider } from '@/components/providers/I18nClientProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import type { Metadata } from 'next';
 import { fetchSiteConfig } from '@/services/site-service';

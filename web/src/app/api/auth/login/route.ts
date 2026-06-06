@@ -1,6 +1,6 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { login, type LoginParams, type LoginEnvelope } from '@/lib/api/auth';
+import { login, type LoginParams, type LoginEnvelope } from '@/services/auth-service';
 import { ApiBusinessError } from '@/lib/api/client';
 
 export async function POST(req: NextRequest) {
