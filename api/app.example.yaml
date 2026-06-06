@@ -51,17 +51,21 @@ qq:
   client_secret:
 
 cors:
-  allow_credentials: false
+  allow_credentials: true
   allow_headers:
-  - '*'
+    - Content-Type
+    - Authorization
+    - Accept
+    - Origin
+    - X-Requested-With
   allow_methods:
-  - GET
-  - POST
-  - OPTIONS
-  - PUT
-  - DELETE
+    - GET
+    - POST
+    - OPTIONS
+    - PUT
+    - DELETE
   allow_origins:
-  - '*'
+    - http://localhost:3000
   enable: true
   max_age: 7200
 smtp:

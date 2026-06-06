@@ -3,12 +3,14 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/components/providers/AuthProvider'; // ✅ 引入全局状态 Hook
 
 // 用户名验证：3-20位，仅允许字母、数字、下划线、连字符
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
 
 export default function LoginForm() {
   const router = useRouter();
+  const { refreshUser } = useAuth(); // ✅ 获取刷新用户状态的方法
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +35,6 @@ export default function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // ✅ 字段改为 username
         body: JSON.stringify({ username, password }),
       });
 
@@ -42,6 +43,10 @@ export default function LoginForm() {
         throw new Error(data?.error || `登录失败 (${res.status})`);
       }
 
+      // ✅ 核心改动：登录接口返回成功后，立即拉取 /user/current 并更新全局 Context
+      await refreshUser();
+
+      // 跳转首页并刷新服务端组件缓存
       router.push('/');
       router.refresh();
     } catch (err) {
@@ -79,7 +84,6 @@ export default function LoginForm() {
               setErrorMsg(null);
             }}
           />
-          {/* 👇 用户名格式提示 */}
           {username.length > 0 && !isUsernameValid && (
             <p className="form-hint form-hint--error">
               用户名需为3-20位字母、数字、下划线或连字符

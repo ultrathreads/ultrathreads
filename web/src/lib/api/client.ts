@@ -1,7 +1,6 @@
 // src/lib/api/client.ts
-import { cookies } from 'next/headers';
 
-const GO_API_BASE = process.env.GO_API_BASE || 'http://localhost:8080';
+const GO_API_BASE = process.env.GO_API_BASE || 'http://localhost:9527/api';
 
 /** 📦 Go 后端统一响应信封 */
 interface ApiResponse<T> {
@@ -14,11 +13,6 @@ interface ApiResponse<T> {
 export interface ApiRequestOptions extends RequestInit {
   auth?: boolean;
   cacheStrategy?: NextFetchRequestConfig;
-  /**
-   * ✅ 新增：跳过自动剥壳
-   * 设为 true 时返回完整 ApiResponse 信封（含 success/code/message/data）
-   * 默认 false，自动提取 data 字段并在业务失败时抛出异常
-   */
   skipDataUnwrap?: boolean;
 }
 
@@ -34,7 +28,6 @@ export async function apiFetch<T>(
   path: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
-  // ✅ 关键修复：显式解构 skipDataUnwrap，避免被透传给原生 fetch 导致失效
   const {
     auth = false,
     cacheStrategy = { next: { revalidate: 60 } },
@@ -45,16 +38,33 @@ export async function apiFetch<T>(
   const headers = new Headers(fetchOptions.headers);
   headers.set('Content-Type', 'application/json');
 
+  // ✅ 核心修复：区分服务端与客户端的鉴权方式
+  let credentials: RequestCredentials | undefined = fetchOptions.credentials;
+
   if (auth) {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('access_token')?.value;
-    if (!token) throw new ApiBusinessError('AUTH_REQUIRED', -1);
-    headers.set('Authorization', `Bearer ${token}`);
+    if (typeof window === 'undefined') {
+      // 🖥️ 服务端 SSR：读取 Cookie 并手动注入 Authorization Header
+      try {
+        const { cookies } = await import('next/headers');
+        const cookieStore = await cookies();
+        const token = cookieStore.get('access_token')?.value;
+        if (!token) throw new ApiBusinessError('AUTH_REQUIRED', -1);
+        headers.set('Authorization', `Bearer ${token}`);
+      } catch (e) {
+        // 防止动态导入本身失败导致未捕获异常
+        console.warn('[apiFetch] Server-side cookie read failed:', e);
+        throw new ApiBusinessError('AUTH_REQUIRED', -1);
+      }
+    } else {
+      // 🌐 客户端浏览器：依赖浏览器自动携带 Cookie
+      credentials = 'include';
+    }
   }
 
   const res = await fetch(`${GO_API_BASE}${path}`, {
     ...fetchOptions,
     headers,
+    credentials,
     ...cacheStrategy,
   });
 
@@ -67,10 +77,10 @@ export async function apiFetch<T>(
     throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
   }
 
-  // 📦 解析统一响应信封
+  // 📦 拆解统一响应信封
   const envelope = (await res.json()) as ApiResponse<T>;
 
-  // ✅ skipDataUnwrap = true 时直接返回完整信封，不做任何业务校验与剥壳
+  // ✅ skipDataUnwrap = true 时直接返回完整信封
   if (skipDataUnwrap) {
     return envelope as unknown as T;
   }

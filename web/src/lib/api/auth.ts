@@ -38,6 +38,37 @@ export interface LoginParams {
   password: string;
 }
 
+/** Go 后端 /user/current 响应数据结构 */
+export interface CurrentUser {
+  id: number;
+  username: string;
+  email: string;
+  nickname: string;
+  avatar: string;
+  level: number;
+  levelName: string;
+  website: string;
+  description: string;
+  score: number;
+  topicCount: number;
+  commentCount: number;
+  passwordSet: boolean;
+  status: number;
+  createTime: number; // Unix 毫秒时间戳
+}
+
+/** 
+ * 获取当前登录用户信息（服务端/客户端均可调用）
+ * ✅ 必须带 auth: true 自动注入 Cookie 中的 Token
+ */
+export async function getCurrentUser(): Promise<CurrentUser> {
+  return apiFetch<CurrentUser>('/user/current', {
+    method: 'GET',
+    auth: true,
+    cacheStrategy: { next: { revalidate: 60 } },
+  });
+}
+
 /**
  * 登录（服务端调用）
  * ✅ 使用 skipDataUnwrap 阻止 apiFetch 自动剥壳，确保 route.ts 能拿到完整信封

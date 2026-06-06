@@ -1,12 +1,11 @@
 // src/app/layout.tsx
 import { headers } from 'next/headers';
 import { I18nClientProvider } from '@/components/I18nClientProvider';
-import { getServerTranslation } from '@/lib/i18n-server';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 import type { Metadata } from 'next';
 import { getSiteConfig } from '@/lib/api/site';
 
 import './globals.css';
-
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getSiteConfig();
@@ -30,7 +29,12 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body>
-        <I18nClientProvider locale={locale}>{children}</I18nClientProvider>
+        {/* ✅ 保持 I18nClientProvider 在最外层，确保 AuthProvider 及其子组件能使用多语言 */}
+        <I18nClientProvider locale={locale}>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </I18nClientProvider>
       </body>
     </html>
   );

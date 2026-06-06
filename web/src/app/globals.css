@@ -107,10 +107,42 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
     transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
 }
 .user-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
+
+/* dropdown-header 容器布局 */
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* 用户等级标签 */
+.user-level {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  white-space: nowrap;
+}
+
+/* 用户积分 */
+.user-score {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .dropdown-item {
     display: flex; align-items: center; gap: 8px; padding: 10px 16px;
     font-size: 14px; color: #2c3e50; cursor: pointer; white-space: nowrap;
-    transition: background-color 0.15s;
+    transition: background-color 0.15s;text-decoration: none;
 }
 .dropdown-item:hover { background-color: #f5f7fa; }
 .dropdown-item.danger { color: #e74c3c; }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n-client';
+import { useAuth } from '@/components/providers/AuthProvider';
 import UserMenu from './UserMenu';
 
 interface HeaderProps {
@@ -11,20 +11,24 @@ interface HeaderProps {
 
 export default function Header({ siteTitle }: HeaderProps) {
   const { t } = useTranslation(['common']);
-  // 2. 定义一个状态来存储用户的登录状态
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const { user, isLoading } = useAuth();
 
-  // 3. 在组件挂载后，随机决定登录状态，模拟真实情况
-  useEffect(() => {
-    // Math.random() 会生成一个 0 到 1 之间的随机数
-    // 如果随机数大于 0.5，就视为已登录，否则为未登录
-    const randomStatus = Math.random() > 0.5;
-    setIsLoggedIn(randomStatus);
-  }, []);
-
-  // 4. 在状态确定之前，可以先渲染一个占位符，避免页面闪烁
-  if (isLoggedIn === null) {
-    return <header className="header">加载中...</header>;
+  // 加载中保持原有布局骨架，避免闪烁
+  if (isLoading) {
+    return (
+      <header className="header">
+        <div className="header-left">
+          <Link href="/" className="header-title">{siteTitle}</Link>
+          <div className="search-box">
+            <span className="search-icon">🔍</span>
+            <input className="search-input" id="searchInput" placeholder={t('common:search_default_value')} />
+          </div>
+        </div>
+        <div className="header-actions">
+          <span className="loading-placeholder">...</span>
+        </div>
+      </header>
+    );
   }
 
   return (
@@ -42,15 +46,12 @@ export default function Header({ siteTitle }: HeaderProps) {
         </div>
       </div>
       <div className="header-actions">
-        {/* 5. 根据登录状态，条件渲染不同的内容 */}
-        {isLoggedIn ? (
-          // --- 已登录状态 ---
+        {user ? (
           <>
             <Link href="/create" className="post-btn">✏️ {t('common:posting')}</Link>
             <UserMenu />
           </>
         ) : (
-          // --- 未登录状态 ---
           <>
             <Link href="/auth/login" className="login-link">{t('common:login')}</Link>
             <Link href="/auth/register" className="register-link">{t('common:register')}</Link>

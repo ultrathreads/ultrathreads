@@ -21,12 +21,7 @@ type UserController struct {
 func (c *UserController) GetCurrent(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	ctx.IndentedJSON(200, gin.H{
-		"code":    200,
-		"success": true,
-		"message": "ok",
-		"data":    convert.ToUser(user),
-	})
+	c.Success(ctx, convert.ToUser(user))
 }
 
 // 用户详情
