@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/form"
-	"zendea/service"
-	"zendea/util"
+	"ultrathreads/form"
+	"ultrathreads/service"
+	"ultrathreads/util"
 )
 
 type FavoriteController struct {

@@ -4,12 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"zendea/convert"
-	"zendea/controller"
-	"zendea/form"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/convert"
+	"ultrathreads/controller"
+	"ultrathreads/form"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 // UserScoreLogController user score controller

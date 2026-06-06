@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util/log"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util/log"
 )
 
 //login type

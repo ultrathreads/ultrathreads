@@ -3,14 +3,14 @@ package service
 import (
 	"sync"
 
-	"zendea/cache"
-	"zendea/dao"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/email"
-	"zendea/util/log"
-	"zendea/util/sqlcnd"
-	"zendea/util/urls"
+	"ultrathreads/cache"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/email"
+	"ultrathreads/util/log"
+	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/urls"
 )
 
 var NotificationService = newNotificationService()

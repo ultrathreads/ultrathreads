@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 
-	"zendea/util"
-	"zendea/util/log"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
 )
 
 var ctxCache = cache.New(cache.WithMaximumSize(1000), cache.WithExpireAfterAccess(10*time.Minute))

@@ -4,13 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"strings"
 
-	"zendea/convert"
-	"zendea/cache"
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/convert"
+	"ultrathreads/cache"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 type UserController struct {

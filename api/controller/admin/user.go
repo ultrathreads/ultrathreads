@@ -4,13 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"zendea/cache"
-	"zendea/controller"
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/cache"
+	"ultrathreads/controller"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 // UserController user controller

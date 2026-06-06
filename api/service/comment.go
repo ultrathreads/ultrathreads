@@ -4,11 +4,11 @@ import (
 	"errors"
 	"strings"
 
-	"zendea/dao"
-	"zendea/form"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/dao"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 var CommentService = newCommentService()

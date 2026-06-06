@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/cache"
+	"ultrathreads/cache"
 )
 
 type SiteController struct {

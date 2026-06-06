@@ -3,10 +3,10 @@ package convert
 import (
 	"strconv"
 
-	"zendea/cache"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/avatar"
+	"ultrathreads/cache"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/avatar"
 )
 
 func ToUserDefaultIfNull(id int64) *model.UserInfo {

@@ -12,9 +12,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 
-	"zendea/util"
-	"zendea/util/log"
-	"zendea/util/urls"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
+	"ultrathreads/util/urls"
 )
 
 var (

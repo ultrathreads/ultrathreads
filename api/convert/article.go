@@ -3,10 +3,10 @@ package convert
 import (
 	"html/template"
 
-	"zendea/cache"
-	"zendea/model"
-	"zendea/util/markdown"
-	"zendea/util/strtrim"
+	"ultrathreads/cache"
+	"ultrathreads/model"
+	"ultrathreads/util/markdown"
+	"ultrathreads/util/strtrim"
 )
 
 func ToArticle(article *model.Article) *model.ArticleResponse {

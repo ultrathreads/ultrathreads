@@ -3,10 +3,10 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util/sqlcnd"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util/sqlcnd"
 )
 
 type LinkController struct {

@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/service"
+	"ultrathreads/service"
 )
 
 type ConfigController struct {

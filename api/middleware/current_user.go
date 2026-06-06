@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/service"
+	"ultrathreads/service"
 )
 
 func CurrentUser(ctx *gin.Context) {

@@ -3,12 +3,12 @@ package convert
 import (
 	"html/template"
 
-	"zendea/cache"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/log"
-	"zendea/util/markdown"
+	"ultrathreads/cache"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
+	"ultrathreads/util/markdown"
 )
 
 func ToTopic(topic *model.Topic) *model.TopicResponse {

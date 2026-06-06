@@ -1,4 +1,4 @@
-module zendea
+module ultrathreads
 
 go 1.14
 

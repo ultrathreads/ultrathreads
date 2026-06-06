@@ -2,7 +2,7 @@ package mock
 
 import (
 	"math/rand"
-	"zendea/dao"
+	"ultrathreads/dao"
 )
 
 // dropAndCreateTable - 清空表

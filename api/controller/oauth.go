@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/oauth/gitee"
-	"zendea/oauth/github"
-	"zendea/oauth/qq"
+	"ultrathreads/oauth/gitee"
+	"ultrathreads/oauth/github"
+	"ultrathreads/oauth/qq"
 )
 
 // OAuthController oauth controller

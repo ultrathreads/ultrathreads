@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"zendea/util/log"
-	"zendea/util/uploader"
+	"ultrathreads/util/log"
+	"ultrathreads/util/uploader"
 )
 
 type Generator struct {

@@ -1,7 +1,7 @@
 mode: release
 base:
   port: 9527
-  url: https://zendea.com
+  url: https://ultrathreads.com
   static_path: /data/www
 
 database:
@@ -9,7 +9,7 @@ database:
   mysql:
     charset: utf8
     host: 127.0.0.1:3306
-    name: zendea
+    name: ultrathreads
     user: root
     password: root123!
     pool:
@@ -17,10 +17,10 @@ database:
       min: 5
     ssl: false
   sqlite:
-    path: data/zendea.db
+    path: data/ultrathreads.db
 
 jwt:
-  identity_key: zendea_id
+  identity_key: ultrathreads_id
   key: secret key
 
 uploader:
@@ -32,7 +32,7 @@ uploader:
     access_id: 请配置成你自己的
     access_secret: 请配置成你自己的
   local:
-    host: https://static.zendea.com/ # 上传文件域名
+    host: https://static.ultrathreads.com/ # 上传文件域名
     path: /data/www # 上传目录
 
 # github登录配置，回调地址：http://base.url/oauth/github/callback

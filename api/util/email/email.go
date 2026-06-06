@@ -10,7 +10,7 @@ import (
 	"github.com/jordan-wright/email"
 	"github.com/spf13/viper"
 
-	"zendea/util/log"
+	"ultrathreads/util/log"
 )
 
 var emailTemplate = `

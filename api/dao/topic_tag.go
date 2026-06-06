@@ -1,9 +1,9 @@
 package dao
 
 import (
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 var TopicTagDao = newTopicTagDao()

@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"zendea/model"
-	"zendea/util/sqlcnd"
+	"ultrathreads/model"
+	"ultrathreads/util/sqlcnd"
 )
 
 var SettingDao = newSettingDao()

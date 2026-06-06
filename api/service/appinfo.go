@@ -1,8 +1,8 @@
 package service
 
 import (
-	"zendea/config"
-	"zendea/model"
+	"ultrathreads/config"
+	"ultrathreads/model"
 )
 
 var AppinfoService = newAppinfoService()

@@ -4,10 +4,10 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 
-	"zendea/convert"
-	"zendea/form"
-	"zendea/service"
-	"zendea/util"
+	"ultrathreads/convert"
+	"ultrathreads/form"
+	"ultrathreads/service"
+	"ultrathreads/util"
 )
 
 // AuthController auth controller

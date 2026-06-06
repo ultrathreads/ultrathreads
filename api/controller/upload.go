@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"zendea/util"
-	"zendea/util/log"
-	"zendea/util/uploader"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
+	"ultrathreads/util/uploader"
 )
 
 type UploadController struct {

@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"zendea/model"
+	"ultrathreads/model"
 )
 
 func ToNode(node *model.Node) *model.NodeResponse {

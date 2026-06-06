@@ -9,12 +9,12 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"zendea/cache"
-	"zendea/cron"
-	"zendea/dao"
-	"zendea/middleware"
-	"zendea/router"
-	"zendea/util/log"
+	"ultrathreads/cache"
+	"ultrathreads/cron"
+	"ultrathreads/dao"
+	"ultrathreads/middleware"
+	"ultrathreads/router"
+	"ultrathreads/util/log"
 )
 
 var CmdWeb = cli.Command{

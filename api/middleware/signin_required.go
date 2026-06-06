@@ -3,8 +3,8 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"zendea/service"
-	"zendea/util"
+	"ultrathreads/service"
+	"ultrathreads/util"
 )
 
 // SigninRequired signin required

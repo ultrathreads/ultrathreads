@@ -3,10 +3,10 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/controller"
-	"zendea/util"
-	// "zendea/form"
-	"zendea/service"
+	"ultrathreads/controller"
+	"ultrathreads/util"
+	// "ultrathreads/form"
+	"ultrathreads/service"
 )
 
 // SettingController setting controller

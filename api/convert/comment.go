@@ -3,9 +3,9 @@ package convert
 import (
 	"html/template"
 
-	"zendea/model"
-	"zendea/service"
-	"zendea/util/markdown"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util/markdown"
 )
 
 func ToComments(comments []model.Comment) []model.CommentResponse {

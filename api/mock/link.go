@@ -2,8 +2,8 @@ package mock
 
 import (
 	"fmt"
-	"zendea/model"
-	"zendea/dao"
+	"ultrathreads/model"
+	"ultrathreads/dao"
 	"strconv"
 )
 

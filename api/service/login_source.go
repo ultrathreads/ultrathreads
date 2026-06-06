@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"zendea/dao"
-	"zendea/model"
-	"zendea/oauth/gitee"
-	"zendea/oauth/github"
-	"zendea/oauth/qq"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/oauth/gitee"
+	"ultrathreads/oauth/github"
+	"ultrathreads/oauth/qq"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 var LoginSourceService = newLoginSourceService()

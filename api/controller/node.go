@@ -3,10 +3,10 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/convert"
-	"zendea/cache"
-	"zendea/form"
-	"zendea/service"
+	"ultrathreads/convert"
+	"ultrathreads/cache"
+	"ultrathreads/form"
+	"ultrathreads/service"
 )
 
 type NodeController struct {

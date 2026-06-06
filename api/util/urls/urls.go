@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"zendea/util/log"
+	"ultrathreads/util/log"
 )
 
 var BaseUrl = viper.GetString("base.url")

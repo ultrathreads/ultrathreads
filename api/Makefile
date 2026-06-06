@@ -18,9 +18,9 @@ else
 	endif
 endif
 
-LDFLAGS += -X "zendea/config.BuildTime=$(shell date -u '+%Y-%m-%d %I:%M:%S %Z')"
-LDFLAGS += -X "zendea/config.BuildCommit=$(shell git rev-parse HEAD)"
-LDFLAGS += -X "zendea/config.AppVersion=$(ZENDEA_VERSION)"
+LDFLAGS += -X "ultrathreads/config.BuildTime=$(shell date -u '+%Y-%m-%d %I:%M:%S %Z')"
+LDFLAGS += -X "ultrathreads/config.BuildCommit=$(shell git rev-parse HEAD)"
+LDFLAGS += -X "ultrathreads/config.AppVersion=$(ZENDEA_VERSION)"
 
 TAGS = ""
 BUILD_FLAGS = "-v"
@@ -28,7 +28,7 @@ BUILD_FLAGS = "-v"
 all: build
 
 build:
-	go build $(BUILD_FLAGS) -ldflags '$(LDFLAGS)' -tags '$(TAGS)' -trimpath -o zendea
+	go build $(BUILD_FLAGS) -ldflags '$(LDFLAGS)' -tags '$(TAGS)' -trimpath -o ultrathreads
 
 run:
-	./zendea web
+	./ultrathreads web

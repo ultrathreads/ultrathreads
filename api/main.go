@@ -6,8 +6,8 @@ import (
 	"runtime"
 
 	"github.com/urfave/cli"
-	"zendea/config"
-	"zendea/cmd"
+	"ultrathreads/config"
+	"ultrathreads/cmd"
 )
 
 const APP_VER = "0.0.3-dev"

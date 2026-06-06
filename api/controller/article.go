@@ -4,12 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"zendea/convert"
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/convert"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 type ArticleController struct {

@@ -4,10 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"zendea/convert"
-	"zendea/form"
-	"zendea/service"
-	"zendea/util"
+	"ultrathreads/convert"
+	"ultrathreads/form"
+	"ultrathreads/service"
+	"ultrathreads/util"
 )
 
 // CommentController comment controller

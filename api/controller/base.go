@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"zendea/form"
-	"zendea/model"
-	"zendea/util"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/util"
 )
 
 // BaseController controller

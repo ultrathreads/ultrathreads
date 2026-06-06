@@ -10,15 +10,15 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 
-	"zendea/cache"
-	"zendea/dao"
-	"zendea/form"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/avatar"
-	"zendea/util/log"
-	"zendea/util/sqlcnd"
-	"zendea/util/uploader"
+	"ultrathreads/cache"
+	"ultrathreads/dao"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/avatar"
+	"ultrathreads/util/log"
+	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/uploader"
 )
 
 type ScanUserCallback func(users []model.User)

@@ -5,10 +5,10 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"zendea/dao"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 var TopicLikeService = newTopicLikeService()

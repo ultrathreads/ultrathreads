@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"zendea/dao"
-	"zendea/util/log"
-	"zendea/mock"
+	"ultrathreads/dao"
+	"ultrathreads/util/log"
+	"ultrathreads/mock"
 )
 
 

@@ -3,7 +3,7 @@ package cache
 import (
 	"github.com/goburrow/cache"
 
-	"zendea/util/log"
+	"ultrathreads/util/log"
 )
 
 func key2Int64(key cache.Key) int64 {

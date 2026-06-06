@@ -6,16 +6,16 @@ import (
 	"strconv"
 	"strings"
 
-	"zendea/convert"
-	"zendea/cache"
-	"zendea/controller"
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/markdown"
-	"zendea/util/sqlcnd"
-	"zendea/util/strtrim"
+	"ultrathreads/convert"
+	"ultrathreads/cache"
+	"ultrathreads/controller"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/markdown"
+	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/strtrim"
 )
 
 // ArticleController article controller

@@ -3,9 +3,9 @@ package cron
 import (
 	"github.com/robfig/cron"
 
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/log"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
 )
 
 func Setup() {

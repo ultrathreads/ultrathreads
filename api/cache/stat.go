@@ -2,8 +2,8 @@ package cache
 
 import (
 	"time"
-	"zendea/dao"
-	"zendea/util/sqlcnd"
+	"ultrathreads/dao"
+	"ultrathreads/util/sqlcnd"
 	"github.com/goburrow/cache"
 )
 

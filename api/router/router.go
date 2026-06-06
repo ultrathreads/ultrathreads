@@ -5,9 +5,9 @@ import (
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 
-	"zendea/controller"
-	"zendea/controller/admin"
-	"zendea/middleware"
+	"ultrathreads/controller"
+	"ultrathreads/controller/admin"
+	"ultrathreads/middleware"
 )
 
 var jwtAuth *jwt.GinJWTMiddleware

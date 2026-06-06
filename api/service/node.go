@@ -4,12 +4,12 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 
-	"zendea/dao"
-	"zendea/form"
-	"zendea/model"
-	"zendea/cache"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/dao"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/cache"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 var NodeService = newNodeService()

@@ -3,7 +3,7 @@ package sqlcnd
 import (
 	"github.com/jinzhu/gorm"
 
-	"zendea/util/log"
+	"ultrathreads/util/log"
 )
 
 type SqlCnd struct {

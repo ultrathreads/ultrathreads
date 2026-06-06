@@ -5,9 +5,9 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
 
-	"zendea/model"
-	"zendea/dao"
-	"zendea/util"
+	"ultrathreads/model"
+	"ultrathreads/dao"
+	"ultrathreads/util"
 )
 
 var (

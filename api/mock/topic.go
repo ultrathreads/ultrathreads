@@ -2,9 +2,9 @@ package mock
 
 import (
 	"fmt"
-	"zendea/model"
-	"zendea/dao"
-	"zendea/util"
+	"ultrathreads/model"
+	"ultrathreads/dao"
+	"ultrathreads/util"
 	"github.com/Pallinder/go-randomdata"
 )
 

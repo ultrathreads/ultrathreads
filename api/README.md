@@ -12,5 +12,5 @@ $ make
 $ cp app.example.yaml app.yaml
 
 # 运行
-$ ./zendea web
+$ ./ultrathreads web
 ```

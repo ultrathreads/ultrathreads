@@ -3,10 +3,10 @@ package service
 import (
 	"strings"
 
-	"zendea/cache"
-	"zendea/dao"
-	"zendea/model"
-	"zendea/util/sqlcnd"
+	"ultrathreads/cache"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/util/sqlcnd"
 )
 
 type ScanTagCallback func(tags []model.Tag) bool

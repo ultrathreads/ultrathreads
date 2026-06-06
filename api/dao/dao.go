@@ -10,8 +10,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/spf13/viper"
 
-	"zendea/model"
-	"zendea/util/log"
+	"ultrathreads/model"
+	"ultrathreads/util/log"
 )
 
 var (

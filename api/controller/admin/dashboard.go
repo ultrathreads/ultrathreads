@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"time"
 
-	"zendea/config"
-	"zendea/controller"
-	"zendea/util"
+	"ultrathreads/config"
+	"ultrathreads/controller"
+	"ultrathreads/util"
 )
 
 // initTime is the time when the application was initialized.

@@ -7,12 +7,12 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/tidwall/gjson"
 
-	"zendea/cache"
-	"zendea/dao"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/log"
-	"zendea/util/sqlcnd"
+	"ultrathreads/cache"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
+	"ultrathreads/util/sqlcnd"
 )
 
 var SettingService = newSettingService()

@@ -5,7 +5,7 @@ import (
 
 	"github.com/goburrow/cache"
 
-	"zendea/dao"
+	"ultrathreads/dao"
 )
 
 type articleTagCache struct {

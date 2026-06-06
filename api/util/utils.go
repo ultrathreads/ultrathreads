@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/viper"
 
-	"zendea/model"
-	"zendea/util/markdown"
-	"zendea/util/strtrim"
+	"ultrathreads/model"
+	"ultrathreads/util/markdown"
+	"ultrathreads/util/strtrim"
 )
 
 // 是否是正式环境
@@ -118,7 +118,7 @@ func IsValidateUrl(url string) error {
 // 是否是内部图片
 func IsInternalImage(imageUrl string) bool {
 	// TODO @ 2019/12/31 这个地方硬编码了，要修改
-	return strings.Contains(imageUrl, "file.zendea.com") || strings.Contains(imageUrl, "static.zendea.com")
+	return strings.Contains(imageUrl, "file.ultrathreads.com") || strings.Contains(imageUrl, "static.ultrathreads.com")
 }
 
 // 应用图片样式

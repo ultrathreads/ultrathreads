@@ -6,12 +6,12 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/tidwall/gjson"
 
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/avatar"
-	"zendea/util/strtrim"
-	"zendea/util/urls"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/avatar"
+	"ultrathreads/util/strtrim"
+	"ultrathreads/util/urls"
 )
 
 func ToFavorites(favorites []model.Favorite) []model.FavoriteResponse {

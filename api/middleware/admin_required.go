@@ -3,9 +3,9 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
 )
 
 // AdminRequired admin required

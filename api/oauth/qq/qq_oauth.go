@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 
-	"zendea/util"
-	"zendea/util/log"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
 )
 
 type UserInfo struct {

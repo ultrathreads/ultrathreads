@@ -5,8 +5,8 @@ import (
 
 	"github.com/goburrow/cache"
 
-	"zendea/dao"
-	"zendea/model"
+	"ultrathreads/dao"
+	"ultrathreads/model"
 )
 
 type settingCache struct {

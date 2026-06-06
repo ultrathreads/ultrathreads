@@ -5,9 +5,9 @@ import (
 
 	"github.com/goburrow/cache"
 
-	"zendea/dao"
-	"zendea/model"
-	"zendea/util/log"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/util/log"
 )
 
 type tagCache struct {

@@ -5,13 +5,13 @@ import (
 
 	"github.com/spf13/viper"
 
-	"zendea/dao"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/log"
-	"zendea/util/sitemap"
-	"zendea/util/sqlcnd"
-	"zendea/util/urls"
+	"ultrathreads/dao"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
+	"ultrathreads/util/sitemap"
+	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/urls"
 )
 
 const (

@@ -9,8 +9,8 @@ import (
 	"github.com/russross/blackfriday/v2"
 	"github.com/vinta/pangu"
 
-	"zendea/util/log"
-	"zendea/util/strtrim"
+	"ultrathreads/util/log"
+	"ultrathreads/util/strtrim"
 )
 
 type MdResult struct {

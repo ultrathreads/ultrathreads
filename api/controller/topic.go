@@ -3,13 +3,13 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"zendea/convert"
-	"zendea/cache"
-	"zendea/form"
-	"zendea/model"
-	"zendea/service"
-	"zendea/util"
-	"zendea/util/sqlcnd"
+	"ultrathreads/convert"
+	"ultrathreads/cache"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/service"
+	"ultrathreads/util"
+	"ultrathreads/util/sqlcnd"
 )
 
 type TopicController struct {

@@ -10,14 +10,14 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
 
-	"zendea/cache"
-	"zendea/dao"
-	"zendea/form"
-	"zendea/model"
-	"zendea/util"
-	"zendea/util/log"
-	"zendea/util/sqlcnd"
-	"zendea/util/urls"
+	"ultrathreads/cache"
+	"ultrathreads/dao"
+	"ultrathreads/form"
+	"ultrathreads/model"
+	"ultrathreads/util"
+	"ultrathreads/util/log"
+	"ultrathreads/util/sqlcnd"
+	"ultrathreads/util/urls"
 )
 
 type ScanArticleCallback func(articles []model.Article)

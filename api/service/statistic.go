@@ -3,8 +3,8 @@ package service
 import (
 	"strconv"
 
-	"zendea/util/log"
-	"zendea/util/sqlcnd"
+	"ultrathreads/util/log"
+	"ultrathreads/util/sqlcnd"
 )
 
 var StatisticService = newStatisticService()

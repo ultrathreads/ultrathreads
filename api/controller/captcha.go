@@ -4,7 +4,7 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 
-	"zendea/util/urls"
+	"ultrathreads/util/urls"
 )
 
 // CaptchaController captcha controller
