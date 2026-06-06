@@ -32,7 +32,7 @@
 
 The project is still in early development. Refer to the README files of the `api` and `web` modules for installation and development instructions.
 
-## Demo
+## The Principle of Threaded Posts
 
 
     📌 [ID:1] Go (ParentId:0, ThreadId:1)
