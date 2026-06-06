@@ -14,12 +14,12 @@ const APP_VER = "0.0.3-dev"
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	config.AppName = "Zendea"
+	config.AppName = "UltraThreads"
 }
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "Zendea"
+	app.Name = "UltraThreads"
 	app.Usage = "A free, open-source, self-hosted forum software written in Go."
 	app.Version = APP_VER
 	app.Commands = []cli.Command{

@@ -22,7 +22,7 @@ func Setup(e *gin.Engine) {
 	e.Use(middleware.Cors())
 
 	e.Any("/", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "Zendea API\n")
+		ctx.String(http.StatusOK, "UltraThreads API\n")
 	})
 
 	// e.Use(middleware.CurrentUser)

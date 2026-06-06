@@ -20,7 +20,7 @@ func SettingTableSeeder(needCleanTable bool) {
 		},
 		{
 			Key:   "siteTitle",
-			Value: "Zendea",
+			Value: "UltraThreads",
 		},
 		{
 			Key:    "siteDescription",

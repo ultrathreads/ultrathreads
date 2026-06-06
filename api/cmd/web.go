@@ -19,7 +19,7 @@ import (
 
 var CmdWeb = cli.Command{
 	Name:  "web",
-	Usage: "Start Zendea API",
+	Usage: "Start UltraThreads API",
 	Description: `A free, open-source, self-hosted forum software written in Go`,
 	Action: runWeb,
 	Flags:  []cli.Flag{},
