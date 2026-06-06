@@ -20,7 +20,7 @@
 > Frontend page rendering service implemented based on `Next.js`.
 
 *Tech Stack*
-- Nuxt.js (https://nextjs.org) The React Framework for the Web
+- Next.js (https://nextjs.org) The React Framework for the Web
 
 ## License
 UltraThreads is open-sourced software licensed under the [GNU General Public License version 3](https://opensource.org/license/gpl-3.0)
