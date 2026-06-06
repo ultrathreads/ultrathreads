@@ -63,6 +63,7 @@ func Setup(e *gin.Engine) {
 	// Posts
 	postController := &controller.PostController{}
 	api.GET("/posts", postController.List)
+	api.GET("/posts/threads", postController.ListWithReplies)
 	jwtApi.POST("/posts", postController.Store)
 	api.GET("/post/:id", postController.Show)
 

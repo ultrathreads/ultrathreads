@@ -1,22 +1,22 @@
+// components/ThreadTree.tsx
 'use client';
-import { useState } from 'react';
-import { Thread } from '@/types';
+import { useState, useMemo } from 'react';
+import type { SimplePost } from '@/lib/api/posts';
+import { buildThreadTree } from '@/lib/thread-utils';
 import ThreadItem from './ThreadItem';
 
 interface Props {
-  threads: Thread[];
+  threads: SimplePost[]; // 👈 改为接收扁平列表
 }
 
 export default function ThreadTree({ threads }: Props) {
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('latest');
 
-  // 通过 CSS 类批量控制折叠（与原始 JS 行为一致）
-  const toggleAll = () => {
-    setAllCollapsed(!allCollapsed);
-    // 实际 DOM 操作由子组件响应 prop 或 CSS 完成
-    // 这里简化为重新渲染
-  };
+  // ✅ 使用 useMemo 避免每次渲染都重建树
+  const tree = useMemo(() => buildThreadTree(threads), [threads]);
+
+  const toggleAll = () => setAllCollapsed((prev) => !prev);
 
   return (
     <div className="thread-tree-container">
@@ -47,7 +47,7 @@ export default function ThreadTree({ threads }: Props) {
         </div>
       </div>
       <ul className="thread">
-        {threads.map((t) => (
+        {tree.map((t) => (
           <ThreadItem key={t.id} item={t} isRoot />
         ))}
       </ul>

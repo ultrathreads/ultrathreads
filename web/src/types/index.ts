@@ -4,15 +4,17 @@ export type FeConfigsType = {
   siteDescription:? string;
 }
 
-export interface Thread {
-  id: string;
+export interface Reply {
+  id: number;
   title: string;
-  author: string;
-  date: string;
-  category: string;
-  isRead?: boolean;
-  replies: Thread[];
+  author: string;       // 注意：这里目前是 user_id 的字符串形式
+  date: string;         // 注意：这里是格式化后的本地时间字符串
+  category?: string;
+  replies: Reply[];     // 递归嵌套结构
 }
+
+/** 主帖类型（当前业务场景下与 Reply 结构一致） */
+export type Thread = Reply;
 
 export interface ForumBoard {
   name: string;

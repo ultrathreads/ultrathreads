@@ -44,6 +44,20 @@ func (c *PostController) List(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
+// ListWithReplies 帖子列表（含扁平化回帖）
+func (c *PostController) ListWithReplies(ctx *gin.Context) {
+	page := form.FormValueIntDefault(ctx, "page", 1)
+	limit := form.FormValueIntDefault(ctx, "limit", 20)
+
+	posts, paging := service.PostService.ListThreadsWithReplies(page, limit)
+
+	data := map[string]interface{}{
+		"results": converter.ToSimplePosts(posts),
+		"page":    paging,
+	}
+	c.Success(ctx, data)
+}
+
 // Store 发表帖子
 func (c *PostController) Store(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)

@@ -46,6 +46,52 @@ func (s *postService) Count(cnd *querybuilder.QueryBuilder) int {
 	return dao.PostDao.Count(cnd)
 }
 
+// ListThreadsWithReplies 获取主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
+// 返回的列表已按 create_time ASC 排序，前端可直接根据 parent_id 组装树
+func (s *postService) ListThreadsWithReplies(page, limit int) ([]model.Post, *querybuilder.Paging) {
+	// ========== 第一步：分页查出主帖ID ==========
+	rootCnd := querybuilder.NewQueryBuilder().
+		Eq("parent_id", 0).
+		Eq("status", model.StatusOk).
+		Desc("last_comment_time").
+		Page(page, limit)
+
+	rootPosts, paging := dao.PostDao.List(rootCnd)
+	if len(rootPosts) == 0 {
+		return []model.Post{}, paging
+	}
+
+	// 提取主帖ID列表
+	threadIds := make([]int64, 0, len(rootPosts))
+	for _, p := range rootPosts {
+		threadIds = append(threadIds, p.ID)
+	}
+
+	// ========== 第二步：批量拉取这些主题下的所有帖子 ==========
+	allCnd := querybuilder.NewQueryBuilder().
+		In("thread_id", threadIds).
+		Eq("status", model.StatusOk).
+		Asc("create_time")
+
+	allPosts := dao.PostDao.Find(allCnd)
+
+	// ========== 第三步：按主帖原始分页顺序分组，再组内按时间排序 ==========
+	// 保持主帖的分页排序（last_comment_time DESC），同时每个主题内部按时间正序
+	postMap := make(map[int64][]model.Post, len(threadIds))
+	for _, p := range allPosts {
+		postMap[p.ThreadId] = append(postMap[p.ThreadId], p)
+	}
+
+	result := make([]model.Post, 0, len(allPosts))
+	for _, tid := range threadIds {
+		if posts, ok := postMap[tid]; ok {
+			result = append(result, posts...)
+		}
+	}
+
+	return result, paging
+}
+
 // 删除
 func (s *postService) Delete(id int64) error {
 	err := dao.PostDao.UpdateColumn(id, "status", model.StatusDeleted)
