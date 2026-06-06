@@ -4,7 +4,13 @@
 
 `UltraThreads` is an open-source, lightweight web forum that renders posts in threaded view.
 
-## 模块
+## Features
+
+- data storage in a MySQL or SQLite database
+- nodes
+- three possible views of posts
+
+## Project Structure
 
 ### api
 
@@ -21,6 +27,10 @@
 
 *Tech Stack*
 - Next.js (https://nextjs.org) The React Framework for the Web
+
+## Installation
+
+The project is still in early development. Refer to the README files of the `api` and `web` modules for installation and development instructions.
 
 ## License
 UltraThreads is open-sourced software licensed under the [GNU General Public License version 3](https://opensource.org/license/gpl-3.0)
