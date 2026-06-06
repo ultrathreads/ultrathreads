@@ -1,27 +1,54 @@
-// src/app/auth/login/LoginForm.tsx
 'use client';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// 用户名验证：3-20位，仅允许字母、数字、下划线、连字符
+const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
+
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // 实时用户名合法性校验
+  const isUsernameValid = USERNAME_REGEX.test(username);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMsg(null);
 
-    // 模拟登录请求
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    // 提交前二次校验
+    if (!isUsernameValid) {
+      setErrorMsg('用户名需为3-20位字母、数字、下划线或连字符');
+      setIsSubmitting(false);
+      return;
+    }
 
-    console.log('登录数据:', { email, password });
-    setIsSubmitting(false);
-    alert('🎉 登录成功！');
-    router.push('/'); // 登录成功后跳转回首页
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // ✅ 字段改为 username
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || `登录失败 (${res.status})`);
+      }
+
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : '未知错误');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -31,40 +58,59 @@ export default function LoginForm() {
         <p className="auth-subtitle">登录你的 UltraThreads 账号</p>
       </div>
 
+      {errorMsg && (
+        <div className="auth-error" role="alert">
+          {errorMsg}
+        </div>
+      )}
+
       <form className="auth-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">邮箱地址</label>
-          <input 
-            type="email" 
-            className="form-input" 
-            placeholder="请输入邮箱..." 
+          <label className="form-label">用户名</label>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="请输入用户名..."
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setErrorMsg(null);
+            }}
           />
+          {/* 👇 用户名格式提示 */}
+          {username.length > 0 && !isUsernameValid && (
+            <p className="form-hint form-hint--error">
+              用户名需为3-20位字母、数字、下划线或连字符
+            </p>
+          )}
         </div>
 
         <div className="form-group">
           <label className="form-label">密码</label>
-          <input 
-            type="password" 
-            className="form-input" 
-            placeholder="请输入密码..." 
+          <input
+            type="password"
+            className="form-input"
+            placeholder="请输入密码..."
             required
+            autoComplete="current-password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrorMsg(null);
+            }}
           />
-          {/* 👇 忘记密码链接 */}
           <Link href="/auth/forgot-password" className="auth-link forgot-password-link">
             忘记密码？
           </Link>
         </div>
 
         <div className="auth-actions">
-          <button 
-            type="submit" 
-            className="auth-btn" 
-            disabled={isSubmitting || !email || !password}
+          <button
+            type="submit"
+            className="auth-btn"
+            disabled={isSubmitting || !isUsernameValid || !password}
           >
             {isSubmitting ? '登录中...' : '登 录'}
           </button>

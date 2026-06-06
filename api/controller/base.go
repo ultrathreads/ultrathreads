@@ -35,6 +35,7 @@ func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"code":    0,
+		"success": true,
 		"message": "ok",
 		"data":    data,
 	})
@@ -44,6 +45,7 @@ func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 func (c *BaseController) Fail(ctx *gin.Context, error *util.CodeError) {
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"code":    error.Code,
+		"success": false,
 		"message": error.Message,
 	})
 	return
