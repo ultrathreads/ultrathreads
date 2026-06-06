@@ -1,0 +1,17 @@
+{
+  "common": {
+    "title": "from common title",
+    "home":"🏠 Home",
+    "mine": "👤 My...",
+    "search_default_value":"Search...",
+    "posting": "Create new...",
+    "register": "Register",
+    "login": "Login"
+  },
+  "home": {
+    "title": "from home title",
+    "description": "This is a demo page using i18next for internationalization",
+    "counter": "Current count: {{count}}",
+    "increment": "Click +1"
+  }
+}
