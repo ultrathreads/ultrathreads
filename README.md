@@ -34,6 +34,7 @@ The project is still in early development. Refer to the README files of the `api
 
 ## Demo
 
+`
 📌 [ID:1] Go (ParentId:0, ThreadId:1)
 ├── 💬 [ID:11] Reply to Go (ParentId:1, ThreadId:1)
 │   └── 💬 [ID:12] Nested reply (ParentId:11, ThreadId:1)
@@ -96,6 +97,7 @@ The project is still in early development. Refer to the README files of the `api
 ├── 💬 [ID:51] Fourth reply (ParentId:10, ThreadId:10)
 └── 💬 [ID:52] Fifth reply (ParentId:10, ThreadId:10)
     └── 💬 [ID:53] Deep nested (ParentId:52, ThreadId:10)
+`
 
 ## License
 UltraThreads is open-sourced software licensed under the [GNU General Public License version 3](https://opensource.org/license/gpl-3.0)

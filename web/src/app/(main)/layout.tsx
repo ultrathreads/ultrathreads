@@ -4,10 +4,10 @@ import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import BackToTop from '@/components/BackToTop';
 import PreviewPopover from '@/components/PreviewPopover';
-import { getSiteConfig } from '@/lib/api/site';
+import { fetchSiteConfig } from '@/services/site-service';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const config = await getSiteConfig();
+  const config = await fetchSiteConfig();
 
   return (
     <div className="app-layout">

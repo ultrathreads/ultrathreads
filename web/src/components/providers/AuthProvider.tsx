@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { getCurrentUser, type CurrentUser } from '@/lib/api/auth';
+import { getCurrentUser, type CurrentUser } from '@/services/auth-service';
 import { ApiBusinessError } from '@/lib/api/client';
 
 interface AuthContextType {

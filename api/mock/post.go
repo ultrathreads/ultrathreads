@@ -16,7 +16,7 @@ func PostTableSeeder(needCleanTable bool) {
 
 	// 1. 生成主帖并回填 ThreadId
 	var rootPosts []*model.Post
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 50; i++ {
 		post := postFactory(0, 0) // ParentId=0, ThreadId=0(占位)
 		if err := dao.PostDao.Create(post); err != nil {
 			fmt.Printf("mock root post error: %v\n", err)
@@ -34,8 +34,8 @@ func PostTableSeeder(needCleanTable bool) {
 
 	// 2. 为主帖生成树形回复
 	for _, root := range rootPosts {
-		// 每个主帖随机生成 2~4 条一级回复
-		replyCount := RandInt(2, 5)
+		// 每个主帖随机生成 0~5 条一级回复
+		replyCount := RandInt(0, 6)
 		for j := 0; j < replyCount; j++ {
 			// 一级回复：ParentId=主帖ID, ThreadId=主帖ID
 			reply := postFactory(root.ID, root.ID)

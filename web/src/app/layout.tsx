@@ -3,12 +3,12 @@ import { headers } from 'next/headers';
 import { I18nClientProvider } from '@/components/I18nClientProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import type { Metadata } from 'next';
-import { getSiteConfig } from '@/lib/api/site';
+import { fetchSiteConfig } from '@/services/site-service';
 
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const config = await getSiteConfig();
+  const config = await fetchSiteConfig();
 
   return {
     title: {

@@ -55,3 +55,24 @@ export interface SiteConfig {
   scoreConfig: ScoreConfig;
   defaultNodeId: number;
 }
+
+/** ⚠️ 仅描述后端 envelope.data 内部的原始结构 */
+export interface SiteConfigRaw {
+  appinfo: {
+    name: string;
+    version: string;
+    user_level_admin: number;
+  };
+  setting: {
+    siteTitle: string;
+    siteDescription: string;
+    siteKeywords: string | null;
+    siteNavs: { label: string; href: string }[] | null;
+    siteTips: string | null;
+    siteNotification: string;
+    siteIndexHtml: string;
+    recommendTags: string[] | null;
+    scoreConfig: { postTopicScore: number; postCommentScore: number };
+    defaultNodeId: number;
+  };
+}

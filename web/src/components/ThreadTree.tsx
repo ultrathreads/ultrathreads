@@ -2,7 +2,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import type { SimplePost } from '@/lib/api/posts';
-import { buildThreadTree } from '@/lib/thread-utils';
+import { buildThreadTree } from '@/lib/utils/thread-utils';
 import ThreadItem from './ThreadItem';
 
 interface Props {

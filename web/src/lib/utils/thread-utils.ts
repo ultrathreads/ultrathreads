@@ -1,7 +1,7 @@
 // lib/thread-utils.ts
 import type { SimplePost } from '@/lib/api/posts';
 import type { Thread, Reply } from '@/types';
-import { formatTimestamp } from '@/lib/time-utils';
+import { formatTimestamp } from '@/lib/utils/time-utils';
 
 /**
  * 将后端扁平 SimplePost 列表转换为 ThreadTree 所需的嵌套树结构

@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { getServerTranslation } from '@/lib/i18n-server';
 import ThreadTree from '@/components/ThreadTree';
-import Pagination from '@/components/Pagination';
+import TopicPagination from '@/components/TopicPagination';
 import { getThreadPageData } from '@/services/thread-service';
 
 interface Props {
@@ -38,7 +38,7 @@ export default async function HomePage({ searchParams }: Props) {
         <div className="p-8 text-center text-gray-400">{t('home:noThreads')}</div>
       )}
 
-      <Pagination
+      <TopicPagination
         totalItems={paging.total}
         pageSize={paging.limit}
         currentPage={paging.page}

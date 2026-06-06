@@ -1,5 +1,5 @@
 // src/lib/api/auth.ts
-import { apiFetch } from './client';
+import { apiFetch } from '@/lib/api/client';
 
 /** Go 后端 /auth/login 响应数据内容 (data 字段内部结构) */
 export interface LoginResponse {
