@@ -11,6 +11,9 @@ $ make
 # 请根据实际情况修改配置文件
 $ cp app.example.yaml app.yaml
 
+# 填充模拟数据
+$ ./ultrathreads mock
+
 # 运行
 $ ./ultrathreads web
 ```
