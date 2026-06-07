@@ -1,14 +1,10 @@
-// src/app/post/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getPostWithThread } from '@/services/post-service';
-import PostDetailCard from '@/components/PostDetailCard';
-import ThreadItem from '@/components/features/ThreadItem';
 import type { PostEntity } from '@/types/domain';
-import type { ThreadViewItem } from '@/types/view';
 import type { BackState } from '@/components/features/ThreadTree';
-import ReplyEditor from '@/components/features/ReplyEditor';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
+import PostDetailClient from '@/components/PostDetailClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,14 +13,6 @@ interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-interface ThreadNode extends PostEntity {
-  children: ThreadNode[];
-}
-
-/**
- * 从 searchParams 中提取回溯参数
- * 同时用于构建返回 URL 和传递给子组件的 backState
- */
 function extractBackContext(searchParams: Record<string, string | string[] | undefined>): {
   backUrl: string;
   backState: BackState;
@@ -36,7 +24,6 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
   if (nodeId) backState.nodeId = String(nodeId);
   if (page) backState.page = String(page);
 
-  // 无参数时返回干净首页
   if (!backState.nodeId && !backState.page) {
     return { backUrl: '/', backState: {} };
   }
@@ -97,34 +84,12 @@ export default async function ReadPage({ params, searchParams }: Props) {
         </Link>
       </div>
 
-      <PostDetailCard post={post} replyCount={totalReplyCount} />
-
-      <ReplyEditor parentId={post.id} nodeId={post.node.nodeId} />
-
-      <div className="thread-tree-container">
-        <div className="thread-tree-header">
-          <div className="thread-tree-title">💬 回帖讨论 ({totalReplyCount})</div>
-          <div className="thread-tree-actions">
-            <select className="sort-select" aria-label="回帖排序" defaultValue="oldest">
-              <option value="oldest">最早回复</option>
-              <option value="newest">最新回复</option>
-              <option value="hot">最热回复</option>
-            </select>
-          </div>
-        </div>
-
-        <ul className="thread">
-          {viewPosts.map((reply) => (
-            <ThreadItem
-              key={reply.id}
-              item={reply}
-              isRoot
-              currentPostId={String(post!.id)}
-              backState={backState}
-            />
-          ))}
-        </ul>
-      </div>
+      <PostDetailClient
+        post={post}
+        viewPosts={viewPosts}
+        totalReplyCount={totalReplyCount}
+        backState={backState}
+      />
     </div>
   );
 }

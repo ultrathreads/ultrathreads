@@ -456,6 +456,18 @@ a.subject.read { font-weight: 400; color: #555; }
 }
 .detail-action-btn:hover { background: #ecf0f1; border-color: #3498db; color: #3498db; }
 
+/* 回复按钮激活态 */
+.detail-action-btn--active {
+  background-color: var(--color-primary-light, #e8f4fd);
+  color: var(--color-primary, #1890ff);
+  border-color: var(--color-primary, #1890ff);
+}
+
+/* 可选：过渡动画让切换更平滑 */
+.detail-action-btn {
+  transition: all 0.2s ease;
+}
+
 /* 在 common.css 的 Detail Page 区块中添加 */
 .detail-author-avatar {
     width: 36px;
