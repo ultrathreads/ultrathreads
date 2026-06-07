@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/components/providers/AuthProvider'; // ✅ 引入全局状态 Hook
+import { useAuth } from '@/hooks/use-auth'
 
 // 用户名验证：3-20位，仅允许字母、数字、下划线、连字符
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
