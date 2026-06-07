@@ -76,12 +76,12 @@ func userFactory(i int) *factory.Factory {
 }
 
 // UserTableSeeder -
-func UserTableSeeder(needCleanTable bool) {
+func UserTableSeeder(needCleanTable bool, totalUsers int) {
 	if needCleanTable {
 		dropAndCreateTable(&model.User{})
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < totalUsers; i++ {
 		user := userFactory(i).MustCreate().(*model.User)
 		fmt.Println("Email:", user.Email)
 		if err := dao.UserDao.Create(user); err != nil {

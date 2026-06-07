@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import type { ForumNode } from '@/lib/services/node-service';
 import type { ThreadViewItem } from '@/types/view';
 import { buildThreadTree } from '@/lib/utils/thread-utils';
@@ -9,9 +10,32 @@ import { buildThreadTree } from '@/lib/utils/thread-utils';
 import ThreadItem from './ThreadItem';
 import NodeHeader from './NodeHeader';
 
+/** 从列表页透传的回溯状态 */
+export interface BackState {
+  nodeId?: string;
+  page?: string;
+}
+
 interface Props {
   threads: ThreadViewItem[];
   activeNode: ForumNode | null;
+  backState?: BackState; // ✅ 新增可选属性
+}
+
+/**
+ * 构建带回溯参数的详情页链接
+ * 无参数时返回干净 URL，避免冗余查询字符串
+ */
+function buildPostUrl(postId: number | string, backState?: BackState): string {
+  if (!backState || (!backState.nodeId && !backState.page)) {
+    return `/post/${postId}`;
+  }
+
+  const params = new URLSearchParams();
+  if (backState.nodeId) params.set('nodeId', backState.nodeId);
+  if (backState.page) params.set('page', backState.page);
+
+  return `/post/${postId}?${params.toString()}`;
 }
 
 /** 客户端排序函数 */
@@ -21,15 +45,13 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
     case 'latest':
       return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     case 'reply':
-      // 假设有 lastReplyTime 字段，若无则降级为 date
-      return sorted.sort((a, b) => 
-        new Date((b as any).lastReplyTime || b.date).getTime() - 
+      return sorted.sort((a, b) =>
+        new Date((b as any).lastReplyTime || b.date).getTime() -
         new Date((a as any).lastReplyTime || a.date).getTime()
       );
     case 'most':
       return sorted.sort((a, b) => (b.replies?.length || 0) - (a.replies?.length || 0));
     case 'hot':
-      // 简单热度算法：回复数权重 + 时间衰减
       return sorted.sort((a, b) => {
         const scoreA = (a.replies?.length || 0) * 10 - new Date(a.date).getTime() / 1e12;
         const scoreB = (b.replies?.length || 0) * 10 - new Date(b.date).getTime() / 1e12;
@@ -40,7 +62,7 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
   }
 }
 
-export default function ThreadTree({ threads, activeNode }: Props) {
+export default function ThreadTree({ threads, activeNode, backState }: Props) {
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('latest');
 
@@ -58,9 +80,9 @@ export default function ThreadTree({ threads, activeNode }: Props) {
         <NodeHeader node={activeNode} />
 
         <div className="thread-tree-actions">
-          <select 
-            className="sort-select" 
-            value={sort} 
+          <select
+            className="sort-select"
+            value={sort}
             onChange={(e) => setSort(e.target.value)}
           >
             <option value="latest">最新发布</option>
@@ -83,12 +105,13 @@ export default function ThreadTree({ threads, activeNode }: Props) {
 
       <ul className="thread">
         {tree.map((t) => (
-          // ✅ 关键修复：将 allCollapsed 传递给子组件
-          <ThreadItem 
-            key={t.id} 
-            item={t} 
-            isRoot 
-            globalCollapsed={allCollapsed} 
+          <ThreadItem
+            key={t.id}
+            item={t}
+            isRoot
+            globalCollapsed={allCollapsed}
+            // ✅ 将回溯状态继续向下透传给 ThreadItem
+            backState={backState}
           />
         ))}
       </ul>

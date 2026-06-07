@@ -3,6 +3,7 @@ package mock
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 	"ultrathreads/dao"
@@ -13,33 +14,53 @@ import (
 
 const TIMESTAMP_MILLI = true
 
-func PostTableSeeder(needCleanTable bool) {
+// PostTableSeeder 生成模拟数据
+// totalRootPosts: 期望生成的根帖总数（如 30, 50, 100）
+func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 	if needCleanTable {
 		dropAndCreateTable(&model.Post{})
 	}
 
+	if totalRootPosts <= 0 {
+		fmt.Println("[mock] totalRootPosts must be > 0, skipping.")
+		return
+	}
+
 	now := time.Now()
 
+	// ✅ 使用权重代替固定数量，各段占比: 10% / 24% / 26% / 20% / 20%
 	type timeSegment struct {
-		count   int
+		weight  float64
 		minSecs int
 		maxSecs int
 	}
 	segments := []timeSegment{
-		{count: 5, minSecs: 0, maxSecs: 30 * 60},
-		{count: 12, minSecs: 30 * 60, maxSecs: 3 * 3600},
-		{count: 13, minSecs: 3 * 3600, maxSecs: 24 * 3600},
-		{count: 10, minSecs: 24 * 3600, maxSecs: 7 * 24 * 3600},
-		{count: 10, minSecs: 7 * 24 * 3600, maxSecs: 30 * 24 * 3600},
+		{weight: 0.10, minSecs: 0, maxSecs: 30 * 60},
+		{weight: 0.24, minSecs: 30 * 60, maxSecs: 3 * 3600},
+		{weight: 0.26, minSecs: 3 * 3600, maxSecs: 24 * 3600},
+		{weight: 0.20, minSecs: 24 * 3600, maxSecs: 7 * 24 * 3600},
+		{weight: 0.20, minSecs: 7 * 24 * 3600, maxSecs: 30 * 24 * 3600},
 	}
 
+	// ✅ 按权重分配每个时间段的实际数量
+	weights := make([]float64, len(segments))
+	for i, seg := range segments {
+		weights[i] = seg.weight
+	}
+	counts := distributeCounts(totalRootPosts, weights)
+
 	var rootPosts []*model.Post
-	for _, seg := range segments {
+	for idx, seg := range segments {
+		segCount := counts[idx]
+		if segCount == 0 {
+			continue
+		}
+
 		cursor := now.Add(-time.Duration(seg.maxSecs) * time.Second)
 		segDuration := seg.maxSecs - seg.minSecs
-		avgInterval := segDuration / (seg.count + 1)
+		avgInterval := segDuration / (segCount + 1)
 
-		for i := 0; i < seg.count; i++ {
+		for i := 0; i < segCount; i++ {
 			offset := RandInt(avgInterval/2, avgInterval*2)
 			cursor = cursor.Add(time.Duration(offset) * time.Second)
 
@@ -48,9 +69,9 @@ func PostTableSeeder(needCleanTable bool) {
 				cursor = segmentEnd.Add(-time.Duration(RandInt(1, 60)) * time.Second)
 			}
 
-			nodeId := int64(RandInt(1, 4)) // ✅ 每个主题只随机一次 NodeId
+			nodeId := int64(RandInt(1, 5))
 			ts := timeToUnix(cursor)
-			post := postFactory(0, 0, nodeId, ts, ts)
+			post := postFactory(0, 0, nodeId, ts, ts, false)
 			if err := dao.PostDao.Create(post); err != nil {
 				fmt.Printf("mock root post error: %v\n", err)
 				continue
@@ -95,7 +116,7 @@ func PostTableSeeder(needCleanTable bool) {
 			}
 
 			replyTs := timeToUnix(replyTime)
-			reply := postFactory(root.ID, root.ID, root.NodeId, replyTs, replyTs) // ✅ 继承主帖 NodeId
+			reply := postFactory(root.ID, root.ID, root.NodeId, replyTs, replyTs, true)
 			if err := dao.PostDao.Create(reply); err != nil {
 				fmt.Printf("mock reply error: %v\n", err)
 				continue
@@ -111,7 +132,7 @@ func PostTableSeeder(needCleanTable bool) {
 					subReplyTime = now.Add(-time.Duration(RandInt(1, 60)) * time.Second)
 				}
 				subTs := timeToUnix(subReplyTime)
-				subReply := postFactory(reply.ID, root.ID, root.NodeId, subTs, subTs) // ✅ 继承主帖 NodeId
+				subReply := postFactory(reply.ID, root.ID, root.NodeId, subTs, subTs, true)
 				if err := dao.PostDao.Create(subReply); err != nil {
 					fmt.Printf("mock sub-reply error: %v\n", err)
 				}
@@ -130,7 +151,46 @@ func PostTableSeeder(needCleanTable bool) {
 	}
 }
 
-// ========== 🆕 真实感标题生成器 ==========
+// ========== 权重分配工具函数 ==========
+
+// distributeCounts 使用最大余数法(Largest Remainder Method)按权重分配总数
+// 保证分配结果之和严格等于 total，且各段比例尽可能接近原始权重
+func distributeCounts(total int, weights []float64) []int {
+	n := len(weights)
+	result := make([]int, n)
+	if total <= 0 || n == 0 {
+		return result
+	}
+
+	var totalW float64
+	for _, w := range weights {
+		totalW += w
+	}
+
+	type rem struct {
+		idx int
+		val float64
+	}
+	rems := make([]rem, n)
+	assigned := 0
+	for i, w := range weights {
+		exact := float64(total) * w / totalW
+		floor := int(exact)
+		result[i] = floor
+		assigned += floor
+		rems[i] = rem{idx: i, val: exact - float64(floor)}
+	}
+
+	sort.Slice(rems, func(a, b int) bool {
+		return rems[a].val > rems[b].val
+	})
+	for i := 0; i < total-assigned && i < n; i++ {
+		result[rems[i].idx]++
+	}
+	return result
+}
+
+// ========== 真实感标题生成器 ==========
 
 var titlePrefixes = []string{
 	"请问", "求助", "分享", "讨论", "吐槽", "推荐", "避坑", "实测",
@@ -144,8 +204,6 @@ var titleSuffixes = []string{
 	"，更新后续", "，已解决", "，持续更新中", "",
 }
 
-// generateRealisticTitle 生成符合真实论坛语义结构的标题
-// 长度分布：~10% 短标题(8-15字)，~70% 中等标题(15-35字)，~20% 长标题(35-55字)
 func generateRealisticTitle() string {
 	r := rand.Float64()
 
@@ -159,7 +217,6 @@ func generateRealisticTitle() string {
 		coreLen = RandInt(35, 55)
 	}
 
-	// 用 randomdata 生成核心内容，截取到目标长度保证自然截断
 	core := randomdata.SillyName() + " " + randomdata.Paragraph()
 	runes := []rune(core)
 	if len(runes) > coreLen {
@@ -167,7 +224,6 @@ func generateRealisticTitle() string {
 	}
 	coreText := strings.TrimSpace(string(runes))
 
-	// 按概率组合前缀和后缀
 	var builder strings.Builder
 	if rand.Float64() < 0.7 {
 		builder.WriteString(titlePrefixes[rand.Intn(len(titlePrefixes))])
@@ -178,6 +234,92 @@ func generateRealisticTitle() string {
 	}
 
 	return builder.String()
+}
+
+// ========== 真实感内容生成器 ==========
+
+// 段落连接词，让多段内容有逻辑衔接感
+var paragraphConnectors = []string{
+	"", "", "", // 70% 概率不加连接词（自然换行）
+	"另外，", "补充一下，", "还有一点，", "顺便说下，",
+	"话说回来，", "对了，", "再说说", "除此之外，",
+}
+
+// 常见论坛口语化结尾
+var contentEndings = []string{
+	"", "", "", "", // 40% 概率无特殊结尾
+	"\n\n以上就是我的个人看法，仅供参考。",
+	"\n\n大家有什么想法欢迎在评论区讨论～",
+	"\n\n先写到这，后面有更新再补。",
+	"\n\n纯手打，码字不易，觉得有用的话点个赞吧！",
+	"\n\n有没有遇到过类似情况的朋友？求分享经验。",
+	"\n\n暂时想到这么多，有问题可以留言问我。",
+	"\n\n希望能帮到有同样困惑的人。",
+}
+
+// generateRealisticContent 生成符合真实论坛风格的多段帖子正文
+// 长度分布: ~15% 短帖(1-2段), ~60% 中等(3-5段), ~25% 长帖(6-10段)
+func generateRealisticContent() string {
+	r := rand.Float64()
+
+	var paraCount int
+	switch {
+	case r < 0.15:
+		paraCount = RandInt(1, 3) // 1-2段
+	case r < 0.75:
+		paraCount = RandInt(3, 6) // 3-5段
+	default:
+		paraCount = RandInt(6, 11) // 6-10段
+	}
+
+	var builder strings.Builder
+	for i := 0; i < paraCount; i++ {
+		if i > 0 {
+			builder.WriteString("\n\n")
+			// 按概率添加段落间连接词
+			if connector := paragraphConnectors[rand.Intn(len(paragraphConnectors))]; connector != "" {
+				builder.WriteString(connector)
+			}
+		}
+
+		// 每段 40~180 字，模拟真实段落长度波动
+		paraLen := RandInt(40, 181)
+		raw := randomdata.Paragraph()
+		runes := []rune(raw)
+		if len(runes) > paraLen {
+			runes = runes[:paraLen]
+		}
+		builder.WriteString(strings.TrimSpace(string(runes)))
+	}
+
+	// 按概率追加口语化结尾
+	if ending := contentEndings[rand.Intn(len(contentEndings))]; ending != "" {
+		builder.WriteString(ending)
+	}
+
+	return builder.String()
+}
+
+// generateReplyContent 生成回帖内容
+// 70% 短回复(1段 15-80字)，30% 中等回复(2-3段)
+func generateReplyContent() string {
+	if rand.Float64() < 0.7 {
+		paraLen := RandInt(15, 80)
+		raw := randomdata.Paragraph()
+		runes := []rune(raw)
+		if len(runes) > paraLen {
+			runes = runes[:paraLen]
+		}
+		return strings.TrimSpace(string(runes))
+	}
+
+	// 中等回复：取主帖生成器的前 2-3 段
+	parts := strings.SplitN(generateRealisticContent(), "\n\n", 4)
+	limit := RandInt(2, 4)
+	if len(parts) > limit {
+		parts = parts[:limit]
+	}
+	return strings.Join(parts, "\n\n")
 }
 
 // ========== 回帖行为模型 ==========
@@ -228,9 +370,7 @@ func advanceCursorTime(cursor *time.Time, minSecs, maxSecs int) time.Time {
 	return *cursor
 }
 
-// postFactory 创建帖子实例
-// nodeId 由调用方显式传入，确保同一 ThreadId 下所有帖子 NodeId 一致
-func postFactory(parentId, threadId, nodeId int64, createTime, lastCommentTime int64) *model.Post {
+func postFactory(parentId, threadId, nodeId int64, createTime, lastCommentTime int64, isReply bool) *model.Post {
 	minValidTs := int64(1577808000)
 	if TIMESTAMP_MILLI {
 		minValidTs *= 1000
@@ -241,9 +381,15 @@ func postFactory(parentId, threadId, nodeId int64, createTime, lastCommentTime i
 			createTime, lastCommentTime,
 		))
 	}
+
+	content := generateRealisticContent()
+	if isReply {
+		content = generateReplyContent()
+	}
+
 	return &model.Post{
 		Title:           generateRealisticTitle(),
-		Content:         randomdata.Paragraph(),
+		Content:         content,
 		UserId:          int64(RandInt(1, 10)),
 		NodeId:          nodeId,
 		ParentId:        parentId,

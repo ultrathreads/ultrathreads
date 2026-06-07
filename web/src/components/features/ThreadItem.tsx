@@ -2,7 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import type { ThreadViewItem } from '@/types/view';
+import type { BackState } from './ThreadTree'; // ✅ 1. 从 ThreadTree 导入共享类型
 import { RelativeTime } from '@/components/RelativeTime';
 
 interface Props {
@@ -10,11 +12,34 @@ interface Props {
   isRoot?: boolean;
   currentPostId?: string | number;
   globalCollapsed?: boolean;
+  backState?: BackState; // ✅ 2. 新增可选的回溯状态属性
 }
 
-export default function ThreadItem({ item, isRoot, currentPostId, globalCollapsed }: Props) {
+/**
+ * 构建带回溯参数的详情页链接
+ * 与 ThreadTree 中的逻辑保持一致，确保所有入口生成的 URL 格式统一
+ */
+function buildPostUrl(postId: number | string, backState?: BackState): string {
+  if (!backState || (!backState.nodeId && !backState.page)) {
+    return `/post/${postId}`;
+  }
+
+  const params = new URLSearchParams();
+  if (backState.nodeId) params.set('nodeId', backState.nodeId);
+  if (backState.page) params.set('page', backState.page);
+
+  return `/post/${postId}?${params.toString()}`;
+}
+
+export default function ThreadItem({
+  item,
+  isRoot,
+  currentPostId,
+  globalCollapsed,
+  backState, // ✅ 3. 解构接收 backState
+}: Props) {
   const [localFolded, setLocalFolded] = useState(false);
-  
+
   const folded = globalCollapsed ?? localFolded;
 
   // ✅ 当全局折叠状态变化时，同步重置本地状态
@@ -55,12 +80,15 @@ export default function ThreadItem({ item, isRoot, currentPostId, globalCollapse
             <path d="M6,16 v108 a57 57, 0, 0, 0, 57, 57 h92 v27 l 45.5,-45.5 -45.5,-45.5 v27 h-92 a20 20, 0, 0, 1, -20,-20 v-108 z"></path>
           </svg>
         )}
-        <a 
-          className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`} 
-          href={`/post/${item.id}`}
+
+        {/* ✅ 4. 核心改动：原生 <a> 替换为 Next.js <Link>，并注入回溯参数 */}
+        <Link
+          className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`}
+          href={buildPostUrl(item.id, backState)}
         >
           {item.title}
-        </a>
+        </Link>
+
         <span className="metadata">
           <span className="author-name">{item.author}</span>
           <span className="tail">
@@ -78,10 +106,18 @@ export default function ThreadItem({ item, isRoot, currentPostId, globalCollapse
           </svg>
         </a>
       </div>
+
       {hasReplies && (
         <ul className={`reply ${folded ? 'collapsed' : ''}`}>
           {item.replies.map((r) => (
-            <ThreadItem key={r.id} item={r} currentPostId={currentPostId} globalCollapsed={globalCollapsed} />
+            /* ✅ 5. 递归渲染子回复时，继续向下透传 backState */
+            <ThreadItem
+              key={r.id}
+              item={r}
+              currentPostId={currentPostId}
+              globalCollapsed={globalCollapsed}
+              backState={backState}
+            />
           ))}
         </ul>
       )}

@@ -25,7 +25,6 @@ func ToPost(post *model.Post) *model.PostResponse {
 	rsp.LastCommentTime = post.LastCommentTime
 	rsp.CreateTime = post.CreateTime
 	rsp.ViewCount = post.ViewCount
-	rsp.CommentCount = post.CommentCount
 	rsp.LikeCount = post.LikeCount
 
 	if post.NodeId > 0 {
@@ -66,7 +65,6 @@ func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
 	rsp.LastCommentTime = post.LastCommentTime
 	rsp.CreateTime = post.CreateTime
 	rsp.ViewCount = post.ViewCount
-	rsp.CommentCount = post.CommentCount
 	rsp.LikeCount = post.LikeCount
 
 	if len(post.ImageList) > 0 {

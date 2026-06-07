@@ -13,7 +13,6 @@ type Post struct {
 	ImageList         string `gorm:"type:longtext" json:"imageList" form:"imageList"`                // 图片
 	Recommend         bool   `gorm:"not null;index:idx_recommend" json:"recommend" form:"recommend"` // 是否推荐
 	ViewCount         int64  `gorm:"not null" json:"viewCount" form:"viewCount"`                     // 查看数量
-	CommentCount      int64  `gorm:"not null" json:"commentCount" form:"commentCount"`               // 跟帖数量
 	LikeCount         int64  `gorm:"not null" json:"likeCount" form:"likeCount"`                     // 点赞数量
 	Status            int    `gorm:"index:idx_post_status;" json:"status" form:"status"`
 	LastCommentUserId int64  `gorm:"index:idx_post_last_comment_user_id" json:"lastCommentUserId" form:"lastCommentUserId"` // 最后回复时间                            // 状态：0：正常、1：删除

@@ -8,7 +8,7 @@ import (
 )
 
 // NodeTableSeeder -
-func NodeTableSeeder(needCleanTable bool) {
+func NodeTableSeeder(needCleanTable bool, totalNodes int) {
 	if needCleanTable {
 		dropAndCreateTable(&model.Node{})
 	}

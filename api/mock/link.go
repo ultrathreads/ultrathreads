@@ -16,12 +16,12 @@ func linkFactory(i int) *model.Link {
 }
 
 // LinksTableSeeder -
-func LinkTableSeeder(needCleanTable bool) {
+func LinkTableSeeder(needCleanTable bool, totalLinks int) {
 	if needCleanTable {
 		dropAndCreateTable(&model.Link{})
 	}
 
-	for i := 0; i < 6; i++ {
+	for i := 0; i < totalLinks; i++ {
 		link := linkFactory(i)
 		if err := dao.LinkDao.Create(link); err != nil {
 			fmt.Printf("mock link error： %v\n", err)
