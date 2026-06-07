@@ -1,9 +1,9 @@
 // src/app/(main)/layout.tsx
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
+import Header from '@/components/layout/Header';
+import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/Footer';
 import BackToTop from '@/components/BackToTop';
-import PreviewPopover from '@/components/PreviewPopover';
+import PreviewPopover from '@/components/ui/PreviewPopover';
 import { fetchSiteConfig } from '@/services/site-service';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {

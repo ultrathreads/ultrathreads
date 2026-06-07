@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/components/providers/AuthProvider';
+import { useAuth } from '@/hooks/use-auth'
 
 export default function UserMenu() {
   const { user, isLoading, error, logout } = useAuth();

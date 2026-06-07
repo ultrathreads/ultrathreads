@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n-client';
-import { useAuth } from '@/components/providers/AuthProvider';
-import UserMenu from './UserMenu';
+import { useAuth } from '@/hooks/use-auth';
+import UserMenu from '@/components/features/auth/UserMenu';
 
 interface HeaderProps {
   siteTitle: string;
@@ -11,7 +11,8 @@ interface HeaderProps {
 
 export default function Header({ siteTitle }: HeaderProps) {
   const { t } = useTranslation(['common']);
-  const { user, isLoading } = useAuth();
+
+  const { isLoggedIn, isLoading } = useAuth();
 
   // 加载中保持原有布局骨架，避免闪烁
   if (isLoading) {
@@ -46,7 +47,7 @@ export default function Header({ siteTitle }: HeaderProps) {
         </div>
       </div>
       <div className="header-actions">
-        {user ? (
+        {isLoggedIn ? (
           <>
             <Link href="/create" className="post-btn">✏️ {t('common:posting')}</Link>
             <UserMenu />

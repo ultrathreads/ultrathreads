@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import Pagination from '@/components/Pagination';
+import Pagination from '@/components/ui/Pagination';
 
 interface TopicPaginationProps {
   totalItems: number;

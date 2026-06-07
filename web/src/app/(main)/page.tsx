@@ -1,7 +1,7 @@
 // app/(main)/page.tsx
 import type { Metadata } from 'next';
 import { getServerTranslation } from '@/lib/i18n-server';
-import ThreadTree from '@/components/ThreadTree';
+import ThreadTree from '@/components/features/ThreadTree';
 import TopicPagination from '@/components/TopicPagination';
 import { getThreadPageData } from '@/services/thread-service';
 import { getNodeDetail } from '@/services/node-service';
@@ -52,11 +52,13 @@ export default async function HomePage({ searchParams }: Props) {
         <div className="p-8 text-center text-gray-400">{t('home:noThreads')}</div>
       )}
 
-      <TopicPagination
-        totalItems={paging.total}
-        pageSize={paging.limit}
-        currentPage={paging.page}
-      />
+      {posts.length > 0 && (
+        <TopicPagination
+          totalItems={paging.total}
+          pageSize={paging.limit}
+          currentPage={paging.page}
+        />
+      )}
     </>
   );
 }
