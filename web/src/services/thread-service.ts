@@ -67,7 +67,8 @@ export async function getThreadPageData(
       `/posts/threads?${params.toString()}`,
       {
         auth: false,
-        cacheStrategy: { next: { tags: cacheTags, revalidate: 60 } },
+        cacheStrategy: { next: { tags: cacheTags } },
+        // cacheStrategy: { next: { tags: cacheTags, revalidate: 60 } },
       },
     );
 

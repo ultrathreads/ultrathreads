@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"path"
 	"time"
@@ -202,23 +203,74 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 	}
 
 	err := dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags))
-		err := dao.PostDao.Create(post)
-		if err != nil {
-			return err
+		var threadId int64
+
+		// 1. 区分根帖与回帖，确定 ThreadId
+		if dto.ParentId > 0 {
+			// 回帖：查询父级帖子
+			var parentPost model.Post
+			if err := tx.Where("id = ? AND status = ?", dto.ParentId, model.StatusOk).First(&parentPost).Error; err != nil {
+				return fmt.Errorf("父级帖子不存在或已删除: %w", err)
+			}
+			// 跨节点校验
+			if parentPost.NodeId != nodeID {
+				return errors.New("不能跨节点回复")
+			}
+			// 继承 ThreadId：父级是回帖则继承其 ThreadId，父级是根帖则取父级 ID
+			if parentPost.ThreadId > 0 {
+				threadId = parentPost.ThreadId
+			} else {
+				threadId = parentPost.ID
+			}
+			post.ParentId = dto.ParentId
+		} else {
+			// 根帖：ThreadId 暂置 0，Create 后用自身 ID 赋值
+			threadId = 0
 		}
 
-		dao.PostTagDao.AddPostTags(post.ID, tagIds)
+		// 2. 仅根帖处理标签，回帖跳过
+		var tagIds []int64
+		if dto.ParentId == 0 {
+			tagIds = dao.TagDao.GetOrCreates(dto.Tags)
+		}
+
+		// 3. 创建帖子（GORM Create 后 post.ID 自动回填）
+		if err := dao.PostDao.Create(post); err != nil {
+			return fmt.Errorf("创建帖子失败: %w", err)
+		}
+
+		// 4. 设置 ThreadId
+		if threadId == 0 {
+			threadId = post.ID
+		}
+		if err := tx.Model(post).Update("thread_id", threadId).Error; err != nil {
+			return fmt.Errorf("更新ThreadId失败: %w", err)
+		}
+		post.ThreadId = threadId // 同步到内存对象
+
+		// 5. 回帖时更新根帖的最后评论时间
+		if dto.ParentId > 0 {
+			if err := tx.Model(&model.Post{}).
+				Where("id = ?", threadId).
+				Update("last_comment_time", now).Error; err != nil {
+				return fmt.Errorf("更新根帖最后评论时间失败: %w", err)
+			}
+		}
+
+		// 6. 仅根帖关联标签
+		if len(tagIds) > 0 {
+			dao.PostTagDao.AddPostTags(post.ID, tagIds)
+		}
+
 		return nil
 	})
+
 	if err == nil {
-		// 节点话题计数
 		NodeService.IncrTopicCount(nodeID)
-		// 用户话题计数
 		UserService.IncrTopicCount(dto.UserID)
-		// 获得积分
 		UserScoreService.IncrementPostPostScore(post)
 	}
+
 	return post, err
 }
 

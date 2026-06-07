@@ -29,3 +29,26 @@ export async function getPostWithThread(postId: string): Promise<PostWithThread>
     notFound();
   }
 }
+
+export interface CreatePostPayload {
+  title: string;
+  nodeId: number;
+  content: string;       // Markdown 原文
+  tags?: string[];
+}
+
+export interface CreatePostResponse {
+  id: number;
+  // ...其他后端返回的字段
+}
+
+/**
+ * 创建新帖子
+ */
+export async function createPost(payload: CreatePostPayload): Promise<CreatePostResponse> {
+  return apiFetch<CreatePostResponse>('/posts', {
+    method: 'POST',
+    auth: true,          // ✅ 发帖必须登录
+    body: JSON.stringify(payload),
+  });
+}
