@@ -5,7 +5,7 @@ import ThreadTree from '@/components/features/ThreadTree';
 import TopicPagination from '@/components/TopicPagination';
 import { getThreadPageData } from '@/services/thread-service';
 import { getNodeDetail } from '@/services/node-service';
-import { adaptToThreadView } from '@/lib/utils/thread-adapter';
+import { buildThreadTree } from '@/lib/utils/thread-tree';
 
 interface Props {
   searchParams: Promise<{ page?: string; nodeId?: string }>;
@@ -49,7 +49,7 @@ export default async function HomePage({ searchParams }: Props) {
   }
 
   // ✅ 将传输模型适配为视图模型，使 nodeName 等字段正确传递到 ThreadItem
-  const viewPosts = posts.map(adaptToThreadView);
+  const viewPosts = buildThreadTree(posts);
 
   // ✅ 构建回溯状态：仅当有实际值时才传递，避免生成无意义的空参数
   const backState: BackState = {};

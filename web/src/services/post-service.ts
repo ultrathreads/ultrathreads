@@ -1,12 +1,12 @@
 // src/services/post-service.ts
 import { notFound } from 'next/navigation';
 import { apiFetch, ApiBusinessError } from '@/lib/api/client';
-import type { PostDetail, PostWithThread } from '@/types/common';
+import type { PostEntity, PostWithThread } from '@/types/domain';
 
 // ✅ 已有：获取主帖详情
 export async function getPostDetail(postId: string): Promise<PostDetail> {
   try {
-    return await apiFetch<PostDetail>(`/post/${postId}`);
+    return await apiFetch<PostEntity>(`/post/${postId}`);
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
@@ -33,6 +33,7 @@ export async function getPostWithThread(postId: string): Promise<PostWithThread>
 export interface CreatePostPayload {
   title: string;
   nodeId: number;
+  parentId?: number;
   content: string;       // Markdown 原文
   tags?: string[];
 }

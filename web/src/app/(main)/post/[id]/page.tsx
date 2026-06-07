@@ -7,7 +7,8 @@ import ThreadItem from '@/components/features/ThreadItem';
 import type { PostEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 import type { BackState } from '@/components/features/ThreadTree';
-import { adaptToThreadView } from '@/lib/utils/thread-adapter';
+import ReplyEditor from '@/components/features/ReplyEditor';
+import { buildThreadTree } from '@/lib/utils/thread-tree';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,41 +19,6 @@ interface Props {
 
 interface ThreadNode extends PostEntity {
   children: ThreadNode[];
-}
-
-function buildThreadTree(replies: PostEntity[]): ThreadNode[] {
-  const nodeMap = new Map<number, ThreadNode>();
-  const roots: ThreadNode[] = [];
-
-  for (const reply of replies) {
-    nodeMap.set(reply.id, { ...reply, children: [] });
-  }
-
-  for (const reply of replies) {
-    const node = nodeMap.get(reply.id)!;
-    const isRoot = !reply.parentId || reply.parentId <= 0;
-
-    if (isRoot) {
-      roots.push(node);
-    } else {
-      const parent = nodeMap.get(reply.parentId);
-      if (parent) {
-        parent.children.push(node);
-      } else {
-        console.warn(`[buildThreadTree] Parent ${reply.parentId} not found for reply ${reply.id}`);
-        roots.push(node);
-      }
-    }
-  }
-  return roots;
-}
-
-function adaptTreeNode(node: ThreadNode): ThreadViewItem {
-  const base = adaptToThreadView(node);
-  return {
-    ...base,
-    replies: node.children.length > 0 ? node.children.map(adaptTreeNode) : undefined,
-  };
 }
 
 /**
@@ -120,8 +86,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const treeNodes = buildThreadTree(replies);
-  const adaptedReplies = treeNodes.map(adaptTreeNode);
+  const viewPosts = buildThreadTree(replies);
   const totalReplyCount = replies.length - 1;
 
   return (
@@ -133,6 +98,8 @@ export default async function ReadPage({ params, searchParams }: Props) {
       </div>
 
       <PostDetailCard post={post} replyCount={totalReplyCount} />
+
+      <ReplyEditor parentId={post.id} nodeId={post.node.nodeId} />
 
       <div className="thread-tree-container">
         <div className="thread-tree-header">
@@ -147,7 +114,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
         </div>
 
         <ul className="thread">
-          {adaptedReplies.map((reply) => (
+          {viewPosts.map((reply) => (
             <ThreadItem
               key={reply.id}
               item={reply}

@@ -5,7 +5,6 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import type { NodeEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
-import { buildThreadTree } from '@/lib/utils/thread-utils';
 
 import ThreadItem from './ThreadItem';
 import NodeHeader from './NodeHeader';
@@ -68,8 +67,7 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
 
   // ✅ 先排序，再构建树
   const tree = useMemo(() => {
-    const sorted = sortThreads(threads, sort);
-    return buildThreadTree(sorted);
+    return sortThreads(threads, sort);
   }, [threads, sort]);
 
   const toggleAll = () => setAllCollapsed((prev) => !prev);
