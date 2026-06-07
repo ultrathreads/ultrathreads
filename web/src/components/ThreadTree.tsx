@@ -1,33 +1,32 @@
 // components/ThreadTree.tsx
 'use client';
+
 import { useState, useMemo } from 'react';
-import type { SimplePost } from '@/lib/api/posts';
+import type { SimplePost } from '@/lib/services/thread-service';
+import type { ForumNode } from '@/lib/services/node-service';
 import { buildThreadTree } from '@/lib/utils/thread-utils';
 import ThreadItem from './ThreadItem';
+import NodeHeader from './NodeHeader';
 
 interface Props {
-  threads: SimplePost[]; // 👈 改为接收扁平列表
+  threads: SimplePost[];
+  activeNode: ForumNode | null;
 }
 
-export default function ThreadTree({ threads }: Props) {
+export default function ThreadTree({ threads, activeNode }: Props) {
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('latest');
 
-  // ✅ 使用 useMemo 避免每次渲染都重建树
   const tree = useMemo(() => buildThreadTree(threads), [threads]);
-
   const toggleAll = () => setAllCollapsed((prev) => !prev);
 
   return (
     <div className="thread-tree-container">
+      {/* ✅ 原始 thread-tree-header 结构 100% 保留 */}
       <div className="thread-tree-header">
-        <div className="board-title-wrapper">
-          <span className="board-title-icon">💻</span>
-          <div className="board-title-text">
-            <div className="board-title-name">技术交流</div>
-            <div className="board-title-desc">前端框架、后端架构、DevOps 等技术话题讨论区</div>
-          </div>
-        </div>
+        {/* ✅ 动态注入节点信息，输出的 DOM 和 className 与原来完全一致 */}
+        <NodeHeader node={activeNode} />
+
         <div className="thread-tree-actions">
           <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
             <option value="latest">最新发布</option>
@@ -46,6 +45,7 @@ export default function ThreadTree({ threads }: Props) {
           </button>
         </div>
       </div>
+
       <ul className="thread">
         {tree.map((t) => (
           <ThreadItem key={t.id} item={t} isRoot />

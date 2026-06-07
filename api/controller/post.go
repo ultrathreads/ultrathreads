@@ -48,8 +48,9 @@ func (c *PostController) List(ctx *gin.Context) {
 func (c *PostController) ListWithReplies(ctx *gin.Context) {
 	page := form.FormValueIntDefault(ctx, "page", 1)
 	limit := form.FormValueIntDefault(ctx, "limit", 20)
+	nodeId := form.FormValueIntDefault(ctx, "nodeId", 0)
 
-	posts, paging := service.PostService.ListThreadsWithReplies(page, limit)
+	posts, paging := service.PostService.ListThreadsWithReplies(page, limit, nodeId)
 
 	data := map[string]interface{}{
 		"results": converter.ToSimplePosts(posts),

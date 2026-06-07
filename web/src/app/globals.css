@@ -184,6 +184,11 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
     transition: background-color 0.2s;
 }
 .forum-item:hover { background-color: #e8eaed; }
+.forum-item.active {
+  background-color:  #e8f4fd;
+  color: #1890ff;
+  font-weight: 600;
+}
 .forum-count {
     margin-left: auto; font-size: 11px; color: #95a5a6;
     background: #ecf0f1; padding: 1px 6px; border-radius: 8px;

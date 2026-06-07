@@ -1,24 +1,40 @@
 'use client';
-import { useState } from 'react';
-import { ForumBoard, Tag } from '@/types';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Tag } from '@/types';
 import { useTranslation } from '@/lib/i18n-client';
+import { getAllNodes, type ForumNode } from '@/services/node-service';
+
+// ==================== 工具函数 ====================
+const getIconByName = (name: string): string => {
+  const iconMap: Record<string, string> = {
+    '公告': '📢',
+    '问答': '🙋‍♂️',
+    '教程': '📚',
+    '分享': '💡',
+    '技术交流': '💻',
+    '生活日常': '☕',
+    '开源项目': '🚀',
+  };
+  return iconMap[name] || '📁';
+};
 
 interface Props {
-  boards?: ForumBoard[];
   tags?: Tag[];
 }
 
-export default function Sidebar({ boards, tags }: Props) {
+export default function Sidebar({ tags }: Props) {
   const { t } = useTranslation(['common']);
-  const [collapsed, setCollapsed] = useState(true);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // 1. 定义模拟数据（Mock Data）
-  const mockBoards: ForumBoard[] = [
-    { name: '技术交流', icon: '💻', count: 128 },
-    { name: '生活日常', icon: '☕', count: 256 },
-    { name: '开源项目', icon: '🚀', count: 64 },
-    { name: '问答求助', icon: '🙋‍♂️', count: 89 },
-  ];
+  // ✅ 从 URL 读取当前激活的节点，保证刷新页面或前进后退时高亮状态正确
+  const activeNodeId = searchParams.get('nodeId') ? Number(searchParams.get('nodeId')) : null;
+
+  const [collapsed, setCollapsed] = useState(true);
+  const [nodes, setNodes] = useState<ForumNode[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const mockTags: Tag[] = [
     { label: 'React' },
@@ -28,8 +44,38 @@ export default function Sidebar({ boards, tags }: Props) {
     { label: 'Node.js' },
   ];
 
-  // 2. 使用传入的 props，如果没有传入则使用模拟数据兜底，并确保它一定是数组
-  const safeBoards = Array.isArray(boards) ? boards : mockBoards;
+  // ---------- 初始化：通过 Service 获取板块列表 ----------
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadNodes = async () => {
+      const { nodes: fetchedNodes } = await getAllNodes();
+      if (!cancelled) {
+        setNodes(fetchedNodes);
+        setLoading(false);
+      }
+    };
+
+    loadNodes();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ✅ 核心修改：点击时改变 URL，触发 RSC 重渲染，移除 onNodeSelect 回调
+  const handleNodeClick = (nodeId: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (activeNodeId === nodeId) {
+      // 再次点击同一节点时取消选中，回到全部帖子
+      params.delete('nodeId');
+    } else {
+      params.set('nodeId', String(nodeId));
+      // 切换节点时重置到第一页，避免新节点下没有对应页码的数据
+      params.set('page', '1');
+    }
+
+    router.push(`/?${params.toString()}`);
+  };
+
   const safeTags = Array.isArray(tags) ? tags : mockTags;
 
   return (
@@ -38,30 +84,46 @@ export default function Sidebar({ boards, tags }: Props) {
         <div className="sidebar-section">
           <div className="sidebar-title">导航菜单</div>
           <ul className="forum-list">
-            <li className="forum-item">{t('common:home')}</li>
+            {/* ✅ 首页也改为 URL 驱动，清空 nodeId */}
+            <li 
+              className={`forum-item cursor-pointer ${activeNodeId === null ? 'active' : ''}`}
+              onClick={() => router.push('/')}
+            >
+              {t('common:home')}
+            </li>
             <li className="forum-item">{t('common:mine')}</li>
           </ul>
         </div>
         
+        {/* 论坛板块 */}
         <div className="sidebar-section">
           <div className="sidebar-title">论坛板块</div>
-          <ul className="forum-list">
-            {/* 3. 使用安全的变量进行 map 渲染，彻底告别 undefined 报错 */}
-            {safeBoards.map((b) => (
-              <li key={b.name} className="forum-item">
-                <span>{b.icon}</span>
-                <span>{b.name}</span>
-                <span className="forum-count">{b.count}</span>
-              </li>
-            ))}
-          </ul>
+          {loading ? (
+            <div className="forum-list-loading">加载中...</div>
+          ) : (
+            <ul className="forum-list">
+              {nodes.map((node) => (
+                <li
+                  key={node.nodeId}
+                  className={`forum-item cursor-pointer ${
+                    node.nodeId === activeNodeId ? 'active' : ''
+                  }`}
+                  onClick={() => handleNodeClick(node.nodeId)}
+                >
+                  <span>{getIconByName(node.name)}</span>
+                  <span>{node.name}</span>
+                  <span className="forum-count">{node.postCount}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         
         <div className="sidebar-section">
           <div className="sidebar-title">热门标签</div>
           <div className="tag-cloud">
-            {safeTags.map((t) => (
-              <span key={t.label} className="tag-item">{t.label}</span>
+            {safeTags.map((tag) => (
+              <span key={tag.label} className="tag-item">{tag.label}</span>
             ))}
           </div>
         </div>

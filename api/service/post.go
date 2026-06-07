@@ -48,11 +48,17 @@ func (s *postService) Count(cnd *querybuilder.QueryBuilder) int {
 
 // ListThreadsWithReplies 获取主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
 // 返回的列表已按 create_time ASC 排序，前端可直接根据 parent_id 组装树
-func (s *postService) ListThreadsWithReplies(page, limit int) ([]model.Post, *querybuilder.Paging) {
+func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.Post, *querybuilder.Paging) {
 	// ========== 第一步：分页查出主帖ID ==========
 	rootCnd := querybuilder.NewQueryBuilder().
-		Eq("parent_id", 0).
-		Eq("status", model.StatusOk).
+    	Eq("parent_id", 0).
+    	Eq("status", model.StatusOk)
+
+	if nodeId > 0 {
+		rootCnd = rootCnd.Eq("node_id", nodeId)
+	}
+
+	rootCnd = rootCnd.
 		Desc("last_comment_time").
 		Page(page, limit)
 
