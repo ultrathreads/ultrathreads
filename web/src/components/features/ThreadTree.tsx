@@ -108,7 +108,6 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
             item={t}
             isRoot
             globalCollapsed={allCollapsed}
-            // ✅ 将回溯状态继续向下透传给 ThreadItem
             backState={backState}
           />
         ))}
