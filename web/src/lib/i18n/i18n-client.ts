@@ -6,8 +6,8 @@ import { initReactI18next, useTranslation as useTranslationOrg } from 'react-i18
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // ⚠️ 与服务端保持一致：直接导入完整的翻译 JSON
-import zh from '../../messages/zh.json';
-import en from '../../messages/en.json';
+import zh from '../../../messages/zh.json';
+import en from '../../../messages/en.json';
 
 export const languages = ['zh', 'en'] as const;
 export type Locale = (typeof languages)[number];

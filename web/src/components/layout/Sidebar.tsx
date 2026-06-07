@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tag } from '@/types';
-import { useTranslation } from '@/lib/i18n-client';
+import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes, type ForumNode } from '@/services/node-service';
 
 // ==================== 工具函数 ====================

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslation } from '@/lib/i18n-client';
+import { useTranslation } from '@/lib/i18n/i18n-client';
 import { useAuth } from '@/hooks/use-auth';
 import UserMenu from '@/components/features/auth/UserMenu';
 

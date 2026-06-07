@@ -1,6 +1,6 @@
 // app/(main)/page.tsx
 import type { Metadata } from 'next';
-import { getServerTranslation } from '@/lib/i18n-server';
+import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import ThreadTree from '@/components/features/ThreadTree';
 import TopicPagination from '@/components/TopicPagination';
 import { getThreadPageData } from '@/services/thread-service';

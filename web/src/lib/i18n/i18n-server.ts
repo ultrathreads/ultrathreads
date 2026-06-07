@@ -2,8 +2,8 @@
 import { cache } from 'react';
 import { headers } from 'next/headers';
 import i18next from 'i18next';
-import zh from '../../messages/zh.json';
-import en from '../../messages/en.json';
+import zh from '../../../messages/zh.json';
+import en from '../../../messages/en.json';
 
 export const getServerTranslation = cache(async (namespace?: string) => {
   const headersList = await headers();
