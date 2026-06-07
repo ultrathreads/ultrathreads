@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TagEntity } from '@/types/domain';
 import { useTranslation } from '@/lib/i18n/i18n-client';
-import { getAllNodes, type ForumNode } from '@/services/node-service';
+import { getAllNodes } from '@/services/node-service';
+import type { NodeEntity } from '@/types/domain';
 
 // ==================== 工具函数 ====================
 const getIconByName = (name: string): string => {
@@ -33,7 +34,7 @@ export default function Sidebar({ tags }: Props) {
   const activeNodeId = searchParams.get('nodeId') ? Number(searchParams.get('nodeId')) : null;
 
   const [collapsed, setCollapsed] = useState(true);
-  const [nodes, setNodes] = useState<ForumNode[]>([]);
+  const [nodes, setNodes] = useState<NodeEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
   const mockTags: TagEntity[] = [
@@ -112,7 +113,7 @@ export default function Sidebar({ tags }: Props) {
                 >
                   <span>{getIconByName(node.name)}</span>
                   <span>{node.name}</span>
-                  <span className="forum-count">{node.postCount}</span>
+                  <span className="forum-count">{node.topicCount}</span>
                 </li>
               ))}
             </ul>

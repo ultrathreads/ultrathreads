@@ -213,9 +213,9 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 	})
 	if err == nil {
 		// 节点话题计数
-		NodeService.IncrPostCount(nodeID)
+		NodeService.IncrTopicCount(nodeID)
 		// 用户话题计数
-		UserService.IncrPostCount(dto.UserID)
+		UserService.IncrTopicCount(dto.UserID)
 		// 获得积分
 		UserScoreService.IncrementPostPostScore(post)
 	}

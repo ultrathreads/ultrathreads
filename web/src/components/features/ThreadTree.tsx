@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import type { ForumNode } from '@/lib/services/node-service';
+import type { NodeEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 import { buildThreadTree } from '@/lib/utils/thread-utils';
 
@@ -18,8 +18,8 @@ export interface BackState {
 
 interface Props {
   threads: ThreadViewItem[];
-  activeNode: ForumNode | null;
-  backState?: BackState; // ✅ 新增可选属性
+  activeNode: NodeEntity | null;
+  backState?: BackState;
 }
 
 /**

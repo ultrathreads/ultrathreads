@@ -1,24 +1,6 @@
 // src/lib/services/node-service.ts
 import { apiFetch } from '@/lib/api/client';
-
-// ==================== 类型定义 ====================
-
-export interface ForumNode {
-  nodeId: number;
-  name: string;
-  description: string;
-  postCount: number;
-}
-
-export interface NodePageData {
-  nodes: ForumNode[];
-  error: string | null;
-}
-
-export interface NodeDetailData {
-  node: ForumNode | null;
-  error: string | null;
-}
+import type { NodeEntity, NodePageData, NodeDetailData } from '@/types/domain';
 
 // ==================== 服务函数 ====================
 
@@ -29,8 +11,8 @@ export interface NodeDetailData {
  */
 export async function getAllNodes(): Promise<NodePageData> {
   try {
-    // apiFetch 自动拆解 envelope.data，直接拿到 ForumNode[]
-    const data = await apiFetch<ForumNode[]>('/nodes', {
+    // apiFetch 自动拆解 envelope.data，直接拿到 NodeEntity[]
+    const data = await apiFetch<NodeEntity[]>('/nodes', {
       auth: false,
       cacheStrategy: { next: { tags: ['nodes'], revalidate: 60 } },
     });
@@ -54,7 +36,7 @@ export async function getAllNodes(): Promise<NodePageData> {
  */
 export async function getNodeDetail(nodeId: number): Promise<NodeDetailData> {
   try {
-    const data = await apiFetch<ForumNode>(`/node/${nodeId}`, {
+    const data = await apiFetch<NodeEntity>(`/node/${nodeId}`, {
       auth: false,
       cacheStrategy: { next: { tags: [`node-${nodeId}`], revalidate: 30 } },
     });

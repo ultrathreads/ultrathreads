@@ -1,5 +1,5 @@
 // components/NodeHeader.tsx
-import type { ForumNode } from '@/lib/services/node-service';
+import type { NodeEntity } from '@/types/domain';
 
 const ICON_MAP: Record<string, string> = {
   '公告': '📢', '问答': '🙋‍♂️', '教程': '📚',
@@ -7,7 +7,7 @@ const ICON_MAP: Record<string, string> = {
 };
 
 interface Props {
-  node: ForumNode | null;
+  node: NodeEntity | null;
 }
 
 export default function NodeHeader({ node }: Props) {

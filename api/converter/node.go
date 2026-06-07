@@ -12,7 +12,7 @@ func ToNode(node *model.Node) *model.NodeResponse {
 		NodeId:      node.ID,
 		Name:        node.Name,
 		Description: node.Description,
-		PostCount:  node.PostCount,
+		TopicCount:  node.TopicCount,
 	}
 }
 

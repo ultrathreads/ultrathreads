@@ -1,5 +1,12 @@
 // src/types/domain.ts
 
+export interface NodeEntity {
+  nodeId: number;
+  name: string;
+  description: string;
+  topicCount: number;
+}
+
 export interface PostEntity {
   id: number;
   threadId: number;
@@ -31,18 +38,11 @@ export interface UserEntity {
   website: string;
   description: string;
   score: number;
-  postCount: number;
+  topicCount: number;
   commentCount: number;
   passwordSet: boolean;
   status: number;
   createTime: number;
-}
-
-export interface NodeEntity {
-  nodeId: number;
-  name: string;
-  description: string;
-  postCount: number;
 }
 
 export interface TagEntity {
@@ -51,3 +51,13 @@ export interface TagEntity {
 
 /** 主帖与回帖同构别名 */
 export type ThreadEntity = PostEntity;
+
+export interface NodePageData {
+  nodes: NodeEntity[];
+  error: string | null;
+}
+
+export interface NodeDetailData {
+  node: NodeEntity | null;
+  error: string | null;
+}

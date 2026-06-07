@@ -14,7 +14,7 @@ type User struct {
 	Website      string         `gorm:"size:1024" json:"website" form:"website"`                    // 个人主页
 	Description  string         `gorm:"type:text" json:"description" form:"description"`            // 个人描述
 	Status       int            `gorm:"index:idx_user_status;not null" json:"status" form:"status"` // 状态
-	PostCount   int            `gorm:"not null" json:"postCount" form:"postCount"`               // 帖子数量
+	TopicCount   int            `gorm:"not null" json:"TopicCount" form:"TopicCount"`               // 帖子数量
 	CommentCount int            `gorm:"not null" json:"commentCount" form:"commentCount"`           // 跟帖数量
 	Level        int            `gorm:"not null" json:"level" form:"level"`                         // 用户等级
 	CreateTime   int64          `json:"createTime" form:"createTime"`                               // 创建时间

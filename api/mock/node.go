@@ -18,25 +18,25 @@ func NodeTableSeeder(needCleanTable bool, totalNodes int) {
 			Name:        "分享",
 			Description: "分享创造，分享发现",
 			Status:      0,
-			PostCount:  0,
+			TopicCount:  0,
 		},
 		{
 			Name:        "教程",
 			Description: "开发技巧、推荐扩展包等",
 			Status:      0,
-			PostCount:  0,
+			TopicCount:  0,
 		},
 		{
 			Name:        "问答",
 			Description: "请保持友善，互帮互助",
 			Status:      0,
-			PostCount:  0,
+			TopicCount:  0,
 		},
 		{
 			Name:        "公告",
 			Description: "站点公告",
 			Status:      0,
-			PostCount:  0,
+			TopicCount:  0,
 		},
 	}
 

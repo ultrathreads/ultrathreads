@@ -18,6 +18,7 @@ func Mock() {
 	PostTableSeeder(true, 200)
 	LinkTableSeeder(true,6)
 	SettingTableSeeder(true)
+	UpdateNodeTopicCount()
 }
 
 func RandInt(min, max int) int {

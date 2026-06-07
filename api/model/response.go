@@ -15,7 +15,7 @@ type UserInfo struct {
 	Website      string `json:"website"`
 	Description  string `json:"description"`
 	Score        int    `json:"score"`        // 积分
-	PostCount   int    `json:"postCount"`   // 话题数量
+	TopicCount   int    `json:"TopicCount"`   // 话题数量
 	CommentCount int    `json:"commentCount"` // 跟帖数量
 	PasswordSet  bool   `json:"passwordSet"`  // 密码已设置
 	Status       int    `json:"status"`
@@ -49,7 +49,7 @@ type NodeResponse struct {
 	NodeId      int64  `json:"nodeId"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	PostCount  int64  `json:"postCount"`
+	TopicCount  int64  `json:"topicCount"`
 }
 
 // 帖子列表返回实体

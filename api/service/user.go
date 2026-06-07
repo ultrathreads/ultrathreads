@@ -341,19 +341,19 @@ func (s *userService) UpdatePassword(userId int64, oldPassword, password, rePass
 	return s.UpdateColumn(userId, "password", util.EncodePassword(password))
 }
 
-// IncrPostCount post_count + 1
-func (s *userService) IncrPostCount(userId int64) int {
+// IncrTopicCount post_count + 1
+func (s *userService) IncrTopicCount(userId int64) int {
 	t := dao.UserDao.Get(userId)
 	if t == nil {
 		return 0
 	}
-	postCount := t.PostCount + 1
-	if err := dao.UserDao.UpdateColumn(userId, "post_count", postCount); err != nil {
+	TopicCount := t.TopicCount + 1
+	if err := dao.UserDao.UpdateColumn(userId, "post_count", TopicCount); err != nil {
 		log.Error(err.Error())
 	} else {
 		cache.UserCache.Invalidate(userId)
 	}
-	return postCount
+	return TopicCount
 }
 
 // IncrCommentCount comment_count + 1
@@ -375,8 +375,8 @@ func (s *userService) IncrCommentCount(userId int64) int {
 func (s *userService) SyncUserCount() {
 	s.Scan(func(users []model.User) {
 		for _, user := range users {
-			postCount := dao.PostDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
-			_ = dao.UserDao.UpdateColumn(user.ID, "post_count", postCount)
+			TopicCount := dao.PostDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
+			_ = dao.UserDao.UpdateColumn(user.ID, "post_count", TopicCount)
 			cache.UserCache.Invalidate(user.ID)
 		}
 	})

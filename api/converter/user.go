@@ -48,7 +48,7 @@ func ToUser(user *model.User) *model.UserInfo {
 		LevelName:    levelName,
 		Website:      user.Website,
 		Description:  user.Description,
-		PostCount:   user.PostCount,
+		TopicCount:   user.TopicCount,
 		CommentCount: user.CommentCount,
 		PasswordSet:  len(user.Password) > 0,
 		Status:       user.Status,
