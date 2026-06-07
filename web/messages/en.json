@@ -6,7 +6,11 @@
     "search_default_value":"Search...",
     "posting": "Create new...",
     "register": "Register",
-    "login": "Login"
+    "login": "Login",
+    "justNow": "Just now",
+    "minutesAgo": "{{n}} min ago",
+    "hoursAgo": "{{n}} hr ago",
+    "daysAgo": "{{n}} day ago"
   },
   "home": {
     "title": "from home title",

@@ -1,7 +1,6 @@
 // lib/thread-utils.ts
 import type { SimplePost } from '@/lib/api/posts';
 import type { Thread, Reply } from '@/types';
-import { formatTimestamp } from '@/lib/utils/time-utils';
 
 /**
  * 将后端扁平 SimplePost 列表转换为 ThreadTree 所需的嵌套树结构
@@ -19,7 +18,7 @@ export function buildThreadTree(posts: SimplePost[]): Thread[] {
       title: post.title,
       author: post.user.nickname || post.user.username || '匿名用户',
       // ✅ 使用驼峰，且保留 * 1000 的时间戳转换
-      date: formatTimestamp(post.createTime), 
+      date: post.createTime, 
       category: undefined,
       replies: [],
     });

@@ -2,9 +2,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRelativeTime } from '@/hooks/use-relative-time';
 import type { SimplePost } from '@/lib/services/thread-service';
 import type { ForumNode } from '@/lib/services/node-service';
 import { buildThreadTree } from '@/lib/utils/thread-utils';
+
 import ThreadItem from './ThreadItem';
 import NodeHeader from './NodeHeader';
 
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export default function ThreadTree({ threads, activeNode }: Props) {
+  const formatTime = useRelativeTime();
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('latest');
 
@@ -22,9 +25,7 @@ export default function ThreadTree({ threads, activeNode }: Props) {
 
   return (
     <div className="thread-tree-container">
-      {/* ✅ 原始 thread-tree-header 结构 100% 保留 */}
       <div className="thread-tree-header">
-        {/* ✅ 动态注入节点信息，输出的 DOM 和 className 与原来完全一致 */}
         <NodeHeader node={activeNode} />
 
         <div className="thread-tree-actions">
@@ -48,7 +49,7 @@ export default function ThreadTree({ threads, activeNode }: Props) {
 
       <ul className="thread">
         {tree.map((t) => (
-          <ThreadItem key={t.id} item={t} isRoot />
+          <ThreadItem key={t.id} item={t} isRoot formatTime={formatTime} />
         ))}
       </ul>
     </div>

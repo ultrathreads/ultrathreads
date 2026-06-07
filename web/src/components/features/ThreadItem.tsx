@@ -5,9 +5,10 @@ import { Reply } from '@/types';
 interface Props {
   item: Reply;
   isRoot?: boolean;
+  formatTime: (timestamp: number | string) => string;
 }
 
-export default function ThreadItem({ item, isRoot }: Props) {
+export default function ThreadItem({ item, isRoot,formatTime }: Props) {
   const [folded, setFolded] = useState(false);
   const hasReplies = item.replies && item.replies.length > 0;
 
@@ -44,7 +45,7 @@ export default function ThreadItem({ item, isRoot }: Props) {
         <span className="metadata">
           <span className="author-name">{item.author}</span>
           <span className="tail">
-            <time>{item.date}</time>
+            <time>{formatTime(item.date)}</time>
           </span>
           {item.category && <span className="category">({item.category})</span>}
         </span>
@@ -61,7 +62,7 @@ export default function ThreadItem({ item, isRoot }: Props) {
       {hasReplies && (
         <ul className={`reply ${folded ? 'collapsed' : ''}`}>
           {item.replies.map((r) => (
-            <ThreadItem key={r.id} item={r} />
+            <ThreadItem key={r.id} item={r} formatTime={formatTime} />
           ))}
         </ul>
       )}
