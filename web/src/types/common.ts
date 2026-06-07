@@ -1,20 +1,56 @@
+// src/types/common.ts
 
-export type FeConfigsType = {
-  siteTitle?: string;
-  siteDescription:? string;
-}
-
-export interface Reply {
+/**
+ * ✅ 统一的帖子/回帖结构（对应后端 SimplePost）
+ * 主帖与回帖结构完全一致，通过 parentId 区分层级
+ */
+export interface PostDetail {
   id: number;
+  threadId: number;
+  parentId: number;
+  type: number;
+  user: PostUser;
+  node: PostNode;
+  tags: Tag[] | null;
   title: string;
-  author: string;       // 注意：这里目前是 user_id 的字符串形式
-  date: string;         // 注意：这里是格式化后的本地时间字符串
-  category?: string;
-  replies: Reply[];     // 递归嵌套结构
+  imageList: string[] | null;
+  lastCommentUser: PostUser | null;
+  lastCommentTime: number;
+  viewCount: number;
+  commentCount: number;
+  likeCount: number;
+  createTime: number;
+  content?: string;
+  toc?: string;
 }
 
-/** 主帖类型（当前业务场景下与 Reply 结构一致） */
-export type Thread = Reply;
+/** 主帖与回帖同构别名 */
+export type Thread = PostDetail;
+
+export interface PostUser {
+  id: number;
+  username: string;
+  email: string;
+  nickname: string;
+  avatar: string;
+  level: number;
+  levelName: string;
+  website: string;
+  description: string;
+  score: number;
+  postCount: number;
+  commentCount: number;
+  passwordSet: boolean;
+  status: number;
+  createTime: number;
+}
+
+export interface PostNode {
+  nodeId: number;
+  name: string;
+  description: string;
+  postCount: number;
+}
 
 export interface ForumBoard {
   name: string;
@@ -27,10 +63,16 @@ export interface Tag {
 }
 
 export interface PageData {
-  threads: Thread[];
+  threads: PostDetail[];
   totalItems: number;
   currentPage: number;
   pageSize: number;
   boards: ForumBoard[];
   tags: Tag[];
+}
+
+/** 帖子详情 + 扁平回帖列表 组合响应 */
+export interface PostWithThread {
+  post: PostDetail;
+  replies: PostDetail[];
 }

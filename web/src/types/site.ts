@@ -1,4 +1,5 @@
-/** Go API 统一响应包装 */
+// src/types/site.ts
+
 export interface ApiResponse<T> {
   code: number;
   data: T;

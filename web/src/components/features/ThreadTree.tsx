@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRelativeTime } from '@/hooks/use-relative-time';
 import type { SimplePost } from '@/lib/services/thread-service';
 import type { ForumNode } from '@/lib/services/node-service';
 import { buildThreadTree } from '@/lib/utils/thread-utils';
@@ -16,7 +15,6 @@ interface Props {
 }
 
 export default function ThreadTree({ threads, activeNode }: Props) {
-  const formatTime = useRelativeTime();
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('latest');
 
@@ -49,7 +47,7 @@ export default function ThreadTree({ threads, activeNode }: Props) {
 
       <ul className="thread">
         {tree.map((t) => (
-          <ThreadItem key={t.id} item={t} isRoot formatTime={formatTime} />
+          <ThreadItem key={t.id} item={t} isRoot />
         ))}
       </ul>
     </div>

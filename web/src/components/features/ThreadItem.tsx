@@ -1,20 +1,24 @@
 'use client';
 import { useState } from 'react';
 import { Reply } from '@/types';
+import { RelativeTime } from '@/components/RelativeTime';
 
 interface Props {
   item: Reply;
   isRoot?: boolean;
-  formatTime: (timestamp: number | string) => string;
+  currentPostId?: string | number;
 }
 
-export default function ThreadItem({ item, isRoot,formatTime }: Props) {
+export default function ThreadItem({ item, isRoot, currentPostId }: Props) {
   const [folded, setFolded] = useState(false);
   const hasReplies = item.replies && item.replies.length > 0;
 
+  // 在组件内部计算当前节点是否激活
+  const isActive = currentPostId !== undefined && String(item.id) === String(currentPostId);
+
   return (
     <li className={folded ? 'folded' : ''}>
-      <div className="entry">
+      <div className={`entry ${isActive ? 'active' : ''}`}>
         {isRoot && (
           <span className="fold-expand">
             {hasReplies ? (
@@ -39,13 +43,16 @@ export default function ThreadItem({ item, isRoot,formatTime }: Props) {
             <path d="M6,16 v108 a57 57, 0, 0, 0, 57, 57 h92 v27 l 45.5,-45.5 -45.5,-45.5 v27 h-92 a20 20, 0, 0, 1, -20,-20 v-108 z"></path>
           </svg>
         )}
-        <a className={`subject ${isRoot ? '' : 'read'}`} href={`/post/${item.id}`}>
+        <a 
+          className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`} 
+          href={`/post/${item.id}`}
+        >
           {item.title}
         </a>
         <span className="metadata">
           <span className="author-name">{item.author}</span>
           <span className="tail">
-            <time>{formatTime(item.date)}</time>
+            <RelativeTime timestamp={item.date} />
           </span>
           {item.category && <span className="category">({item.category})</span>}
         </span>
@@ -62,7 +69,7 @@ export default function ThreadItem({ item, isRoot,formatTime }: Props) {
       {hasReplies && (
         <ul className={`reply ${folded ? 'collapsed' : ''}`}>
           {item.replies.map((r) => (
-            <ThreadItem key={r.id} item={r} formatTime={formatTime} />
+            <ThreadItem key={r.id} item={r} currentPostId={currentPostId} />
           ))}
         </ul>
       )}

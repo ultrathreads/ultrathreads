@@ -298,6 +298,9 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
 .thread-tree-title { 
 	font-size: 16px; font-weight: 700; color: #2c3e50; white-space: nowrap; }
 .thread-tree-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.thread .subject.active { color: #2980b9; pointer-events: none; }
+
 /* =============================================
    Board Title (板块列表页标题区)
    ============================================= */
@@ -361,6 +364,7 @@ ul.reply ul.reply { border-left: round(0.2em, 1px) dotted #e8eaed; }
     padding: 5px 8px; border-radius: 6px; transition: background-color 0.15s; line-height: 1.6;
 }
 .entry:hover { background-color: #f8f9fa; }
+.entry.active { background-color: #f8f9fa; }
 
 .fold-expand { flex-shrink: 0; display: inline-flex; align-items: center; }
 .fold-expand a { display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }

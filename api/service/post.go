@@ -98,6 +98,51 @@ func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.P
 	return result, paging
 }
 
+// GetThreadFlatPosts 获取指定主题下的所有帖子（扁平化）
+// 返回结果已按 create_time ASC 排序，前端可直接根据 parent_id 组装树
+func (s *postService) GetThreadFlatPosts(threadId int64) ([]model.Post, error) {
+	if threadId <= 0 {
+		return nil, errors.New("invalid thread_id")
+	}
+
+	cnd := querybuilder.NewQueryBuilder().
+		Eq("thread_id", threadId).
+		Eq("status", model.StatusOk).
+		Asc("create_time") // ⚠️ 关键契约：保证父节点先于子节点
+
+	posts := dao.PostDao.Find(cnd)
+	if len(posts) == 0 {
+		return nil, errors.New("thread not found or empty")
+	}
+
+	return posts, nil
+}
+
+// GetPostWithThread 获取帖子详情及其所属主题的所有扁平回帖
+// replies 已按 create_time ASC 排序，前端可直接根据 parent_id 组装树
+func (s *postService) GetPostWithThread(postId int64) (*model.Post, []model.Post, error) {
+	if postId <= 0 {
+		return nil, nil, errors.New("invalid post_id")
+	}
+
+	// 1. 获取帖子详情
+	post := dao.PostDao.Get(postId)
+	if post == nil || post.Status != model.StatusOk {
+		return nil, nil, errors.New("post not found")
+	}
+
+	// 2. 复用已有方法获取同主题扁平回帖
+	var replies []model.Post
+	if post.ThreadId > 0 {
+		replies, _ = s.GetThreadFlatPosts(post.ThreadId)
+		if replies == nil {
+			replies = []model.Post{}
+		}
+	}
+
+	return post, replies, nil
+}
+
 // 删除
 func (s *postService) Delete(id int64) error {
 	err := dao.PostDao.UpdateColumn(id, "status", model.StatusDeleted)
