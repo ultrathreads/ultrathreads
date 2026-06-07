@@ -4,31 +4,11 @@ import { useState } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { useRouter } from 'next/navigation';
 import { createPost } from '@/services/post-service';
+import { extractPostTitle } from '@/lib/utils/post';
 
 interface ReplyEditorProps {
   parentId: number;
   nodeId: number;
-}
-
-/**
- * 从 Markdown 内容中提取纯文本标题
- * - 去除所有 Markdown 语法标记
- * - 取第一行有效文本
- * - 最多截取 20 个字符
- */
-function extractTitle(content: string): string {
-  const plainText = content
-    .replace(/#{1,6}\s*/g, '')       // 去除标题标记 # ## ###
-    .replace(/[*_~`]/g, '')          // 去除加粗/斜体/删除线/行内代码
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // 链接取文本部分
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')    // 去除图片
-    .replace(/>\s*/g, '')            // 去除引用标记
-    .replace(/[-+*]\s+/g, '')        // 去除无序列表标记
-    .replace(/\d+\.\s+/g, '')        // 去除有序列表标记
-    .trim();
-
-  const firstLine = plainText.split('\n').find(line => line.trim().length > 0) || '';
-  return firstLine.slice(0, 20);
 }
 
 export default function ReplyEditor({ parentId, nodeId }: ReplyEditorProps) {
@@ -44,7 +24,7 @@ export default function ReplyEditor({ parentId, nodeId }: ReplyEditorProps) {
       return;
     }
 
-    const title = extractTitle(trimmed);
+    const title = extractPostTitle(trimmed, { maxLength: 30 });
     if (!title) {
       setError('无法从内容中提取标题，请输入有效文本');
       return;
