@@ -1,9 +1,14 @@
 // src/app/post/[id]/page.tsx
+import { notFound } from 'next/navigation';
 import { getPostWithThread } from '@/services/post-service';
 import PostDetailCard from '@/components/PostDetailCard';
 import ThreadItem from '@/components/features/ThreadItem';
 import type { PostEntity } from '@/types/domain';
-import { ThreadViewItem } from '@/types/view'
+import type { ThreadViewItem } from '@/types/view';
+import { adaptToThreadView } from '@/lib/utils/thread-adapter';
+
+// ✅ 强制动态渲染，避免构建时因缺少静态参数导致 404
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -14,7 +19,7 @@ interface ThreadNode extends PostEntity {
   children: ThreadNode[];
 }
 
-/** 
+/**
  * 将扁平回帖列表构建为树形结构 (O(n) 复杂度)
  */
 function buildThreadTree(replies: PostEntity[]): ThreadNode[] {
@@ -27,7 +32,10 @@ function buildThreadTree(replies: PostEntity[]): ThreadNode[] {
 
   for (const reply of replies) {
     const node = nodeMap.get(reply.id)!;
-    if (reply.parentId === 0) {
+    // ✅ 兼容 parentId 为 null / undefined / 0 的情况
+    const isRoot = !reply.parentId || reply.parentId <= 0;
+
+    if (isRoot) {
       roots.push(node);
     } else {
       const parent = nodeMap.get(reply.parentId);
@@ -35,40 +43,58 @@ function buildThreadTree(replies: PostEntity[]): ThreadNode[] {
         parent.children.push(node);
       } else {
         console.warn(`[buildThreadTree] Parent ${reply.parentId} not found for reply ${reply.id}`);
-        roots.push(node);
+        roots.push(node); // 父节点缺失时降级为根节点，避免丢失
       }
     }
   }
+
   return roots;
 }
 
 /**
- * ✅ 核心适配器：将新的 ThreadNode 转换为 ThreadItem 期望的 ThreadViewItem 格式
- * 隔离新旧数据结构，保证 ThreadItem 及其复用方零修改
+ * 递归适配器：将树形 ThreadNode 转换为 ThreadViewItem
+ * 复用共享 adaptToThreadView 处理单节点字段映射
  */
-function adaptToReply(node: ThreadNode): ThreadViewItem {
+function adaptTreeNode(node: ThreadNode): ThreadViewItem {
+  const base = adaptToThreadView(node);
   return {
-    id: node.id,
-    title: node.title,
-    author: node.user.nickname,
-    date: node.createTime,
-    nodeName: node.node?.name,
-    // 递归转换子节点
-    replies: node.children.length > 0 
-      ? node.children.map(adaptToReply) 
+    ...base,
+    replies: node.children.length > 0
+      ? node.children.map(adaptTreeNode)
       : undefined,
   };
 }
 
 export default async function ReadPage({ params }: Props) {
-  const { id } = await params;
-  const { post, replies } = await getPostWithThread(id);
-  
-  // 1. 构建树形结构
+  // ✅ 安全解构 params，防止 Next.js 版本差异或路由异常导致崩溃
+  let id: string;
+  try {
+    const resolved = await params;
+    id = resolved.id;
+  } catch {
+    notFound();
+  }
+
+  // ✅ 防御性数据获取，避免接口异常直接导致页面 500/404
+  let post: PostEntity | null = null;
+  let replies: PostEntity[] = [];
+
+  try {
+    const result = await getPostWithThread(id);
+    post = result.post;
+    replies = result.replies ?? [];
+  } catch (error) {
+    console.error(`[ReadPage] Failed to fetch post ${id}:`, error);
+  }
+
+  // ✅ 帖子不存在时显式触发 Next.js 404 页面
+  if (!post) {
+    notFound();
+  }
+
+  // 构建树形结构并适配为视图模型
   const treeNodes = buildThreadTree(replies);
-  
-  // 2. ✅ 转换为 ThreadItem 兼容的数据格式
-  const adaptedReplies = treeNodes.map(adaptToReply);
+  const adaptedReplies = treeNodes.map(adaptTreeNode);
 
   return (
     <div className="main-body">
@@ -80,7 +106,9 @@ export default async function ReadPage({ params }: Props) {
 
       <div className="thread-tree-container">
         <div className="thread-tree-header">
-          <div className="thread-tree-title">💬 回帖讨论 ({post.commentCount})</div>
+          <div className="thread-tree-title">
+            💬 回帖讨论 ({post.commentCount ?? 0})
+          </div>
           <div className="thread-tree-actions">
             <select className="sort-select" aria-label="回帖排序" defaultValue="oldest">
               <option value="oldest">最早回复</option>
@@ -91,13 +119,12 @@ export default async function ReadPage({ params }: Props) {
         </div>
 
         <ul className="thread">
-          {/* ✅ 传入转换后的数据，isRoot 保持与原组件契约一致 */}
           {adaptedReplies.map((reply) => (
-            <ThreadItem 
-              key={reply.id} 
-              item={reply} 
-              isRoot 
-              currentPostId={post.id}
+            <ThreadItem
+              key={reply.id}
+              item={reply}
+              isRoot
+              currentPostId={String(post!.id)} // ✅ 统一转字符串，确保与 ThreadItem 内部比较一致
             />
           ))}
         </ul>

@@ -2,9 +2,10 @@
 
 export interface ThreadViewItem {
   id: number;
+  parentId: number;
   title: string;
   author: string;
   date: number;            // Unix timestamp (ms)
-  category?: string;
+  nodeName?: string;
   replies?: ThreadViewItem[];
 }

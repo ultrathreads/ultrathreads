@@ -1,19 +1,31 @@
+// components/features/ThreadItem.tsx
 'use client';
-import { useState } from 'react';
-import { ThreadViewItem } from '@/types/view'
+
+import { useState, useEffect } from 'react';
+import type { ThreadViewItem } from '@/types/view';
 import { RelativeTime } from '@/components/RelativeTime';
 
 interface Props {
   item: ThreadViewItem;
   isRoot?: boolean;
   currentPostId?: string | number;
+  globalCollapsed?: boolean;
 }
 
-export default function ThreadItem({ item, isRoot, currentPostId }: Props) {
-  const [folded, setFolded] = useState(false);
-  const hasReplies = item.replies && item.replies.length > 0;
+export default function ThreadItem({ item, isRoot, currentPostId, globalCollapsed }: Props) {
+  const [localFolded, setLocalFolded] = useState(false);
+  
+  const folded = globalCollapsed ?? localFolded;
 
-  // 在组件内部计算当前节点是否激活
+  // ✅ 当全局折叠状态变化时，同步重置本地状态
+  // 防止用户手动展开后，再次点击"全部折叠"时因本地状态覆盖而失效
+  useEffect(() => {
+    if (globalCollapsed !== undefined) {
+      setLocalFolded(globalCollapsed);
+    }
+  }, [globalCollapsed]);
+
+  const hasReplies = item.replies && item.replies.length > 0;
   const isActive = currentPostId !== undefined && String(item.id) === String(currentPostId);
 
   return (
@@ -22,7 +34,7 @@ export default function ThreadItem({ item, isRoot, currentPostId }: Props) {
         {isRoot && (
           <span className="fold-expand">
             {hasReplies ? (
-              <a onClick={(e) => { e.preventDefault(); setFolded(!folded); }}>
+              <a onClick={(e) => { e.preventDefault(); setLocalFolded((prev) => !prev); }}>
                 <svg width="12" height="12" viewBox="0 0 12 12">
                   <path d="M2 4l4 4 4-4" fill="none" stroke="#7f8c8d" strokeWidth="1.5" />
                 </svg>
@@ -54,7 +66,7 @@ export default function ThreadItem({ item, isRoot, currentPostId }: Props) {
           <span className="tail">
             <RelativeTime timestamp={item.date} />
           </span>
-          {item.nodeName && <span className="category">({item.nodeName})</span>}
+          {isRoot && item.nodeName && <span className="category">({item.nodeName})</span>}
         </span>
         <a
           className="preview-btn"
@@ -69,7 +81,7 @@ export default function ThreadItem({ item, isRoot, currentPostId }: Props) {
       {hasReplies && (
         <ul className={`reply ${folded ? 'collapsed' : ''}`}>
           {item.replies.map((r) => (
-            <ThreadItem key={r.id} item={r} currentPostId={currentPostId} />
+            <ThreadItem key={r.id} item={r} currentPostId={currentPostId} globalCollapsed={globalCollapsed} />
           ))}
         </ul>
       )}

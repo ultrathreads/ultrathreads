@@ -1,33 +1,34 @@
 // src/lib/utils/thread-adapter.ts
+import type { ThreadListItem } from '@/services/thread-service';
 import type { PostEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 
-/**
- * 将真实 API 的 PostDetail / CommentNode 转换为 ThreadItem 所需的 ThreadViewItem 结构
- * @param post - 主帖或评论节点
- * @param activeId - 当前 URL 选中的 ID，用于标记高亮
- * @param children - 已转换的子节点数组
- */
-export function toReply(
-  post: PostEntity & { children?: (PostEntity & { children?: any[] })[] },
-  activeId: number,
-): ThreadViewItem {
-  const isActive = post.id === activeId;
+type ThreadSource = ThreadListItem | PostEntity;
 
-  // ✅ 递归转换子节点，保持树形结构
-  const replies: ThreadViewItem[] = (post.children || []).map((child) =>
-    toReply(child, activeId)
-  );
+/**
+ * 统一适配器：将帖子传输模型转换为 ThreadViewItem
+ * 通过 'threadId' 字段区分列表项与详情回帖
+ */
+export function adaptToThreadView(source: ThreadSource): ThreadViewItem {
+  const isListItem = 'threadId' in source;
+
+  // ✅ 安全提取用户名，防止 user 对象缺失导致详情页崩溃
+  const author = isListItem
+    ? (source as ThreadListItem).user?.nickname || (source as ThreadListItem).user?.username
+    : (source as PostEntity).user?.nickname || (source as PostEntity).user?.username;
 
   return {
-    id: post.id,
-    title: post.title || '',           // 评论可能无标题，兜底空串
-    author: String(post.user.id),      // ⚠️ 按现有约定，author 存 user_id 字符串
-    date: new Date(post.createTime).toLocaleString('zh-CN'), // 转为本地时间字符串
-    category: post.node?.name,
-    replies,
-    // 💡 扩展字段：通过类型断言或扩展 ThreadViewItem 接口传递高亮状态
-    // 若不想污染 ThreadViewItem 类型，可在 ThreadItem 中通过 props 单独传入 activeId
-    _isActive: isActive,
-  } as ThreadViewItem & { _isActive: boolean };
+    id: source.id,
+    parentId: isListItem
+      ? (source as ThreadListItem).parentId
+      : ((source as PostEntity).parentId ?? 0), // ✅ 兜底为 0，避免树构建时误判
+    title: source.title,
+    author: author ?? '匿名用户', // ✅ 最终兜底
+    date: isListItem
+      ? (source as ThreadListItem).lastCommentTime || (source as ThreadListItem).createTime
+      : (source as PostEntity).createTime,
+    nodeName: isListItem
+      ? (source as ThreadListItem).node?.name
+      : (source as PostEntity).node?.name,
+  };
 }

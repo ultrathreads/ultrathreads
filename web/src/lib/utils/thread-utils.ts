@@ -1,41 +1,38 @@
-// lib/thread-utils.ts
-import type { SimplePost } from '@/lib/api/posts';
-import type { ThreadEntity  } from '@/types/domain';
+// src/lib/utils/thread-utils.ts
 import type { ThreadViewItem } from '@/types/view';
 
-/**
- * 将后端扁平 SimplePost 列表转换为 ThreadTree 所需的嵌套树结构
- * - 主帖：parent_id === 0
- * - 回帖：按 parent_id 挂载到对应父节点下
- * - 字段映射：SimplePost → Thread / Reply
- */
-export function buildThreadTree(posts: SimplePost[]): ThreadEntity[] {
-  const map = new Map<number, ThreadViewItem & { replies: ThreadViewItem[] }>();
-  const roots: ThreadEntity[] = [];
+/** 带子节点的扩展类型，用于内部树形构建 */
+type ThreadTreeNode = ThreadViewItem & { replies: ThreadTreeNode[] };
 
+/**
+ * 将已适配的扁平 ThreadViewItem 列表转换为嵌套树结构
+ * ⚠️ 注意：此函数仅负责构建父子关系，不做任何字段映射
+ * 字段映射应在服务端或数据获取层通过 adaptToThreadView 完成
+ */
+export function buildThreadTree(posts: ThreadViewItem[]): ThreadTreeNode[] {
+  const map = new Map<number, ThreadTreeNode>();
+  const roots: ThreadTreeNode[] = [];
+
+  // 1. 初始化所有节点（保留原始字段，仅追加空的 replies 数组）
   for (const post of posts) {
-    map.set(post.id, {
-      id: post.id,
-      title: post.title,
-      author: post.user.nickname || post.user.username || '匿名用户',
-      // ✅ 使用驼峰，且保留 * 1000 的时间戳转换
-      date: post.createTime, 
-      category: undefined,
-      replies: [],
-    });
+    map.set(post.id, { ...post, replies: [] });
   }
 
+  // 2. 根据 parentId 挂载子节点
   for (const post of posts) {
     const node = map.get(post.id)!;
-    // ✅ 使用驼峰，并保留容错判断
-    const isRoot = !post.parentId || post.parentId <= 0; 
-    
+    const isRoot = !post.parentId || post.parentId <= 0;
+
     if (isRoot) {
-      roots.push(node as Thread);
+      roots.push(node);
     } else {
-      const parent = map.get(post.parentId); // ✅ 使用驼峰
+      const parent = map.get(post.parentId);
       if (parent) {
         parent.replies.push(node);
+      } else {
+        // 父节点缺失时降级为根节点，避免丢失数据
+        console.warn(`[buildThreadTree] Parent ${post.parentId} not found for post ${post.id}`);
+        roots.push(node);
       }
     }
   }
