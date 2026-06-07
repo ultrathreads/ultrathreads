@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { Reply } from '@/types';
+import { ThreadViewItem } from '@/types/view'
 import { RelativeTime } from '@/components/RelativeTime';
 
 interface Props {
-  item: Reply;
+  item: ThreadViewItem;
   isRoot?: boolean;
   currentPostId?: string | number;
 }
@@ -54,7 +54,7 @@ export default function ThreadItem({ item, isRoot, currentPostId }: Props) {
           <span className="tail">
             <RelativeTime timestamp={item.date} />
           </span>
-          {item.category && <span className="category">({item.category})</span>}
+          {item.nodeName && <span className="category">({item.nodeName})</span>}
         </span>
         <a
           className="preview-btn"

@@ -67,7 +67,6 @@ func Setup(e *gin.Engine) {
 
 	jwtApi.POST("/posts", postController.Store)
 	api.GET("/post/:id", postController.Show)
-	api.GET("/post/:id/flat-threads", postController.GetThreadFlatPosts)
 	api.GET("/post/:id/with-thread", postController.GetPostWithThread)
 
 	jwtApi.GET("/post/:id/edit", postController.Edit)

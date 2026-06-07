@@ -48,8 +48,9 @@ func PostTableSeeder(needCleanTable bool) {
 				cursor = segmentEnd.Add(-time.Duration(RandInt(1, 60)) * time.Second)
 			}
 
+			nodeId := int64(RandInt(1, 4)) // ✅ 每个主题只随机一次 NodeId
 			ts := timeToUnix(cursor)
-			post := postFactory(0, 0, ts, ts)
+			post := postFactory(0, 0, nodeId, ts, ts)
 			if err := dao.PostDao.Create(post); err != nil {
 				fmt.Printf("mock root post error: %v\n", err)
 				continue
@@ -94,7 +95,7 @@ func PostTableSeeder(needCleanTable bool) {
 			}
 
 			replyTs := timeToUnix(replyTime)
-			reply := postFactory(root.ID, root.ID, replyTs, replyTs)
+			reply := postFactory(root.ID, root.ID, root.NodeId, replyTs, replyTs) // ✅ 继承主帖 NodeId
 			if err := dao.PostDao.Create(reply); err != nil {
 				fmt.Printf("mock reply error: %v\n", err)
 				continue
@@ -110,7 +111,7 @@ func PostTableSeeder(needCleanTable bool) {
 					subReplyTime = now.Add(-time.Duration(RandInt(1, 60)) * time.Second)
 				}
 				subTs := timeToUnix(subReplyTime)
-				subReply := postFactory(reply.ID, root.ID, subTs, subTs)
+				subReply := postFactory(reply.ID, root.ID, root.NodeId, subTs, subTs) // ✅ 继承主帖 NodeId
 				if err := dao.PostDao.Create(subReply); err != nil {
 					fmt.Printf("mock sub-reply error: %v\n", err)
 				}
@@ -227,7 +228,9 @@ func advanceCursorTime(cursor *time.Time, minSecs, maxSecs int) time.Time {
 	return *cursor
 }
 
-func postFactory(parentId, threadId int64, createTime, lastCommentTime int64) *model.Post {
+// postFactory 创建帖子实例
+// nodeId 由调用方显式传入，确保同一 ThreadId 下所有帖子 NodeId 一致
+func postFactory(parentId, threadId, nodeId int64, createTime, lastCommentTime int64) *model.Post {
 	minValidTs := int64(1577808000)
 	if TIMESTAMP_MILLI {
 		minValidTs *= 1000
@@ -239,10 +242,10 @@ func postFactory(parentId, threadId int64, createTime, lastCommentTime int64) *m
 		))
 	}
 	return &model.Post{
-		Title:           generateRealisticTitle(), // ✅ 替换为真实感标题生成器
+		Title:           generateRealisticTitle(),
 		Content:         randomdata.Paragraph(),
 		UserId:          int64(RandInt(1, 10)),
-		NodeId:          int64(RandInt(1, 4)),
+		NodeId:          nodeId,
 		ParentId:        parentId,
 		ThreadId:        threadId,
 		CreateTime:      createTime,

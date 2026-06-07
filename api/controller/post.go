@@ -59,23 +59,6 @@ func (c *PostController) ListWithReplies(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
-// GetThreadFlatPosts 获取指定主题下的所有帖子（扁平化，按时间正序）
-func (c *PostController) GetThreadFlatPosts(ctx *gin.Context) {
-    var gDto form.GeneralGetDto
-    if !c.BindAndValidate(ctx, &gDto) {
-        c.Fail(ctx, util.ErrorPostNotFound)
-        return
-    }
-
-    posts, err := service.PostService.GetThreadFlatPosts(gDto.ID)
-    if err != nil {
-        c.Fail(ctx, util.ErrorPostNotFound)
-        return
-    }
-
-    c.Success(ctx, converter.ToSimplePosts(posts))
-}
-
 // GetPostWithThread 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostWithThread(ctx *gin.Context) {
 	var gDto form.GeneralGetDto

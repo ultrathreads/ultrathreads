@@ -1,6 +1,7 @@
 // lib/thread-utils.ts
 import type { SimplePost } from '@/lib/api/posts';
-import type { Thread, Reply } from '@/types';
+import type { ThreadEntity  } from '@/types/domain';
+import type { ThreadViewItem } from '@/types/view';
 
 /**
  * 将后端扁平 SimplePost 列表转换为 ThreadTree 所需的嵌套树结构
@@ -8,9 +9,9 @@ import type { Thread, Reply } from '@/types';
  * - 回帖：按 parent_id 挂载到对应父节点下
  * - 字段映射：SimplePost → Thread / Reply
  */
-export function buildThreadTree(posts: SimplePost[]): Thread[] {
-  const map = new Map<number, Reply & { replies: Reply[] }>();
-  const roots: Thread[] = [];
+export function buildThreadTree(posts: SimplePost[]): ThreadEntity[] {
+  const map = new Map<number, ThreadViewItem & { replies: ThreadViewItem[] }>();
+  const roots: ThreadEntity[] = [];
 
   for (const post of posts) {
     map.set(post.id, {

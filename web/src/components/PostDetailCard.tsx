@@ -1,9 +1,9 @@
 // src/components/PostDetailCard.tsx
-import type { PostDetail } from '@/types/common';
+import type { PostEntity } from '@/types/domain';
 import { RelativeTime } from './RelativeTime';
 
 interface PostDetailCardProps {
-  post: PostDetail;
+  post: PostEntity;
 }
 
 export default function PostDetailCard({ post }: PostDetailCardProps) {

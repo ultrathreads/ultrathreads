@@ -2,6 +2,7 @@
 import { headers } from 'next/headers';
 import { I18nClientProvider } from '@/providers/I18nClientProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { getServerSession } from '@/lib/auth/session';
 import type { Metadata } from 'next';
 import { fetchSiteConfig } from '@/services/site-service';
 
@@ -25,13 +26,14 @@ export default async function RootLayout({
 }) {
   const headersList = await headers();
   const locale = headersList.get('x-locale') || 'zh';
+  const initialUser = await getServerSession();
 
   return (
     <html lang={locale}>
       <body>
         {/* ✅ 保持 I18nClientProvider 在最外层，确保 AuthProvider 及其子组件能使用多语言 */}
         <I18nClientProvider locale={locale}>
-          <AuthProvider>
+           <AuthProvider initialUser={initialUser}>
             {children}
           </AuthProvider>
         </I18nClientProvider>

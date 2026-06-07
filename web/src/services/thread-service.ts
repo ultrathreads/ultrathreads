@@ -1,45 +1,38 @@
 // src/services/thread-service.ts
 import { apiFetch } from '@/lib/api/client';
+import type { PostEntity, NodeEntity, UserEntity } from '@/types/domain';
+import type { PaginationMeta } from '@/types/api';
 
-// ==================== 类型定义 ====================
+// ==================== 传输层类型 ====================
 
-export interface PostUser {
+/**
+ * 帖子列表项（传输模型）
+ * 从 PostEntity 派生，仅保留列表页渲染必需字段
+ */
+export interface ThreadListItem {
   id: number;
-  username: string;
-  email: string;
-  nickname: string;
-}
-
-export interface SimplePost {
-  id: number;
-  parentId: number;
   threadId: number;
-  user: PostUser;
+  parentId: number;
   title: string;
-  content: string;
   createTime: number;
-  updateTime: number;
-  replyCount: number;
+  lastCommentTime: number;
   viewCount: number;
-  isPinned: boolean;
-  isLocked: boolean;
+  commentCount: number;
+  user: Pick<UserEntity, 'id' | 'username' | 'nickname' | 'avatar'>;
+  node: Pick<NodeEntity, 'nodeId' | 'name'>;
 }
 
-export interface PaginationInfo {
-  page: number;
-  limit: number;
-  total: number;
+/** API 原始响应结构（不导出，仅内部使用） */
+interface ThreadsApiResponse {
+  results: ThreadListItem[];
+  page: PaginationMeta;
 }
 
-/** apiFetch 自动拆解 envelope.data 后的纯净业务数据 */
-interface ThreadsResponse {
-  results: SimplePost[];
-  page: PaginationInfo;
-}
+// ==================== 视图层类型 ====================
 
 export interface ThreadPageData {
-  posts: SimplePost[];
-  paging: PaginationInfo;
+  posts: ThreadListItem[];
+  paging: PaginationMeta;
   error: string | null;
 }
 
@@ -58,7 +51,6 @@ export async function getThreadPageData(
 ): Promise<ThreadPageData> {
   const safePage = Math.max(1, Number.isNaN(page) ? 1 : page);
 
-  // ✅ 动态构建查询参数，有 nodeId 时追加，无则保持原样
   const params = new URLSearchParams({
     page: String(safePage),
     limit: String(DEFAULT_LIMIT),
@@ -67,11 +59,11 @@ export async function getThreadPageData(
     params.set('nodeId', String(nodeId));
   }
 
-  // ✅ 缓存标签按节点隔离，避免切换板块时命中旧缓存
+  // 缓存标签按节点隔离，避免切换板块时命中旧缓存
   const cacheTags = ['threads', ...(nodeId ? [`node-${nodeId}`] : [])];
 
   try {
-    const data = await apiFetch<ThreadsResponse>(
+    const data = await apiFetch<ThreadsApiResponse>(
       `/posts/threads?${params.toString()}`,
       {
         auth: false,
@@ -88,7 +80,7 @@ export async function getThreadPageData(
     console.error('[ThreadService] Fetch failed:', err);
     return {
       posts: [],
-      paging: { page: safePage, limit: DEFAULT_LIMIT, total: 0 },
+      paging: { currentPage: safePage, pageSize: DEFAULT_LIMIT, totalItems: 0 },
       error: err instanceof Error ? err.message : 'Unknown error',
     };
   }

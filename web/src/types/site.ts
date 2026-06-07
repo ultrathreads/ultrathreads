@@ -1,11 +1,5 @@
 // src/types/site.ts
 
-export interface ApiResponse<T> {
-  code: number;
-  data: T;
-  message: string;
-}
-
 /** 应用信息 */
 export interface AppInfo {
   name: string;

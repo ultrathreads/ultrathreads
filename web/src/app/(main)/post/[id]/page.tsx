@@ -2,22 +2,22 @@
 import { getPostWithThread } from '@/services/post-service';
 import PostDetailCard from '@/components/PostDetailCard';
 import ThreadItem from '@/components/features/ThreadItem';
-import type { PostDetail } from '@/types/common';
-import type { Reply } from '@/types/reply';
+import type { PostEntity } from '@/types/domain';
+import { ThreadViewItem } from '@/types/view'
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 /** 带子节点的扩展类型，用于内部树形构建 */
-interface ThreadNode extends PostDetail {
+interface ThreadNode extends PostEntity {
   children: ThreadNode[];
 }
 
 /** 
  * 将扁平回帖列表构建为树形结构 (O(n) 复杂度)
  */
-function buildThreadTree(replies: PostDetail[]): ThreadNode[] {
+function buildThreadTree(replies: PostEntity[]): ThreadNode[] {
   const nodeMap = new Map<number, ThreadNode>();
   const roots: ThreadNode[] = [];
 
@@ -43,16 +43,16 @@ function buildThreadTree(replies: PostDetail[]): ThreadNode[] {
 }
 
 /**
- * ✅ 核心适配器：将新的 ThreadNode 转换为 ThreadItem 期望的 Reply 格式
+ * ✅ 核心适配器：将新的 ThreadNode 转换为 ThreadItem 期望的 ThreadViewItem 格式
  * 隔离新旧数据结构，保证 ThreadItem 及其复用方零修改
  */
-function adaptToReply(node: ThreadNode): Reply {
+function adaptToReply(node: ThreadNode): ThreadViewItem {
   return {
     id: node.id,
     title: node.title,
     author: node.user.nickname,
     date: node.createTime,
-    category: node.node?.name,
+    nodeName: node.node?.name,
     // 递归转换子节点
     replies: node.children.length > 0 
       ? node.children.map(adaptToReply) 

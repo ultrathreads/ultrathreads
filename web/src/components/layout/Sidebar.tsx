@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Tag } from '@/types';
+import { TagEntity } from '@/types/domain';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes, type ForumNode } from '@/services/node-service';
 
@@ -21,7 +21,7 @@ const getIconByName = (name: string): string => {
 };
 
 interface Props {
-  tags?: Tag[];
+  tags?: TagEntity[];
 }
 
 export default function Sidebar({ tags }: Props) {
@@ -36,7 +36,7 @@ export default function Sidebar({ tags }: Props) {
   const [nodes, setNodes] = useState<ForumNode[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const mockTags: Tag[] = [
+  const mockTags: TagEntity[] = [
     { label: 'React' },
     { label: 'Next.js' },
     { label: 'TypeScript' },
