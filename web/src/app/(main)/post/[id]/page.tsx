@@ -132,7 +132,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
         </Link>
       </div>
 
-      <PostDetailCard post={post} />
+      <PostDetailCard post={post} replyCount={totalReplyCount} />
 
       <div className="thread-tree-container">
         <div className="thread-tree-header">

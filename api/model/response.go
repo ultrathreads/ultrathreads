@@ -15,7 +15,7 @@ type UserInfo struct {
 	Website      string `json:"website"`
 	Description  string `json:"description"`
 	Score        int    `json:"score"`        // 积分
-	TopicCount   int    `json:"TopicCount"`   // 话题数量
+	TopicCount   int    `json:"topicCount"`   // 话题数量
 	CommentCount int    `json:"commentCount"` // 跟帖数量
 	PasswordSet  bool   `json:"passwordSet"`  // 密码已设置
 	Status       int    `json:"status"`
@@ -66,7 +66,6 @@ type PostSimpleResponse struct {
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 	LastCommentTime int64          `json:"lastCommentTime"`
 	ViewCount       int64          `json:"viewCount"`
-	CommentCount    int64          `json:"commentCount"`
 	LikeCount       int64          `json:"likeCount"`
 	CreateTime      int64          `json:"createTime"`
 }

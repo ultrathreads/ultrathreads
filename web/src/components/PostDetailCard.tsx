@@ -4,9 +4,10 @@ import { RelativeTime } from './RelativeTime';
 
 interface PostDetailCardProps {
   post: PostEntity;
+  replyCount?: number; 
 }
 
-export default function PostDetailCard({ post }: PostDetailCardProps) {
+export default function PostDetailCard({ post, replyCount }: PostDetailCardProps) {
   return (
     <div className="post-detail-card">
       <h1 className="post-detail-title">{post.title}</h1>
@@ -30,7 +31,7 @@ export default function PostDetailCard({ post }: PostDetailCardProps) {
         
         {/* ✅ 字段名对齐后端接口规范 */}
         <span>阅读 {post.viewCount.toLocaleString()}</span>
-        <span>回复 {post.commentCount}</span>
+        <span>回复 {replyCount}</span>
       </div>
 
       {/* ✅ content 字段后端已返回 HTML 字符串，直接渲染 */}
