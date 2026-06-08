@@ -22,8 +22,7 @@ const (
 	ContentTypeMarkdown = "markdown"
 
 	EntityTypeArticle = "article"
-	EntityTypePost   = "post"
-	EntityTypeComment = "comment"
+	EntityTypePost    = "post"
 	EntityTypeUser    = "user"
 
 	NotificationStatusUnread = 0 // 消息未读
