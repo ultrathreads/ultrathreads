@@ -15,8 +15,8 @@ type AuthController struct {
 	BaseController
 }
 
-// Signup create
-func (c *AuthController) Signup(ctx *gin.Context) {
+// Register
+func (c *AuthController) Register(ctx *gin.Context) {
 	ref := ctx.Request.FormValue("ref")
 	var dto form.AuthSignupForm
 	if c.BindAndValidate(ctx, &dto) {

@@ -16,7 +16,7 @@ func setupApp(e *gin.Engine) {
 	// Auth
 	api.POST("/auth/login", jwtAuth.LoginHandler)
 	api.POST("/auth/login/refresh", jwtAuth.RefreshHandler)
-	api.POST("/auth/register", new(controller.AuthController).Signup)
+	api.POST("/auth/register", new(controller.AuthController).Register)
 
 	// OAuth
 	oauthController := &controller.OAuthController{}
