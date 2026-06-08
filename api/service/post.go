@@ -131,6 +131,27 @@ func (s *postService) GetPostWithThread(postId int64) (*model.Post, []model.Post
 	return post, replies, nil
 }
 
+func (s *postService) GetPostsByThreadId(threadId int64) ([]model.Post, error) {
+	if threadId <= 0 {
+		return nil, errors.New("invalid thread_id")
+	}
+
+	var posts []model.Post
+	cnd := querybuilder.NewQueryBuilder().
+		Eq("thread_id", threadId).
+		Eq("status", model.StatusOk).
+		Asc("create_time")
+
+	posts = dao.PostDao.Find(cnd)
+
+	// 保证返回非 nil 切片，避免前端 JSON 序列化时出现 null
+	if posts == nil {
+		posts = []model.Post{}
+	}
+
+	return posts, nil
+}
+
 // 删除
 func (s *postService) Delete(id int64) error {
 	err := dao.PostDao.UpdateColumn(id, "status", model.StatusDeleted)

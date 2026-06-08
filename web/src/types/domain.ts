@@ -58,6 +58,10 @@ export interface PostWithThread {
   replies: PostEntity[];
 }
 
+export interface PostWithFlat {
+  posts: PostEntity[];
+}
+
 export interface NodePageData {
   nodes: NodeEntity[];
   error: string | null;

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import MDEditor from '@uiw/react-md-editor';
 import { toast } from 'sonner';
 import { createPost } from '@/services/post-service';
@@ -15,11 +15,31 @@ interface CreatePostFormProps {
 
 export function CreatePostForm({ nodes }: CreatePostFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 从 URL 读取 nodeId 作为初始值，并确保该 nodeId 在 nodes 列表中存在
+  const initialNodeId = (() => {
+    const id = searchParams.get('nodeId');
+    if (id && nodes.some((n) => String(n.nodeId) === id)) {
+      return id;
+    }
+    return '';
+  })();
+
   const [title, setTitle] = useState('');
-  const [nodeId, setNodeId] = useState('');
+  const [nodeId, setNodeId] = useState(initialNodeId);
   const [tags, setTags] = useState('');
   const [content, setContent] = useState('');
   const submittingRef = useRef(false);
+
+  // 从哪里来回哪里去，无历史记录时兜底回首页
+  const handleCancel = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -39,7 +59,6 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
         {
           loading: '发布中...',
           success: (result) => {
-            // ✅ 成功时重置提交锁
             submittingRef.current = false;
             setTimeout(() => {
               router.push(result?.id ? `/post/${result.id}` : '/');
@@ -48,14 +67,12 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
             return '主题发布成功 🎉';
           },
           error: (err) => {
-            // ✅ 失败时也必须重置提交锁，否则按钮永久禁用
             submittingRef.current = false;
             return err instanceof Error ? err.message : '发布失败，请稍后重试';
           },
         }
       );
     } catch {
-      // ✅ 兜底：防止 toast.promise 本身同步抛错导致 ref 永远为 true
       submittingRef.current = false;
     }
   };
@@ -114,8 +131,17 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
       </div>
 
       <div className="create-post-actions">
-        <a href="/" className="btn btn-secondary">取消</a>
-        <button type="submit" className="btn btn-primary" disabled={!isFormValid}>发布主题</button>
+        {/* button + onClick，避免硬跳转丢失状态 */}
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleCancel}
+        >
+          取消
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={!isFormValid}>
+          发布主题
+        </button>
       </div>
     </form>
   );

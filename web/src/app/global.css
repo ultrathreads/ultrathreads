@@ -537,10 +537,14 @@ a.subject.read { font-weight: 400; color: #555; }
 /* =============================================
    7. 帖子详情页 Detail Page
    ============================================= */
-/* 返回列表栏 */
-.detail-back-bar {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+/* 顶部导航栏（左侧返回 + 右侧视图切换） */
+.detail-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 }
+
 .back-list-btn {
     display: inline-flex; align-items: center; gap: 6px;
     height: 34px; padding: 0 16px; font-size: 0.8125rem; font-weight: 600;
@@ -550,6 +554,42 @@ a.subject.read { font-weight: 400; color: #555; }
 }
 .back-list-btn:hover { background: #3498db; color: #fff; }
 .back-list-btn:active { transform: scale(0.97); }
+
+/* 视图模式切换器 */
+.view-mode-switcher {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 17px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.mode-btn {
+    height: 28px;
+    padding: 0 14px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 28px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: transparent;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.mode-btn:hover:not(.active) {
+    color: #374151;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.mode-btn.active {
+    background: #fff;
+    color: #3498db;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
 
 /* 详情卡片主体 */
 .post-detail-card {

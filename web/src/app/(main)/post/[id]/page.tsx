@@ -1,10 +1,12 @@
+// src/app/post/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getPostWithThread } from '@/services/post-service';
-import type { PostEntity } from '@/types/domain';
-import type { BackState } from '@/components/features/ThreadTree';
+import { getPostWithThread, getPostFlat } from '@/services/post-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
-import PostDetailClient from '@/components/PostDetailClient';
+import { ViewModeSwitcher } from '@/components/ViewModeSwitcher';
+import { PostTree } from './PostTree';
+import { PostFlat } from './PostFlat';
+import type { BackState } from '@/components/features/ThreadTree';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +41,7 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
 }
 
 export default async function ReadPage({ params, searchParams }: Props) {
+  // 1. 解析路由参数与搜索参数
   let id: string;
   try {
     const resolved = await params;
@@ -47,40 +50,68 @@ export default async function ReadPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  let backUrl = '/';
-  let backState: BackState = {};
+  let resolvedSp: Record<string, string | string[] | undefined> = {};
   try {
-    const sp = await searchParams;
-    const ctx = extractBackContext(sp);
-    backUrl = ctx.backUrl;
-    backState = ctx.backState;
+    resolvedSp = await searchParams;
   } catch {
+    // ignore
   }
 
-  let post: PostEntity | null = null;
-  let replies: PostEntity[] = [];
+  // 2. 确定视图模式（默认树形）
+  const view = resolvedSp.view === 'flat' ? 'flat' : 'tree';
+
+  // 3. 解析返回上下文
+  const { backUrl, backState } = extractBackContext(resolvedSp);
+
+  // 4. 根据视图模式获取对应数据并转换
+  let post = null;
+  let viewData: any = null;
+  let totalReplyCount = 0;
 
   try {
-    const result = await getPostWithThread(id);
-    post = result.post;
-    replies = result.replies ?? [];
+    if (view === 'flat') {
+      const result = await getPostFlat(id);
+      const posts = result.posts ?? [];
+      viewData = posts;
+      totalReplyCount = posts.length;
+      post = posts[0]
+    } else {
+      const result = await getPostWithThread(id);
+      post = result.post;
+      const replies = result.replies ?? [];
+      viewData = buildThreadTree(replies);
+      totalReplyCount = replies.length > 0 ? replies.length - 1 : 0;
+    }
   } catch (error) {
-    console.error(`[ReadPage] Failed to fetch post ${id}:`, error);
+    console.error(`[ReadPage] Failed to fetch post ${id} (${view}):`, error);
   }
 
   if (!post) {
     notFound();
   }
 
-  const viewPosts = buildThreadTree(replies);
-  const totalReplyCount = replies.length - 1;
-
+  // 5. 组装页面布局，根据视图模式分发组件
   return (
     <>
-      <div className="detail-back-bar">
+      <div className="detail-top-bar">
         <Link className="back-list-btn" href={backUrl}>← 返回列表</Link>
+        <ViewModeSwitcher currentView={view} />
       </div>
-      <PostDetailClient post={post} viewPosts={viewPosts} totalReplyCount={totalReplyCount} backState={backState} />
+
+      {view === 'flat' ? (
+        <PostFlat
+          posts={viewData}
+          totalReplyCount={totalReplyCount}
+          backState={backState}
+        />
+      ) : (
+        <PostTree
+          post={post}
+          viewPosts={viewData}
+          totalReplyCount={totalReplyCount}
+          backState={backState}
+        />
+      )}
     </>
   );
 }

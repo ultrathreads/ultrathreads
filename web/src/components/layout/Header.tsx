@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { useAuth } from '@/hooks/use-auth';
 import UserMenu from '@/components/features/auth/UserMenu';
@@ -11,8 +12,11 @@ interface HeaderProps {
 
 export default function Header({ siteTitle }: HeaderProps) {
   const { t } = useTranslation(['common']);
-
   const { isLoggedIn, isLoading } = useAuth();
+  const searchParams = useSearchParams();
+
+  const nodeId = searchParams.get('nodeId');
+  const createHref = nodeId ? `/create?nodeId=${encodeURIComponent(nodeId)}` : '/create';
 
   // 加载中保持原有布局骨架，避免闪烁
   if (isLoading) {
@@ -49,7 +53,7 @@ export default function Header({ siteTitle }: HeaderProps) {
       <div className="header-actions">
         {isLoggedIn ? (
           <>
-            <Link href="/create" className="post-btn">✏️ {t('common:posting')}</Link>
+            <Link href={createHref} className="post-btn">✏️ {t('common:posting')}</Link>
             <UserMenu />
           </>
         ) : (

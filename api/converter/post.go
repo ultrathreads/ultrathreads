@@ -20,6 +20,8 @@ func ToPost(post *model.Post) *model.PostResponse {
 
 	rsp.Id = post.ID
 	rsp.Type = post.Type
+	rsp.ThreadId = post.ThreadId
+	rsp.ParentId = post.ParentId
 	rsp.Title = post.Title
 	rsp.User = ToUserDefaultIfNull(post.UserId)
 	rsp.LastCommentTime = post.LastCommentTime
@@ -90,6 +92,17 @@ func ToSimplePosts(posts []model.Post) []model.PostSimpleResponse {
 	var responses []model.PostSimpleResponse
 	for _, post := range posts {
 		responses = append(responses, *ToSimplePost(&post))
+	}
+	return responses
+}
+
+func ToPosts(posts []model.Post) []model.PostResponse {
+	if posts == nil || len(posts) == 0 {
+		return nil
+	}
+	var responses []model.PostResponse
+	for _, post := range posts {
+		responses = append(responses, *ToPost(&post))
 	}
 	return responses
 }

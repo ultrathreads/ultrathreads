@@ -16,11 +16,25 @@ export async function getPostDetail(postId: string): Promise<PostEntity> {
 }
 
 /**
- * ✅ 获取帖子详情及其所有回帖（扁平列表）
+ * ✅ 获取帖子详情及其所有回帖
  */
 export async function getPostWithThread(postId: string): Promise<PostWithThread> {
   try {
     return await apiFetch<PostWithThread>(`/post/${postId}/with-thread`);
+  } catch (error) {
+    if (error instanceof ApiBusinessError) {
+      console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
+    }
+    notFound();
+  }
+}
+
+/**
+ * ✅ 获取帖子详情及其所有回帖（扁平列表）
+ */
+export async function getPostFlat(threadId: string): Promise<PostWithFlat> {
+  try {
+    return await apiFetch<PostWithFlat>(`/post/${threadId}/flat`);
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);

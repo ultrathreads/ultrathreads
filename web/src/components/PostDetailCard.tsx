@@ -1,7 +1,9 @@
+// components/PostDetailCard.tsx
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'sonner'; // ✅ 替换自定义 InlineToast
+import Link from 'next/link';
+import { toast } from 'sonner';
 import type { PostEntity } from '@/types/domain';
 import { RelativeTime } from '@/components/RelativeTime';
 import { likePost, favoritePost } from '@/services/post-service';
@@ -74,7 +76,11 @@ export default function PostDetailCard({
         <img className="detail-author-avatar" src={post.user.avatar} alt={post.user.nickname} />
         <span className="author-name">{post.user.nickname}</span>
         <RelativeTime timestamp={post.createTime} />
-        {post.node && <span className="detail-tag">{post.node.name}</span>}
+        {post.node && (
+          <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-tag">
+            {post.node.name}
+          </Link>
+        )}
         <span>阅读 {post.viewCount.toLocaleString()}</span>
         <span>回复 {replyCount}</span>
       </div>
@@ -103,7 +109,7 @@ export default function PostDetailCard({
           aria-expanded={isEditorOpen}
           aria-controls="reply-editor"
         >
-          {isEditorOpen ? '✖ 我不想说' : '💬 我说两句'}
+          {isEditorOpen ? '✖ 不想说了' : '💬 我说两句'}
         </button>
       </div>
     </div>

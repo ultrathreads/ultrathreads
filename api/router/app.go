@@ -37,6 +37,7 @@ func setupApp(e *gin.Engine) {
 	api.GET("/posts/threads", postController.ListWithReplies)
 	api.GET("/post/:id", postController.Show)
 	api.GET("/post/:id/with-thread", postController.GetPostWithThread)
+	api.GET("/post/:id/flat", postController.GetPostsFlat)
 	api.GET("/posts/node", postController.GetNodePosts)
 	api.GET("/posts/excellent", postController.GetPostsExcellent)
 	api.GET("/posts/recommend", postController.GetPostsRecommend)

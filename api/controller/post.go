@@ -80,6 +80,27 @@ func (c *PostController) GetPostWithThread(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
+
+// GetPostWithFlat 帖子详情（含扁平化回帖）
+func (c *PostController) GetPostsFlat(ctx *gin.Context) {
+	var gDto form.GeneralGetDto
+	if !c.BindAndValidate(ctx, &gDto) {
+		c.Fail(ctx, util.ErrorPostNotFound)
+		return
+	}
+
+	posts, err := service.PostService.GetPostsByThreadId(gDto.ID)
+	if err != nil {
+		c.Fail(ctx, util.ErrorPostNotFound)
+		return
+	}
+
+	data := map[string]interface{}{
+		"posts": converter.ToPosts(posts),
+	}
+	c.Success(ctx, data)
+}
+
 // Store 发表帖子
 func (c *PostController) Store(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
