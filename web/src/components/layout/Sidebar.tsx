@@ -7,21 +7,8 @@ import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes } from '@/services/node-service';
 import { getHotTags } from '@/services/tag-service';
 import type { NodeEntity, TagEntity } from '@/types/domain';
+import { NodeIcon } from '@/components/NodeIcon';
 import { SidebarNav } from './SidebarNav';
-
-// ==================== 工具函数 ====================
-const getIconByName = (name: string): string => {
-  const iconMap: Record<string, string> = {
-    '公告': '📢',
-    '问答': '🙋‍♂️',
-    '教程': '📚',
-    '分享': '💡',
-    '技术交流': '💻',
-    '生活日常': '☕',
-    '开源项目': '🚀',
-  };
-  return iconMap[name] || '📁';
-};
 
 export default function Sidebar() {
   const { t } = useTranslation(['common']);
@@ -40,15 +27,22 @@ export default function Sidebar() {
     let cancelled = false;
 
     const load = async () => {
-      const [{ nodes: fetchedNodes }, { tags: fetchedTags }] = await Promise.all([
-        getAllNodes(),
-        getHotTags(),
-      ]);
+      try {
+        const [{ nodes: fetchedNodes }, { tags: fetchedTags }] = await Promise.all([
+          getAllNodes(),
+          getHotTags(),
+        ]);
 
-      if (!cancelled) {
-        setNodes(fetchedNodes);
-        setTags(fetchedTags);
-        setLoading(false);
+        if (!cancelled) {
+          setNodes(fetchedNodes);
+          setTags(fetchedTags);
+        }
+      } catch (error) {
+        console.error('Failed to load sidebar data:', error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
@@ -85,7 +79,7 @@ export default function Sidebar() {
   return (
     <div className="sidebar-container">
       <div className={`sidebar-content-wrapper ${collapsed ? 'collapsed' : ''}`} id="sidebarContent">
-        {/* ✅ 导航菜单：使用独立客户端组件，基于 pathname 高亮 */}
+        {/* ✅ 导航菜单 */}
         <div className="sidebar-section">
           <div className="sidebar-title">{t('common:navigation')}</div>
           <SidebarNav />
@@ -98,19 +92,26 @@ export default function Sidebar() {
             <div className="forum-list-loading">{t('common:loading')}</div>
           ) : (
             <ul className="forum-list">
-              {nodes.map((node) => (
-                <li
-                  key={node.nodeId}
-                  className={clsx('forum-item cursor-pointer', {
-                    active: node.nodeId === activeNodeId,
-                  })}
-                  onClick={() => handleNodeClick(node.nodeId)}
-                >
-                  <span>{getIconByName(node.name)}</span>
-                  <span>{node.name}</span>
-                  <span className="forum-count">{node.topicCount}</span>
-                </li>
-              ))}
+              {nodes.map((node) => {
+                // ✅ 修复：将 isActive 的计算移入 map 回调内部
+                const isActive = node.nodeId === activeNodeId;
+                
+                return (
+                  <li
+                    key={node.nodeId}
+                    className={clsx('forum-item cursor-pointer', { active: isActive })}
+                    onClick={() => handleNodeClick(node.nodeId)}
+                  >
+                    {/* ✅ 修复：使用正确的 isActive 变量 + 添加兜底值 */}
+                    <NodeIcon 
+                      icon={node.icon} 
+                      className={isActive ? 'text-blue-600 dark:text-blue-400' : ''} 
+                    />
+                    <span className="truncate">{node.name}</span>
+                    <span className="forum-count">{node.topicCount}</span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

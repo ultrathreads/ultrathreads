@@ -12,6 +12,7 @@ func ToNode(node *model.Node) *model.NodeResponse {
 		NodeId:      node.ID,
 		Name:        node.Name,
 		Description: node.Description,
+		Icon: 		 node.Icon,
 		TopicCount:  node.TopicCount,
 	}
 }

@@ -49,6 +49,7 @@ type NodeResponse struct {
 	NodeId      int64  `json:"nodeId"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Icon        string `json:"icon"`
 	TopicCount  int64  `json:"topicCount"`
 }
 

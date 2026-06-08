@@ -272,6 +272,21 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
   color: #1890ff;
   font-weight: 600;
 }
+
+.board-title-icon svg,
+.forum-item svg {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;       /* 防止被 truncate 挤压 */
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  fill: currentColor;     /* ✅ 关键：让 SVG 继承父级颜色，配合 active/hover 变色 */
+  color: currentColor;    /* 兼容使用 stroke 或 fill="currentColor" 的 SVG */
+  transition: color 0.2s ease;
+}
+
 .forum-count {
     margin-left: auto; font-size: 0.6875rem; color: #95a5a6;
     background: #ecf0f1; padding: 1px 6px; border-radius: 8px;

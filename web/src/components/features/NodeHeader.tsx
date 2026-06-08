@@ -1,10 +1,6 @@
 // components/NodeHeader.tsx
 import type { NodeEntity } from '@/types/domain';
-
-const ICON_MAP: Record<string, string> = {
-  '公告': '📢', '问答': '🙋‍♂️', '教程': '📚',
-  '分享': '💡', '技术交流': '💻', '生活日常': '☕',
-};
+import { NodeIcon } from '@/components/NodeIcon';
 
 interface Props {
   node: NodeEntity | null;
@@ -25,7 +21,10 @@ export default function NodeHeader({ node }: Props) {
 
   return (
     <div className="board-title-wrapper">
-      <span className="board-title-icon">{ICON_MAP[node.name] || '📁'}</span>
+      <NodeIcon 
+        icon={node.icon} 
+        className="board-title-icon" 
+      />
       <div className="board-title-text">
         <div className="board-title-name">{node.name}</div>
         <div className="board-title-desc">{node.description}</div>
