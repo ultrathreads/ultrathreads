@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import clsx from 'clsx';
 
@@ -13,14 +13,18 @@ const NAV_ITEMS = [
 export function SidebarNav() {
   const { t } = useTranslation(['common']);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   return (
     <ul className="forum-list">
       {NAV_ITEMS.map((item) => {
-        const isActive =
-          item.matchType === 'exact'
-            ? pathname === item.href
-            : pathname.startsWith('/settings');
+        let isActive: boolean;
+
+        if (item.matchType === 'exact') {
+          isActive = pathname === item.href && !searchParams.has('nodeId');
+        } else {
+          isActive = pathname.startsWith('/settings');
+        }
 
         return (
           <li key={item.labelKey}>
