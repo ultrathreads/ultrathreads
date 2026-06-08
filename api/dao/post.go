@@ -82,3 +82,12 @@ func (d *postDao) UpdateColumn(id int64, name string, value interface{}) (err er
 func (d *postDao) Delete(id int64) {
 	db.Delete(&model.Post{}, "id = ?", id)
 }
+
+func (d *postDao) GetRootPosts(limit int) ([]*model.Post, error) {
+    var posts []*model.Post
+    err := db.Where("parent_id = ?", 0).
+        Order("id DESC").
+        Limit(limit).
+        Find(&posts).Error
+    return posts, err
+}
