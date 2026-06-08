@@ -1,4 +1,3 @@
-// components/features/ThreadItem.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,6 +12,7 @@ interface Props {
   currentPostId?: string | number;
   globalCollapsed?: boolean;
   backState?: BackState;
+  onReplyClick?: (postId: string | number, postTitle: string) => void;
 }
 
 function buildPostUrl(postId: number | string, backState?: BackState): string {
@@ -31,9 +31,10 @@ export default function ThreadItem({
   currentPostId,
   globalCollapsed,
   backState,
+  onReplyClick,
 }: Props) {
   const [userOverride, setUserOverride] = useState<boolean | null>(null);
-  const folded = userOverride ?? globalCollapsed ?? false; 
+  const folded = userOverride ?? globalCollapsed ?? false;
 
   const hasReplies = item.replies && item.replies.length > 0;
   const isActive = currentPostId !== undefined && String(item.id) === String(currentPostId);
@@ -45,14 +46,20 @@ export default function ThreadItem({
   const handleToggleFold = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // 基于当前实际展示的 folded 状态取反，并写入 userOverride
     setUserOverride(!folded);
+  };
+
+  // ✅ 处理回复图标点击
+  const handleReplyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onReplyClick?.(item.id, `${item.title}(${item.author})`);
   };
 
   return (
     <li className={folded ? 'folded' : ''}>
       <div className={`entry ${isActive ? 'active' : ''}`}>
-        {/* ✅ 修复：折叠按钮绑定 hasReplies，不再受 isRoot 限制 */}
+        {/* 折叠按钮 */}
         {hasReplies ? (
           <span className="fold-expand">
             <a onClick={handleToggleFold} role="button" tabIndex={0}>
@@ -67,7 +74,6 @@ export default function ThreadItem({
             </a>
           </span>
         ) : (
-          /* 仅根节点且无回复时显示占位方块 */
           isRoot && (
             <span className="fold-expand">
               <svg className="fold-thread" width="12" height="12" viewBox="0 0 12 12" fill="#7f8c8d">
@@ -86,7 +92,6 @@ export default function ThreadItem({
             <path d="M6,16 v108 a57 57, 0, 0, 0, 57, 57 h92 v27 l 45.5,-45.5 -45.5,-45.5 v27 h-92 a20 20, 0, 0, 1, -20,-20 v-108 z"></path>
           </svg>
         )}
-
         <Link
           className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`}
           href={buildPostUrl(item.id, backState)}
@@ -107,6 +112,24 @@ export default function ThreadItem({
             <path d="M8 3C4 3 1 8 1 8s3 5 7 5 7-5 7-5-3-5-7-5zm0 8a3 3 0 110-6 3 3 0 010 6z" />
           </svg>
         </a>
+
+        {/* ✅ 标题区域：hover 时显示回复图标 */}
+        <span className="subject-wrapper">
+          {/* ✅ 悬浮显示的回复按钮 */}
+          {onReplyClick && (
+            <button
+              className="inline-reply-btn"
+              onClick={handleReplyClick}
+              title={`回复 ${item.author}`}
+              aria-label={`回复 ${item.author}`}
+              type="button"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+            </button>
+          )}
+        </span>
       </div>
 
       {hasReplies && (
@@ -118,6 +141,7 @@ export default function ThreadItem({
               currentPostId={currentPostId}
               globalCollapsed={globalCollapsed}
               backState={backState}
+              onReplyClick={onReplyClick}
             />
           ))}
         </ul>

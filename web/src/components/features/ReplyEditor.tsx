@@ -9,9 +9,11 @@ import { extractPostTitle } from '@/lib/utils/post';
 interface ReplyEditorProps {
   parentId: number;
   nodeId: number;
+  /** ✅ 新增：被回复的帖子标题 */
+  replyToTitle?: string;
 }
 
-export default function ReplyEditor({ parentId, nodeId }: ReplyEditorProps) {
+export default function ReplyEditor({ parentId, nodeId, replyToTitle }: ReplyEditorProps) {
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,6 @@ export default function ReplyEditor({ parentId, nodeId }: ReplyEditorProps) {
     setError(null);
 
     try {
-
       const result = await createPost({
         title,
         nodeId,
@@ -43,9 +44,8 @@ export default function ReplyEditor({ parentId, nodeId }: ReplyEditorProps) {
       });
 
       setContent('');
-      // ✅ 跳转到新帖子详情页，若无返回则跳首页
-      router.push(result?.id ? `/post/${result.id}` : '/');   
-      router.refresh(); // 仅触发当前页面的服务端重新渲染
+      router.push(result?.id ? `/post/${result.id}` : '/');
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : '提交失败，请重试');
     } finally {
@@ -55,14 +55,22 @@ export default function ReplyEditor({ parentId, nodeId }: ReplyEditorProps) {
 
   return (
     <div className="reply-editor-wrapper" style={{ marginTop: 24 }}>
-      <h3 style={{ marginBottom: 12 }}>✏️ 发表回复</h3>
+      {/* ✅ 标题区域：显示被回复对象 */}
+      <h3 style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span>✏️ 发表回复</span>
+        {replyToTitle && (
+          <span className="reply-to-tag">
+            → {replyToTitle}
+          </span>
+        )}
+      </h3>
 
-      {/* 隐藏属性 */}
       <input type="hidden" name="parentId" value={parentId} />
       <input type="hidden" name="nodeId" value={nodeId} />
 
       <div data-color-mode="light">
         <MDEditor
+          autoFocus
           value={content}
           onChange={(val) => setContent(val || '')}
           preview="live"

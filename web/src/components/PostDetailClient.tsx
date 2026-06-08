@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import PostDetailCard from '@/components/PostDetailCard';
 import ReplyEditor from '@/components/features/ReplyEditor';
 import ThreadItem from '@/components/features/ThreadItem';
@@ -22,20 +22,39 @@ export default function PostDetailClient({
   backState,
 }: PostDetailClientProps) {
   const [showEditor, setShowEditor] = useState(false);
+  const [replyToId, setReplyToId] = useState<string | number>(post.id);
+  // ✅ 新增：记录被回复的标题
+  const [replyToTitle, setReplyToTitle] = useState<string>(post.title);
+
+  const handleThreadReplyClick = useCallback((targetId: string | number, targetTitle: string) => {
+    console.log('[PostDetailClient] 收到回复目标:', targetId, targetTitle); // ← 临时调试
+    setReplyToId(targetId);
+    setReplyToTitle(`${post.title}(${post.user.nickname})`);
+    setShowEditor(true);
+  }, []);
 
   return (
     <>
-      {/* ✅ 将 showEditor 传递给 PostDetailCard 驱动按钮样式 */}
       <PostDetailCard
         post={post}
         replyCount={totalReplyCount}
-        isEditorOpen={showEditor}
-        onReplyClick={() => setShowEditor((prev) => !prev)}
+        isEditorOpen={showEditor && replyToId === post.id}
+        onReplyClick={() => {
+          setReplyToId(post.id);
+          setReplyToTitle(post.title);
+          setShowEditor((prev) => !prev);
+        }}
       />
 
       {showEditor && (
         <div id="reply-editor">
-          <ReplyEditor parentId={post.id} nodeId={post.node.nodeId} />
+          {/* ✅ 传入 replyToTitle */}
+          <ReplyEditor
+            key={replyToId}
+            parentId={replyToId}
+            nodeId={post.node.nodeId}
+            replyToTitle={replyToTitle}
+          />
         </div>
       )}
 
@@ -59,6 +78,7 @@ export default function PostDetailClient({
               isRoot
               currentPostId={String(post.id)}
               backState={backState}
+              onReplyClick={handleThreadReplyClick}
             />
           ))}
         </ul>
