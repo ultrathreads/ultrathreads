@@ -81,7 +81,7 @@ export default function ReplyEditor({ parentId, nodeId, replyToTitle }: ReplyEdi
 
       {error && <p style={{ color: '#e53e3e', fontSize: 14, marginTop: 8 }}>{error}</p>}
 
-      <div style={{ margin: '12px 0', textAlign: 'right' }}>
+      <div style={{ margin: '12px 0', textAlign: 'left' }}>
         <button
           onClick={handleSubmit}
           disabled={submitting || !content.trim()}

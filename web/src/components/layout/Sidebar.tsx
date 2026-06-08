@@ -87,12 +87,17 @@ export default function Sidebar({ tags }: Props) {
           <ul className="forum-list">
             {/* ✅ 首页也改为 URL 驱动，清空 nodeId */}
             <li 
-              className={`forum-item cursor-pointer ${activeNodeId === null ? 'active' : ''}`}
+              className={`forum-item ${activeNodeId === null ? 'active' : ''}`}
               onClick={() => router.push('/')}
             >
               {t('common:home')}
             </li>
-            <li className="forum-item">{t('common:mine')}</li>
+            <li
+              className="forum-item"
+              onClick={() => router.push('/settings/account')}
+            >
+              {t('common:mine')}
+            </li>
           </ul>
         </div>
         

@@ -21,13 +21,12 @@ export default function PostDetailClient({
   totalReplyCount,
   backState,
 }: PostDetailClientProps) {
-  const [showEditor, setShowEditor] = useState(false);
+  const [showEditor, setShowEditor] = useState(true);
   const [replyToId, setReplyToId] = useState<string | number>(post.id);
   // ✅ 新增：记录被回复的标题
   const [replyToTitle, setReplyToTitle] = useState<string>(post.title);
 
   const handleThreadReplyClick = useCallback((targetId: string | number, targetTitle: string) => {
-    console.log('[PostDetailClient] 收到回复目标:', targetId, targetTitle); // ← 临时调试
     setReplyToId(targetId);
     setReplyToTitle(`${post.title}(${post.user.nickname})`);
     setShowEditor(true);

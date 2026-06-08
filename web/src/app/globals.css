@@ -301,51 +301,6 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
 
 .thread .subject.active { color: #3498db; font-weight: 700; pointer-events: none; }
 
-
-/* 标题包裹容器：作为 hover 触发区域 */
-.subject-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 60%;
-}
-
-/* 内联回复按钮：默认隐藏，hover 标题区域时显示 */
-.inline-reply-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: #95a5a6;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
-  flex-shrink: 0;
-}
-
-/* ✅ 核心：hover 标题区域时显示回复按钮 */
-.subject-wrapper:hover .inline-reply-btn {
-  opacity: 1;
-}
-
-.inline-reply-btn:hover {
-  background-color: var(--color-primary-light, #e8f4fd);
-  color: var(--color-primary, #1890ff);
-}
-
-/* 确保标题链接不会占满整行挤掉按钮 */
-.subject-wrapper .subject {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* 被回复标题标签 */
 .reply-to-tag {
   display: inline-block;
@@ -462,6 +417,18 @@ a.subject.read { font-weight: 400; color: #555; }
 .preview-btn:hover { background-color: #eaf2f8; }
 .preview-btn:hover svg { fill: #3498db; }
 .preview-btn svg { display: block; transition: fill 0.15s; }
+
+.entry .preview-btn {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* 当 entry 处于 hover 状态时显示 */
+.entry:hover .preview-btn {
+  opacity: 1;
+  visibility: visible;
+}
 
 /* =============================================
    Detail Page (详情页专属)

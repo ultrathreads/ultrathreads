@@ -12,7 +12,6 @@ interface Props {
   currentPostId?: string | number;
   globalCollapsed?: boolean;
   backState?: BackState;
-  onReplyClick?: (postId: string | number, postTitle: string) => void;
 }
 
 function buildPostUrl(postId: number | string, backState?: BackState): string {
@@ -31,7 +30,6 @@ export default function ThreadItem({
   currentPostId,
   globalCollapsed,
   backState,
-  onReplyClick,
 }: Props) {
   const [userOverride, setUserOverride] = useState<boolean | null>(null);
   const folded = userOverride ?? globalCollapsed ?? false;
@@ -47,13 +45,6 @@ export default function ThreadItem({
     e.preventDefault();
     e.stopPropagation();
     setUserOverride(!folded);
-  };
-
-  // ✅ 处理回复图标点击
-  const handleReplyClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onReplyClick?.(item.id, `${item.title}(${item.author})`);
   };
 
   return (
@@ -107,29 +98,17 @@ export default function ThreadItem({
           {isRoot && item.nodeName && <span className="category">({item.nodeName})</span>}
         </span>
 
-        <a className="preview-btn" data-title={item.title} title="预览">
+        {/* ✅ 标题区域：hover 时显示预览图标 */}
+        <a
+          className="preview-btn"
+          title={`回复 ${item.author}`}
+          aria-label={`回复 ${item.author}`}
+          type="button"
+        >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="#95a5a6">
             <path d="M8 3C4 3 1 8 1 8s3 5 7 5 7-5 7-5-3-5-7-5zm0 8a3 3 0 110-6 3 3 0 010 6z" />
           </svg>
         </a>
-
-        {/* ✅ 标题区域：hover 时显示回复图标 */}
-        <span className="subject-wrapper">
-          {/* ✅ 悬浮显示的回复按钮 */}
-          {onReplyClick && (
-            <button
-              className="inline-reply-btn"
-              onClick={handleReplyClick}
-              title={`回复 ${item.author}`}
-              aria-label={`回复 ${item.author}`}
-              type="button"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-              </svg>
-            </button>
-          )}
-        </span>
       </div>
 
       {hasReplies && (
@@ -141,7 +120,6 @@ export default function ThreadItem({
               currentPostId={currentPostId}
               globalCollapsed={globalCollapsed}
               backState={backState}
-              onReplyClick={onReplyClick}
             />
           ))}
         </ul>
