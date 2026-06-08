@@ -51,7 +51,7 @@ export default function ThreadItem({
     <li className={folded ? 'folded' : ''}>
       <div className={`entry ${isActive ? 'active' : ''}`}>
         {/* 折叠按钮 */}
-        {hasReplies ? (
+        {isRoot ? (
           <span className="fold-expand">
             <a onClick={handleToggleFold} role="button" tabIndex={0}>
               <svg width="12" height="12" viewBox="0 0 12 12">
