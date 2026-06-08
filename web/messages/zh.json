@@ -1,8 +1,12 @@
 {
   "common": {
     "title": "超线程",
+    "navigation": "导航菜单",
+    "forum_sections": "论坛节点",
     "home":"🏠 首页",
     "mine": "👤 我的...",
+
+    "loading": "加载中...",
     "search_default_value":"搜索帖子...",
     "posting": "发帖",
     "register": "注册",

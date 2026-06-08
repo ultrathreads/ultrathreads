@@ -1,8 +1,12 @@
 {
   "common": {
     "title": "from common title",
+    "navigation": "Navigation",
+    "forum_sections": "Forum nodes",
     "home":"🏠 Home",
     "mine": "👤 My...",
+
+    "loading": "Loading...",
     "search_default_value":"Search...",
     "posting": "Create new...",
     "register": "Register",

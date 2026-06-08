@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes } from '@/services/node-service';
 import { getHotTags } from '@/services/tag-service';
 import type { NodeEntity, TagEntity } from '@/types/domain';
+import { SidebarNav } from './SidebarNav';
 
 // ==================== 工具函数 ====================
 const getIconByName = (name: string): string => {
@@ -83,38 +85,25 @@ export default function Sidebar() {
   return (
     <div className="sidebar-container">
       <div className={`sidebar-content-wrapper ${collapsed ? 'collapsed' : ''}`} id="sidebarContent">
-        {/* 导航菜单 */}
+        {/* ✅ 导航菜单：使用独立客户端组件，基于 pathname 高亮 */}
         <div className="sidebar-section">
-          <div className="sidebar-title">导航菜单</div>
-          <ul className="forum-list">
-            <li
-              className={`forum-item ${activeNodeId === null && activeTag === null ? 'active' : ''}`}
-              onClick={() => router.push('/')}
-            >
-              {t('common:home')}
-            </li>
-            <li
-              className="forum-item"
-              onClick={() => router.push('/settings/account')}
-            >
-              {t('common:mine')}
-            </li>
-          </ul>
+          <div className="sidebar-title">{t('common:navigation')}</div>
+          <SidebarNav />
         </div>
 
         {/* 论坛板块 */}
         <div className="sidebar-section">
-          <div className="sidebar-title">论坛板块</div>
+          <div className="sidebar-title">{t('common:forum_sections')}</div>
           {loading ? (
-            <div className="forum-list-loading">加载中...</div>
+            <div className="forum-list-loading">{t('common:loading')}</div>
           ) : (
             <ul className="forum-list">
               {nodes.map((node) => (
                 <li
                   key={node.nodeId}
-                  className={`forum-item cursor-pointer ${
-                    node.nodeId === activeNodeId ? 'active' : ''
-                  }`}
+                  className={clsx('forum-item cursor-pointer', {
+                    active: node.nodeId === activeNodeId,
+                  })}
                   onClick={() => handleNodeClick(node.nodeId)}
                 >
                   <span>{getIconByName(node.name)}</span>
@@ -126,16 +115,17 @@ export default function Sidebar() {
           )}
         </div>
 
+        {/* 热门标签 */}
         <div className="sidebar-section">
-          <div className="sidebar-title">热门标签</div>
+          <div className="sidebar-title">{t('common:hot_tags')}</div>
           {loading ? (
-            <div className="forum-list-loading">加载中...</div>
+            <div className="forum-list-loading">{t('common:loading')}</div>
           ) : (
             <div className="tag-cloud">
               {tags.map((tag) => (
                 <span
                   key={tag.tagName}
-                  className={`tag-item ${activeTag === tag.tagName ? 'active' : ''}`}
+                  className={clsx('tag-item', { active: activeTag === tag.tagName })}
                   onClick={() => handleTagClick(tag.tagName)}
                 >
                   {tag.tagName}
@@ -151,6 +141,7 @@ export default function Sidebar() {
         id="toggle-btn"
         onClick={() => setCollapsed(!collapsed)}
         dangerouslySetInnerHTML={{ __html: collapsed ? '&#9654;' : '&#9664;' }}
+        aria-label={collapsed ? t('common:expand_sidebar') : t('common:collapse_sidebar')}
       />
     </div>
   );
