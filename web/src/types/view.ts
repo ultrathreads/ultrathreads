@@ -7,6 +7,7 @@ export interface ThreadViewItem {
   title: string;
   author: string;
   date: number;            // Unix timestamp (ms)
+  lastCommentTime: number;
   nodeName?: string;
   replies?: ThreadViewItem[];
 }

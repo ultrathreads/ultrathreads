@@ -44,10 +44,10 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
     case 'latest':
       return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     case 'reply':
-      return sorted.sort((a, b) =>
-        new Date((b as any).lastReplyTime || b.date).getTime() -
-        new Date((a as any).lastReplyTime || a.date).getTime()
-      );
+      return sorted.sort((a, b) => {
+        const diff = b.lastCommentTime - a.lastCommentTime;
+        return diff !== 0 ? diff : b.id - a.id;
+      });
     case 'most':
       return sorted.sort((a, b) => (b.replies?.length || 0) - (a.replies?.length || 0));
     case 'hot':
@@ -63,7 +63,7 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
 
 export default function ThreadTree({ threads, activeNode, backState }: Props) {
   const [allCollapsed, setAllCollapsed] = useState(false);
-  const [sort, setSort] = useState('latest');
+  const [sort, setSort] = useState('reply');
 
   // ✅ 先排序，再构建树
   const tree = useMemo(() => {
