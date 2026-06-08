@@ -53,7 +53,7 @@ func (s *tagService) Update(t *model.Tag) error {
 }
 
 // 自动完成
-func (s *tagService) Autocomplete(input string) []model.Tag {
+func (s *tagService) AutoComplete(input string) []model.Tag {
 	input = strings.TrimSpace(input)
 	if len(input) == 0 {
 		return nil

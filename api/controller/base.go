@@ -30,6 +30,15 @@ func (c *BaseController) BindAndValidate(ctx *gin.Context, obj interface{}) bool
 	return true
 }
 
+// BindAndValidateUri 专门处理 URL Path 参数绑定
+func (c *BaseController) BindAndValidateUri(ctx *gin.Context, obj interface{}) bool {
+    if err := ctx.ShouldBindUri(obj); err != nil {
+        c.Fail(ctx, util.FromError(err))
+        return false
+    }
+    return true
+}
+
 // GetCurrentUser get current user from contex
 func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 	if currentUser, ok := ctx.Get("CurrentUser"); ok {

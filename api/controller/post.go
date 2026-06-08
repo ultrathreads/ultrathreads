@@ -302,30 +302,32 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 
 // Like 点赞
 func (c *PostController) Like(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		err := service.PostLikeService.Like(user.ID, gDto.ID)
-		if err != nil {
-			c.Fail(ctx, util.FromError(err))
-			return
-		}
-		c.Success(ctx, nil)
-	}
+    user := c.GetCurrentUser(ctx)
+    var gDto form.GeneralGetDto
+    if !c.BindAndValidateUri(ctx, &gDto) {
+        return
+    }
+
+    if err := service.PostLikeService.Like(user.ID, gDto.ID); err != nil {
+        c.Fail(ctx, util.FromError(err))
+        return
+    }
+
+    c.Success(ctx, nil)
 }
 
 // Favorite 收藏话题
 func (c *PostController) Favorite(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
-	var gDto form.GeneralGetDto
-	if !c.BindAndValidate(ctx, &gDto) {
-		c.Fail(ctx, util.ErrorPostNotFound)
-		return
-	}
-	err := service.FavoriteService.AddPostFavorite(user.ID, gDto.ID)
-	if err != nil {
-		c.Fail(ctx, util.FromError(err))
-		return
-	}
-	c.Success(ctx, nil)
+    user := c.GetCurrentUser(ctx)
+    var gDto form.GeneralGetDto
+    if !c.BindAndValidateUri(ctx, &gDto) {
+        return
+    }
+
+    if err := service.FavoriteService.AddPostFavorite(user.ID, gDto.ID); err != nil {
+        c.Fail(ctx, util.FromError(err))
+        return
+    }
+
+    c.Success(ctx, nil)
 }

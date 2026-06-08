@@ -97,7 +97,7 @@ func setupApp(e *gin.Engine) {
 	jwtApi.DELETE("/favorite/delete", favoriteController.Delete)
 
 	// Tags（鉴权）
-	jwtApi.POST("/tag/autocomplete", tagController.Autocomplete)
+	jwtApi.POST("/tag/auto-complete", tagController.AutoComplete)
 
 	// Articles（鉴权）
 	jwtApi.POST("/articles", articleController.Store)

@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { apiFetch, ApiBusinessError } from '@/lib/api/client';
 import type { PostEntity, PostWithThread } from '@/types/domain';
 
-// ✅ 已有：获取主帖详情
-export async function getPostDetail(postId: string): Promise<PostDetail> {
+// ✅ 修复：返回类型从 PostDetail 改为 PostEntity
+export async function getPostDetail(postId: string): Promise<PostEntity> {
   try {
     return await apiFetch<PostEntity>(`/post/${postId}`);
   } catch (error) {
@@ -17,7 +17,6 @@ export async function getPostDetail(postId: string): Promise<PostDetail> {
 
 /**
  * ✅ 获取帖子详情及其所有回帖（扁平列表）
- * 对应接口: GET /post/{id}/with-thread
  */
 export async function getPostWithThread(postId: string): Promise<PostWithThread> {
   try {
@@ -34,13 +33,12 @@ export interface CreatePostPayload {
   title: string;
   nodeId: number;
   parentId?: number;
-  content: string;       // Markdown 原文
+  content: string;
   tags?: string[];
 }
 
 export interface CreatePostResponse {
   id: number;
-  // ...其他后端返回的字段
 }
 
 /**
@@ -49,7 +47,33 @@ export interface CreatePostResponse {
 export async function createPost(payload: CreatePostPayload): Promise<CreatePostResponse> {
   return apiFetch<CreatePostResponse>('/posts', {
     method: 'POST',
-    auth: true,          // ✅ 发帖必须登录
+    auth: true,
     body: JSON.stringify(payload),
+  });
+}
+
+// ==================== 👇 新增：点赞 & 收藏 ====================
+
+/**
+ * 点赞帖子
+ * POST /post/:id/like
+ */
+export async function likePost(postId: string | number): Promise<void> {
+  await apiFetch<null>(`/post/${postId}/like`, {
+    method: 'POST',
+    auth: true,
+    cacheStrategy: undefined, // ✅ POST 写操作禁用缓存
+  });
+}
+
+/**
+ * 收藏帖子
+ * POST /post/:id/favorite
+ */
+export async function favoritePost(postId: string | number): Promise<void> {
+  await apiFetch<null>(`/post/${postId}/favorite`, {
+    method: 'POST',
+    auth: true,
+    cacheStrategy: undefined,
   });
 }

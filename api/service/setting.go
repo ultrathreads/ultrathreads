@@ -11,7 +11,6 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -114,53 +113,15 @@ func (s *settingService) GetSetting() *model.ConfigData {
 	var (
 		siteTitle        = cache.SettingCache.GetValue(model.SettingSiteTitle)
 		siteDescription  = cache.SettingCache.GetValue(model.SettingSiteDescription)
-		siteKeywords     = cache.SettingCache.GetValue(model.SettingSiteKeywords)
-		siteNavs         = cache.SettingCache.GetValue(model.SettingSiteNavs)
-		siteTips         = cache.SettingCache.GetValue(model.SettingSiteTips)
-		siteNotification = cache.SettingCache.GetValue(model.SettingSiteNotification)
-		recommendTags    = cache.SettingCache.GetValue(model.SettingRecommendTags)
-		scoreConfigStr   = cache.SettingCache.GetValue(model.SettingScoreConfig)
 		defaultNodeIdStr = cache.SettingCache.GetValue(model.SettingDefaultNodeId)
-		siteIndexHtml    = cache.SettingCache.GetValue(model.SettingSiteIndexHtml)
 	)
 
-	var siteKeywordsArr []string
-	if err := util.ParseJson(siteKeywords, &siteKeywordsArr); err != nil {
-		log.Warn("站点关键词数据错误")
-	}
-
-	var siteNavsArr []model.SiteNav
-	if err := util.ParseJson(siteNavs, &siteNavsArr); err != nil {
-		log.Warn("站点导航数据错误")
-	}
-
-	var siteTipsArr []model.SiteTip
-	if err := util.ParseJson(siteTips, &siteTipsArr); err != nil {
-		log.Warn("小贴士数据错误")
-	}
-
-	var recommendTagsArr []string
-	if err := util.ParseJson(recommendTags, &recommendTagsArr); err != nil {
-		log.Warn("推荐标签数据错误")
-	}
-
-	var scoreConfig model.ScoreConfig
-	if err := util.ParseJson(scoreConfigStr, &scoreConfig); err != nil {
-		log.Warn("积分配置错误")
-	}
 
 	var defaultNodeId, _ = strconv.ParseInt(defaultNodeIdStr, 10, 64)
 
 	return &model.ConfigData{
 		SiteTitle:        siteTitle,
 		SiteDescription:  siteDescription,
-		SiteKeywords:     siteKeywordsArr,
-		SiteNavs:         siteNavsArr,
-		SiteTips:         siteTipsArr,
-		SiteNotification: siteNotification,
-		SiteIndexHtml:    siteIndexHtml,
-		RecommendTags:    recommendTagsArr,
-		ScoreConfig:      scoreConfig,
 		DefaultNodeId:    defaultNodeId,
 	}
 }

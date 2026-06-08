@@ -43,10 +43,10 @@ func (c *TagController) List(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
-// Autocomplete 标签自动完成
-func (c *TagController) Autocomplete(ctx *gin.Context) {
+// AutoComplete 标签自动完成
+func (c *TagController) AutoComplete(ctx *gin.Context) {
 	input := ctx.Request.FormValue("input")
-	tags := service.TagService.Autocomplete(input)
+	tags := service.TagService.AutoComplete(input)
 	c.Success(ctx, tags)
 }
 
