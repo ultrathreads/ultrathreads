@@ -73,7 +73,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
       const result = await getPostFlat(id);
       const posts = result.posts ?? [];
       viewData = posts;
-      totalReplyCount = posts.length;
+      totalReplyCount = posts.length -1 ;
       post = posts[0]
     } else {
       const result = await getPostWithThread(id);

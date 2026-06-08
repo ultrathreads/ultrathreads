@@ -17,12 +17,9 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // 从 URL 读取 nodeId 作为初始值，并确保该 nodeId 在 nodes 列表中存在
   const initialNodeId = (() => {
     const id = searchParams.get('nodeId');
-    if (id && nodes.some((n) => String(n.nodeId) === id)) {
-      return id;
-    }
+    if (id && nodes.some((n) => String(n.nodeId) === id)) return id;
     return '';
   })();
 
@@ -30,28 +27,28 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
   const [nodeId, setNodeId] = useState(initialNodeId);
   const [tags, setTags] = useState('');
   const [content, setContent] = useState('');
+  const [attempted, setAttempted] = useState(false);
   const submittingRef = useRef(false);
 
-  // 从哪里来回哪里去，无历史记录时兜底回首页
   const handleCancel = () => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push('/');
-    }
+    if (window.history.length > 1) router.back();
+    else router.push('/');
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!nodeId) { toast.warning('请选择所属板块'); return; }
-    if (!content.trim()) { toast.warning('正文内容不能为空'); return; }
+    setAttempted(true);
+
+    // ✅ 纯前端校验失败 → 仅激活行内错误，不弹 Toast
+    if (!nodeId || !title.trim() || !content.trim()) return;
+
     if (submittingRef.current) return;
     submittingRef.current = true;
 
     try {
       await toast.promise(
         createPost({
-          title,
+          title: title.trim(),
           nodeId: Number(nodeId),
           content,
           tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
@@ -66,6 +63,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
             }, 600);
             return '主题发布成功 🎉';
           },
+          // ✅ Toast 仅处理异步结果：网络异常 / 服务端业务校验拒绝
           error: (err) => {
             submittingRef.current = false;
             return err instanceof Error ? err.message : '发布失败，请稍后重试';
@@ -77,19 +75,30 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
     }
   };
 
-  const isFormValid = Boolean(title && content.trim() && nodeId);
+  const errors = {
+    nodeId: attempted && !nodeId,
+    title: attempted && !title.trim(),
+    content: attempted && !content.trim(),
+  };
+
+  const isFormValid = Boolean(nodeId && title.trim() && content.trim());
 
   return (
-    <form id="createPostForm" onSubmit={handleSubmit}>
+    <form id="createPostForm" onSubmit={handleSubmit} noValidate>
       <div className="form-row">
         <div className="form-group">
           <label className="form-label">所属板块<span className="required">*</span></label>
-          <select className="form-select" required value={nodeId} onChange={(e) => setNodeId(e.target.value)}>
+          <select
+            className={`form-select ${errors.nodeId ? 'form-error' : ''}`}
+            value={nodeId}
+            onChange={(e) => { setNodeId(e.target.value); if (attempted) setAttempted(true); }}
+          >
             <option value="">请选择板块...</option>
             {nodes.map((node) => (
               <option key={node.nodeId} value={node.nodeId}>{node.name}</option>
             ))}
           </select>
+          {errors.nodeId && <p className="form-error-text">请选择所属板块</p>}
         </div>
 
         <div className="form-group">
@@ -107,18 +116,18 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
         <label className="form-label">帖子标题<span className="required">*</span></label>
         <input
           type="text"
-          className="form-input"
+          className={`form-input ${errors.title ? 'form-error' : ''}`}
           placeholder="请输入清晰明确的标题（5-100字）"
           maxLength={100}
-          required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
+        {errors.title && <p className="form-error-text">请输入帖子标题</p>}
       </div>
 
       <div className="form-group">
         <label className="form-label">正文内容<span className="required">*</span></label>
-        <div data-color-mode="light">
+        <div className={errors.content ? 'md-editor-error' : ''} data-color-mode="light">
           <MDEditor
             value={content}
             onChange={(val) => setContent(val || '')}
@@ -128,18 +137,19 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
             textareaProps={{ placeholder: '支持 Markdown 语法，右侧实时预览...' }}
           />
         </div>
+        {errors.content && <p className="form-error-text">正文内容不能为空</p>}
       </div>
 
       <div className="create-post-actions">
-        {/* button + onClick，避免硬跳转丢失状态 */}
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={handleCancel}
-        >
+        <button type="button" className="btn btn-secondary" onClick={handleCancel}>
           取消
         </button>
-        <button type="submit" className="btn btn-primary" disabled={!isFormValid}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          aria-disabled={!isFormValid}
+          style={{ opacity: isFormValid ? 1 : 0.7 }}
+        >
           发布主题
         </button>
       </div>

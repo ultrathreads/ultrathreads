@@ -3,34 +3,45 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth'
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/use-auth';
 
-// 用户名验证：3-20位，仅允许字母、数字、下划线、连字符
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
 
 export default function LoginForm() {
   const router = useRouter();
-  const { refreshUser } = useAuth(); // ✅ 获取刷新用户状态的方法
+  const { refreshUser } = useAuth();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 实时用户名合法性校验
-  const isUsernameValid = USERNAME_REGEX.test(username);
+  // ✅ 分离两种错误状态
+  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  // ✅ 实时校验：仅在用户输入过时才显示格式错误
+  const usernameTouched = username.length > 0;
+  const isUsernameFormatValid = USERNAME_REGEX.test(username);
+
+  const validateFields = (): boolean => {
+    const errors: typeof fieldErrors = {};
+    if (!username.trim()) errors.username = '请输入用户名';
+    else if (!isUsernameFormatValid) errors.username = '用户名需为3-20位字母、数字、下划线或连字符';
+    if (!password) errors.password = '请输入密码';
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setServerError(null);
+
+    // ✅ 前端校验失败 → 仅行内提示，不弹 Toast
+    if (!validateFields()) return;
+
     setIsSubmitting(true);
-    setErrorMsg(null);
-
-    // 提交前二次校验
-    if (!isUsernameValid) {
-      setErrorMsg('用户名需为3-20位字母、数字、下划线或连字符');
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -40,21 +51,42 @@ export default function LoginForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
+        // ✅ 服务端业务错误 → 顶部横幅，持久展示
         throw new Error(data?.error || `登录失败 (${res.status})`);
       }
 
-      // ✅ 核心改动：登录接口返回成功后，立即拉取 /user/current 并更新全局 Context
       await refreshUser();
-
-      // 跳转首页并刷新服务端组件缓存
+      // ✅ 成功跳转用 Toast 确认（可选，也可省略直接跳转）
+      toast.success('登录成功，欢迎回来 👋');
       router.push('/');
       router.refresh();
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : '未知错误');
+      const message = err instanceof Error ? err.message : '未知错误';
+      // ✅ 区分业务错误和网络异常
+      if (message.includes('网络') || message.includes('timeout') || message.includes('500')) {
+        toast.error(message);
+      } else {
+        setServerError(message);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // ✅ 输入时清除对应字段的行内错误 + 服务端错误
+  const handleUsernameChange = (val: string) => {
+    setUsername(val);
+    setServerError(null);
+    if (fieldErrors.username) setFieldErrors((prev) => ({ ...prev, username: undefined }));
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
+    setServerError(null);
+    if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
+  };
+
+  const canSubmit = !isSubmitting && username.trim() && password && isUsernameFormatValid;
 
   return (
     <div className="auth-container">
@@ -63,28 +95,34 @@ export default function LoginForm() {
         <p className="auth-subtitle">登录你的 UltraThreads 账号</p>
       </div>
 
-      {errorMsg && (
+      {/* ✅ 服务端错误横幅：持久展示，role="alert" 保证无障碍可读 */}
+      {serverError && (
         <div className="auth-error" role="alert">
-          {errorMsg}
+          {serverError}
         </div>
       )}
 
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="form-group">
           <label className="form-label">用户名</label>
           <input
             type="text"
-            className="form-input"
+            className={`form-input ${fieldErrors.username ? 'form-error' : ''}`}
             placeholder="请输入用户名..."
-            required
             autoComplete="username"
             value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              setErrorMsg(null);
-            }}
+            onChange={(e) => handleUsernameChange(e.target.value)}
+            aria-invalid={!!fieldErrors.username}
+            aria-describedby={fieldErrors.username ? 'username-error' : undefined}
           />
-          {username.length > 0 && !isUsernameValid && (
+          {/* ✅ 行内错误：格式校验失败时显示 */}
+          {fieldErrors.username && (
+            <p id="username-error" className="form-hint form-hint--error" role="alert">
+              {fieldErrors.username}
+            </p>
+          )}
+          {/* ✅ 未出错时的格式提示（仅在用户开始输入且格式正确时隐藏） */}
+          {!fieldErrors.username && usernameTouched && !isUsernameFormatValid && (
             <p className="form-hint form-hint--error">
               用户名需为3-20位字母、数字、下划线或连字符
             </p>
@@ -95,16 +133,19 @@ export default function LoginForm() {
           <label className="form-label">密码</label>
           <input
             type="password"
-            className="form-input"
+            className={`form-input ${fieldErrors.password ? 'form-error' : ''}`}
             placeholder="请输入密码..."
-            required
             autoComplete="current-password"
             value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setErrorMsg(null);
-            }}
+            onChange={(e) => handlePasswordChange(e.target.value)}
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? 'password-error' : undefined}
           />
+          {fieldErrors.password && (
+            <p id="password-error" className="form-hint form-hint--error" role="alert">
+              {fieldErrors.password}
+            </p>
+          )}
           <Link href="/auth/forgot-password" className="auth-link forgot-password-link">
             忘记密码？
           </Link>
@@ -114,7 +155,8 @@ export default function LoginForm() {
           <button
             type="submit"
             className="auth-btn"
-            disabled={isSubmitting || !isUsernameValid || !password}
+            disabled={!canSubmit}
+            aria-disabled={!canSubmit}
           >
             {isSubmitting ? '登录中...' : '登 录'}
           </button>
