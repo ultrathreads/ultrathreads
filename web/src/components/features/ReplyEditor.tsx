@@ -70,7 +70,6 @@ export default function ReplyEditor({ parentId, nodeId, replyToTitle }: ReplyEdi
 
       <div data-color-mode="light">
         <MDEditor
-          autoFocus
           value={content}
           onChange={(val) => setContent(val || '')}
           preview="live"
