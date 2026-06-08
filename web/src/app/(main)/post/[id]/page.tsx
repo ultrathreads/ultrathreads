@@ -55,7 +55,6 @@ export default async function ReadPage({ params, searchParams }: Props) {
     backUrl = ctx.backUrl;
     backState = ctx.backState;
   } catch {
-    // 解析失败静默降级
   }
 
   let post: PostEntity | null = null;
@@ -77,19 +76,11 @@ export default async function ReadPage({ params, searchParams }: Props) {
   const totalReplyCount = replies.length - 1;
 
   return (
-    <div className="main-body">
+    <>
       <div className="detail-back-bar">
-        <Link className="back-list-btn" href={backUrl}>
-          ← 返回列表
-        </Link>
+        <Link className="back-list-btn" href={backUrl}>← 返回列表</Link>
       </div>
-
-      <PostDetailClient
-        post={post}
-        viewPosts={viewPosts}
-        totalReplyCount={totalReplyCount}
-        backState={backState}
-      />
-    </div>
+      <PostDetailClient post={post} viewPosts={viewPosts} totalReplyCount={totalReplyCount} backState={backState} />
+    </>
   );
 }

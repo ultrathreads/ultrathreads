@@ -14,7 +14,7 @@ export default function Footer({ appVersion }: FooterProps) {
           <p className="footer-copyright">
             &copy; {new Date().getFullYear()} UltraThreads v{appVersion}. All rights reserved.
           </p>
-          <p className="footer-slogan">连接每一个有趣的灵魂</p>
+          <p className="footer-slogan">连接每一个有趣的灵魂。</p>
         </div>
 
         {/* 右侧：快捷链接 */}
