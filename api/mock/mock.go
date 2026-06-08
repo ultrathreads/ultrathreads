@@ -16,6 +16,7 @@ func Mock() {
 	UserTableSeeder(true,10)
 	NodeTableSeeder(true,4)
 	PostTableSeeder(true, 200)
+	TagTableSeeder(true,6)
 	LinkTableSeeder(true,6)
 	SettingTableSeeder(true)
 	UpdateNodeTopicCount()

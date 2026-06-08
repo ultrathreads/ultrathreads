@@ -46,7 +46,8 @@ export interface UserEntity {
 }
 
 export interface TagEntity {
-  label: string;
+  tagId: number;
+  tagName: string;
 }
 
 /** 主帖与回帖同构别名 */

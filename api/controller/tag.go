@@ -49,3 +49,10 @@ func (c *TagController) Autocomplete(ctx *gin.Context) {
 	tags := service.TagService.Autocomplete(input)
 	c.Success(ctx, tags)
 }
+
+// HotTags 标签自动完成
+func (c *TagController) HotTags(ctx *gin.Context) {
+	tags := cache.TagCache.GetHot()
+
+	c.Success(ctx, converter.ToTags(tags))
+}

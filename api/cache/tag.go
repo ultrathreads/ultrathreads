@@ -8,10 +8,16 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util/log"
+	"ultrathreads/util/querybuilder"
+)
+
+var (
+	hotTagsCacheKey = "hot_tags_cache"
 )
 
 type tagCache struct {
-	cache cache.LoadingCache // 标签缓存
+	cache    cache.LoadingCache // 标签缓存
+	hotCache cache.LoadingCache
 }
 
 var TagCache = newTagCache()
@@ -25,6 +31,14 @@ func newTagCache() *tagCache {
 			},
 			cache.WithMaximumSize(1000),
 			cache.WithExpireAfterAccess(30*time.Minute),
+		),
+		hotCache: cache.NewLoadingCache(
+			func(key cache.Key) (value cache.Value, e error) {
+				value = dao.TagDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Desc("id").Limit(10))
+				return
+			},
+			cache.WithMaximumSize(10),
+			cache.WithRefreshAfterWrite(30*time.Minute),
 		),
 	}
 }
@@ -56,4 +70,19 @@ func (c *tagCache) GetList(tagIds []int64) (tags []model.Tag) {
 
 func (c *tagCache) Invalidate(tagId int64) {
 	c.cache.Invalidate(tagId)
+}
+
+func (c *tagCache) GetHot() []model.Tag {
+	val, err := c.hotCache.Get(hotTagsCacheKey)
+	if err != nil {
+		return nil
+	}
+	if val != nil {
+		return val.([]model.Tag)
+	}
+	return nil
+}
+
+func (c *tagCache) InvalidateHot() {
+	c.hotCache.Invalidate(hotTagsCacheKey)
 }

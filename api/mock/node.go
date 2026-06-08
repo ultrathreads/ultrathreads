@@ -42,7 +42,7 @@ func NodeTableSeeder(needCleanTable bool, totalNodes int) {
 
 	for _, n := range ns {
 		if err := dao.NodeDao.Create(n); err != nil {
-			fmt.Printf("mock category error： %v\n", err)
+			fmt.Printf("mock node error： %v\n", err)
 		}
 	}
 }

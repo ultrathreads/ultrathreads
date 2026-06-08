@@ -442,7 +442,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
 
 /* 树形列表基础结构 */
 ul.thread, ul.reply { list-style: none; padding: 0; margin: 0; }
-ul.reply { padding-left: 20px; margin-left: 6px; margin-top: 2px; }
+ul.reply { padding-left: 20px; margin-left: 8px; margin-top: 2px; }
 ul.reply.collapsed { display: none; }
 ul.reply ul.reply { border-left: round(0.2em, 1px) dotted #e8eaed; }
 ul.reply li:last-child > ul {border: none; }

@@ -95,6 +95,7 @@ func Setup(e *gin.Engine) {
 	api.GET("/tag/:id", tagController.Show)
 	api.GET("/tags", tagController.List)
 	jwtApi.POST("/tag/autocomplete", tagController.Autocomplete)
+	api.GET("/tags/hot", tagController.HotTags)
 
 	// Articles
 	articleController := &controller.ArticleController{}

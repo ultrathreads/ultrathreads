@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { TagEntity } from '@/types/domain';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes } from '@/services/node-service';
-import type { NodeEntity } from '@/types/domain';
+import { getHotTags } from '@/services/tag-service';
+import type { NodeEntity, TagEntity } from '@/types/domain';
 
 // ==================== 工具函数 ====================
 const getIconByName = (name: string): string => {
@@ -21,73 +21,74 @@ const getIconByName = (name: string): string => {
   return iconMap[name] || '📁';
 };
 
-interface Props {
-  tags?: TagEntity[];
-}
-
-export default function Sidebar({ tags }: Props) {
+export default function Sidebar() {
   const { t } = useTranslation(['common']);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ✅ 从 URL 读取当前激活的节点，保证刷新页面或前进后退时高亮状态正确
   const activeNodeId = searchParams.get('nodeId') ? Number(searchParams.get('nodeId')) : null;
+  const activeTag = searchParams.get('tag') || null;
 
   const [collapsed, setCollapsed] = useState(true);
   const [nodes, setNodes] = useState<NodeEntity[]>([]);
+  const [tags, setTags] = useState<TagEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const mockTags: TagEntity[] = [
-    { label: 'React' },
-    { label: 'Next.js' },
-    { label: 'TypeScript' },
-    { label: 'TailwindCSS' },
-    { label: 'Node.js' },
-  ];
-
-  // ---------- 初始化：通过 Service 获取板块列表 ----------
   useEffect(() => {
     let cancelled = false;
 
-    const loadNodes = async () => {
-      const { nodes: fetchedNodes } = await getAllNodes();
+    const load = async () => {
+      const [{ nodes: fetchedNodes }, { tags: fetchedTags }] = await Promise.all([
+        getAllNodes(),
+        getHotTags(),
+      ]);
+
       if (!cancelled) {
         setNodes(fetchedNodes);
+        setTags(fetchedTags);
         setLoading(false);
       }
     };
 
-    loadNodes();
+    load();
     return () => { cancelled = true; };
   }, []);
 
-  // ✅ 核心修改：点击时改变 URL，触发 RSC 重渲染，移除 onNodeSelect 回调
   const handleNodeClick = (nodeId: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     if (activeNodeId === nodeId) {
-      // 再次点击同一节点时取消选中，回到全部帖子
       params.delete('nodeId');
     } else {
       params.set('nodeId', String(nodeId));
-      // 切换节点时重置到第一页，避免新节点下没有对应页码的数据
       params.set('page', '1');
     }
 
     router.push(`/?${params.toString()}`);
   };
 
-  const safeTags = Array.isArray(tags) ? tags : mockTags;
+  const handleTagClick = (tagLabel: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (activeTag === tagLabel) {
+      params.delete('tag');
+    } else {
+      params.set('tag', tagLabel);
+      params.set('page', '1');
+    }
+
+    router.push(`/?${params.toString()}`);
+  };
 
   return (
     <div className="sidebar-container">
       <div className={`sidebar-content-wrapper ${collapsed ? 'collapsed' : ''}`} id="sidebarContent">
+        {/* 导航菜单 */}
         <div className="sidebar-section">
           <div className="sidebar-title">导航菜单</div>
           <ul className="forum-list">
-            {/* ✅ 首页也改为 URL 驱动，清空 nodeId */}
-            <li 
-              className={`forum-item ${activeNodeId === null ? 'active' : ''}`}
+            <li
+              className={`forum-item ${activeNodeId === null && activeTag === null ? 'active' : ''}`}
               onClick={() => router.push('/')}
             >
               {t('common:home')}
@@ -100,7 +101,7 @@ export default function Sidebar({ tags }: Props) {
             </li>
           </ul>
         </div>
-        
+
         {/* 论坛板块 */}
         <div className="sidebar-section">
           <div className="sidebar-title">论坛板块</div>
@@ -124,17 +125,27 @@ export default function Sidebar({ tags }: Props) {
             </ul>
           )}
         </div>
-        
+
         <div className="sidebar-section">
           <div className="sidebar-title">热门标签</div>
-          <div className="tag-cloud">
-            {safeTags.map((tag) => (
-              <span key={tag.label} className="tag-item">{tag.label}</span>
-            ))}
-          </div>
+          {loading ? (
+            <div className="forum-list-loading">加载中...</div>
+          ) : (
+            <div className="tag-cloud">
+              {tags.map((tag) => (
+                <span
+                  key={tag.tagName}
+                  className={`tag-item ${activeTag === tag.tagName ? 'active' : ''}`}
+                  onClick={() => handleTagClick(tag.tagName)}
+                >
+                  {tag.tagName}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      
+
       <div className="sidebar-track" />
       <button
         id="toggle-btn"
