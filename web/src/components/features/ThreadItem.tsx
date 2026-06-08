@@ -101,6 +101,7 @@ export default function ThreadItem({
         {/* ✅ 标题区域：hover 时显示预览图标 */}
         <a
           className="preview-btn"
+          data-post-id={String(item.id)}
           title={`回复 ${item.author}`}
           aria-label={`回复 ${item.author}`}
           type="button"

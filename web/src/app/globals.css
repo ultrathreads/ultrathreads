@@ -512,7 +512,7 @@ a.subject.read { font-weight: 400; color: #555; }
 .preview-popover {
     position: absolute;
     z-index: 1000;
-    width: 420px;
+    width: 500px;
     max-width: calc(100vw - 32px);
     background: #fff;
     border-radius: 10px;

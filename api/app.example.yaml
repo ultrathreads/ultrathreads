@@ -7,7 +7,7 @@ base:
 database:
   driver: mysql
   mysql:
-    charset: utf8
+    charset: utf8mb4
     host: 127.0.0.1:3306
     name: ultrathreads
     user: root
