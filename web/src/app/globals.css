@@ -373,6 +373,7 @@ ul.thread, ul.reply { list-style: none; padding: 0; margin: 0; }
 ul.reply { padding-left: 20px; margin-left: 6px; margin-top: 2px; }
 ul.reply.collapsed { display: none; }
 ul.reply ul.reply { border-left: round(0.2em, 1px) dotted #e8eaed; }
+ul.reply li:last-child > ul {border: none; }
 .thread > li, .reply > li { margin-bottom: 4px; }
 
 .entry {
