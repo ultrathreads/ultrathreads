@@ -116,6 +116,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
         <label className="form-label">正文内容<span className="required">*</span></label>
         <div data-color-mode="light">
           <MDEditor
+            autoFocus
             value={content}
             onChange={(val) => setContent(val || '')}
             height={400}
