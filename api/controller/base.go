@@ -47,6 +47,18 @@ func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 	return nil
 }
 
+func (c *BaseController) GetLastReadAt(ctx *gin.Context, nodeID int) int64 {
+    val, exists := ctx.Get(util.ReadStateKey(nodeID))
+    if !exists {
+        return 0
+    }
+    ts, ok := val.(int64)
+    if !ok {
+        return 0
+    }
+    return ts
+}
+
 // Success output json data
 func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 	resp := R{Code: 0, Success: true, Message: "ok", Data: data}

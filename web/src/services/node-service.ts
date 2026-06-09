@@ -53,3 +53,16 @@ export async function getNodeDetail(nodeId: number): Promise<NodeDetailData> {
     };
   }
 }
+
+/**
+ * 标记指定节点为已读
+ * POST /nodes/:nodeId/read （JWT 认证接口）
+ */
+export async function markNodeAsRead(nodeId: number | string): Promise<void> {
+  // auth: true → 客户端自动携带 cookie，服务端自动读取 access_token
+  // skipDataUnwrap 不需要，后端返回 success:true + data:null，解包后即为 void
+  await apiFetch<null>(`/nodes/${nodeId}/read`, {
+    method: 'POST',
+    auth: true,
+  });
+}

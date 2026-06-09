@@ -52,9 +52,12 @@ func (c *PostController) ListWithReplies(ctx *gin.Context) {
 
 	posts, paging := service.PostService.ListThreadsWithReplies(page, limit, nodeId)
 
+	lastReadAt := c.GetLastReadAt(ctx, nodeId)
+
 	data := map[string]interface{}{
 		"results": converter.ToSimplePosts(posts),
 		"page":    paging,
+		"lastReadAt": lastReadAt,
 	}
 	c.Success(ctx, data)
 }

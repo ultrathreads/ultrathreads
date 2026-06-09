@@ -2,8 +2,9 @@ package model
 
 var Models = []interface{}{
 	&User{}, &Tag{}, &Article{}, &ArticleTag{}, &Favorite{},
-	&Post{}, &Node{}, &PostTag{}, &PostLike{}, &Notification{}, &Setting{}, &Link{},
-	&LoginSource{}, &Sitemap{}, &UserWatch{}, &UserScore{}, &UserScoreLog{},
+	&Post{}, &Node{}, &PostTag{}, &PostLike{}, &Notification{}, 
+	&Setting{}, &Link{}, &LoginSource{}, &Sitemap{}, 
+	&UserReadState{}, &UserWatch{}, &UserScore{}, &UserScoreLog{},
 }
 
 type Model struct {

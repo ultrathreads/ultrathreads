@@ -36,3 +36,18 @@ func FormValueInt64Default(ctx *gin.Context, name string, def int64) int64 {
 	}
 	return def
 }
+
+func ParamInt64(ctx *gin.Context, name string) (int64, error) {
+	v := ctx.Param(name)
+	if v == "" {
+		return 0, strconv.ErrSyntax
+	}
+	return strconv.ParseInt(v, 10, 64)
+}
+
+func ParamInt64Default(ctx *gin.Context, name string, def int64) int64 {
+	if v, err := ParamInt64(ctx, name); err == nil {
+		return v
+	}
+	return def
+}

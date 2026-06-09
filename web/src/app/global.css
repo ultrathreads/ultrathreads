@@ -343,6 +343,16 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; }
 .detail-action-btn {
   transition: all 0.2s ease;
 }
+/* 标记已读按钮禁用态 */
+.detail-action-btn.is-disabled,
+.detail-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none; /* 双重保险，防止某些浏览器 disabled 仍可触发事件 */
+  background-color: var(--color-bg-muted, #f5f5f5);
+  color: var(--color-text-disabled, #999);
+  border-color: var(--color-border-muted, #e0e0e0);
+}
 
 /* 通用按钮样式（发帖/设置页复用） */
 .btn {

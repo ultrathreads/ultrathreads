@@ -1,10 +1,10 @@
 // components/features/ThreadTree.tsx
 'use client';
 
-import { useState, useMemo } from 'react';
-import Link from 'next/link';
+import { useState, useMemo, useCallback } from 'react';
 import type { NodeEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
+import { markNodeAsRead } from '@/services/node-service';
 
 import ThreadItem from './ThreadItem';
 import NodeHeader from './NodeHeader';
@@ -75,13 +75,43 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
 export default function ThreadTree({ threads, activeNode, backState }: Props) {
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('reply');
+  const [markingRead, setMarkingRead] = useState(false);
 
-  // ✅ 先排序，再构建树
-  const tree = useMemo(() => {
-    return sortThreads(threads, sort);
-  }, [threads, sort]);
+  // ✅ 提前计算有效的 nodeId，避免重复逻辑
+  const effectiveNodeId = useMemo(() => {
+    return activeNode?.nodeId ?? activeNode?.id;
+  }, [activeNode]);
+
+  // ✅ 排序逻辑保持不变
+  const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);
 
   const toggleAll = () => setAllCollapsed((prev) => !prev);
+
+  // ✅ 标记已读回调：使用预计算的 effectiveNodeId
+  const handleMarkAsRead = useCallback(async () => {
+    console.log('[ThreadTree] markAsRead clicked', { 
+      nodeId: effectiveNodeId, 
+      markingRead 
+    });
+
+    if (!effectiveNodeId) {
+      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 nodeId', activeNode);
+      return;
+    }
+
+    setMarkingRead(true);
+    try {
+      await markNodeAsRead(effectiveNodeId);
+      // TODO: 成功后刷新未读状态
+    } catch (err) {
+      console.error('标记已读失败:', err);
+    } finally {
+      setMarkingRead(false);
+    }
+  }, [effectiveNodeId, markingRead, activeNode]);
+
+  // ✅ 判断按钮是否应该禁用
+  const isMarkReadDisabled = markingRead || !effectiveNodeId;
 
   return (
     <div className="thread-tree-container">
@@ -89,6 +119,30 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
         <NodeHeader node={activeNode} />
 
         <div className="thread-tree-actions">
+          {/* ✅ 标记已读按钮：增加视觉禁用态 + 精确的 disabled 条件 */}
+          <button
+            className={`detail-action-btn ${isMarkReadDisabled ? 'is-disabled' : ''}`}
+            onClick={handleMarkAsRead}
+            disabled={isMarkReadDisabled}
+            aria-label="标记当前节点为已读"
+            title={!effectiveNodeId 
+              ? "当前无有效节点，无法标记已读" 
+              : "将本节点所有帖子标记为已读"
+            }
+          >
+            {markingRead ? (
+              <span className="mark-read-loading">处理中…</span>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="mark-read-text">标记已读</span>
+              </>
+            )}
+          </button>
+
+          {/* 排序和折叠按钮保持不变 */}
           <select
             className="sort-select"
             value={sort}
@@ -99,6 +153,7 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
             <option value="most">最多回复</option>
             <option value="hot">综合热门</option>
           </select>
+
           <button
             className={`collapse-all-btn ${allCollapsed ? 'is-collapsed' : ''}`}
             onClick={toggleAll}

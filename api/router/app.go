@@ -23,6 +23,16 @@ func setupApp(e *gin.Engine) {
 	api.GET("/oauth/:provider/authorize", oauthController.Authorize)
 	api.GET("/oauth/:provider/callback", jwtOAuth.LoginHandler)
 
+	postController := &controller.PostController{}
+	userController := &controller.UserController{}
+
+	optional := api.Group("/")
+	optional.Use(middleware.OptionalAuth(jwtAuth))
+	optional.Use(middleware.CurrentUserReadState())
+	{
+		optional.GET("/posts/threads", postController.ListWithReplies)
+	}
+
 	// Configs
 	api.GET("/config/site-config", new(controller.ConfigController).List)
 
@@ -32,9 +42,7 @@ func setupApp(e *gin.Engine) {
 	api.GET("/node/:id", nodeController.Show)
 
 	// Posts（公开）
-	postController := &controller.PostController{}
 	api.GET("/posts", postController.List)
-	api.GET("/posts/threads", postController.ListWithReplies)
 	api.GET("/post/:id", postController.Show)
 	api.GET("/post/:id/with-thread", postController.GetPostWithThread)
 	api.GET("/post/:id/flat", postController.GetPostsFlat)
@@ -66,7 +74,6 @@ func setupApp(e *gin.Engine) {
 	api.GET("/user/articles/:id", articleController.GetUserArticles)
 
 	// Users（公开）
-	userController := &controller.UserController{}
 	api.GET("/profile/:id", userController.Show)
 	api.GET("/user/score/rank", userController.GetScoreRank)
 	api.GET("/users/:id/recentwatchers", userController.GetRecentWatchers)
@@ -84,6 +91,8 @@ func setupApp(e *gin.Engine) {
 	// ---------- 需登录接口 ----------
 	jwtApi := api.Group("/")
 	jwtApi.Use(jwtAuth.MiddlewareFunc(), middleware.CurrentUser)
+
+	jwtApi.POST("/nodes/:id/read", nodeController.MarkAsRead)
 
 	// Posts（鉴权）
 	jwtApi.POST("/posts", postController.Store)

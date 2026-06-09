@@ -21,7 +21,7 @@ export class ApiBusinessError extends Error {
   }
 }
 
-// ✅ 函数重载：skipDataUnwrap=true 时自动推导返回完整信封
+// 函数重载：skipDataUnwrap=true 时自动推导返回完整信封
 export async function apiFetch<T>(
   path: string,
   options: ApiRequestOptions & { skipDataUnwrap: true }
@@ -54,27 +54,34 @@ export async function apiFetch<T>(
         const { cookies } = await import('next/headers');
         const cookieStore = await cookies();
         const token = cookieStore.get('access_token')?.value;
-        if (!token) throw new ApiBusinessError('AUTH_REQUIRED', -1);
-        headers.set('Authorization', `Bearer ${token}`);
+        
+        // 没有 Token 时不再 throw，只是不设置 Header
+        // Go 后端的 OptionalAuth 会自动降级为游客模式
+        if (token) {
+          headers.set('Authorization', `Bearer ${token}`);
+        }
       } catch (e) {
-        // 区分"无 Token"和"读取 Cookie 基础设施异常"
-        if (e instanceof ApiBusinessError) throw e;
+        // Cookie 基础设施异常也降级为匿名请求，而非阻断页面渲染
         console.error('[apiFetch] Failed to read server cookies:', e);
-        throw new ApiBusinessError('AUTH_REQUIRED', -1);
       }
     } else {
       credentials = 'include';
     }
   }
 
+  // 涉及用户状态的接口禁止共享缓存，避免脏数据
+  const finalCacheStrategy = auth
+    ? { cache: 'no-store' as RequestCache }
+    : cacheStrategy;
+
   const res = await fetch(`${GO_API_BASE}${path}`, {
     ...fetchOptions,
     headers,
     credentials,
-    ...cacheStrategy,
+    ...finalCacheStrategy,
   });
 
-  // ✅ 优先尝试解析响应体，避免丢失后端返回的业务错误信息
+  // 优先尝试解析响应体，避免丢失后端返回的业务错误信息
   let envelope: ApiResponse<unknown> | null = null;
   const contentType = res.headers.get('content-type') ?? '';
   if (contentType.includes('application/json')) {
@@ -85,24 +92,24 @@ export async function apiFetch<T>(
     }
   }
 
-  // ✅ HTTP 层错误：优先使用信封中的业务消息
+  // HTTP 层错误：优先使用信封中的业务消息
   if (!res.ok) {
     const message = envelope?.message || `HTTP ${res.status} ${res.statusText}`;
     const code = envelope?.code ?? res.status;
     throw new ApiBusinessError(message, code, envelope);
   }
 
-  // ✅ 无响应体或非法信封
+  // 无响应体或非法信封
   if (!envelope) {
     throw new ApiBusinessError('Invalid API response: missing JSON body', -2);
   }
 
-  // ✅ skipDataUnwrap 模式：直接返回完整信封（由重载保证类型安全）
+  // skipDataUnwrap 模式：直接返回完整信封（由重载保证类型安全）
   if (skipDataUnwrap) {
     return envelope as ApiResponse<T>;
   }
 
-  // ✅ 以 success 为唯一权威成功标识
+  // 以 success 为唯一权威成功标识
   if (!envelope.success) {
     throw new ApiBusinessError(
       envelope.message || 'Unknown business error',

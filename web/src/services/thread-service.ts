@@ -66,7 +66,7 @@ export async function getThreadPageData(
     const data = await apiFetch<ThreadsApiResponse>(
       `/posts/threads?${params.toString()}`,
       {
-        auth: false,
+        auth: true,
         cacheStrategy: { next: { tags: cacheTags } },
         // cacheStrategy: { next: { tags: cacheTags, revalidate: 60 } },
       },
