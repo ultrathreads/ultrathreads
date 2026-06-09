@@ -59,16 +59,17 @@ type PostSimpleResponse struct {
 	ThreadId        int64          `json:"threadId"`
 	ParentId        int64          `json:"parentId"`
 	Type            int            `json:"type"`
-	User            *UserInfo      `json:"user"`
-	Node            *NodeResponse  `json:"node"`
-	Tags            *[]TagResponse `json:"tags"`
 	Title           string         `json:"title"`
-	ImageList       *[]string      `json:"imageList"`
-	LastCommentUser *UserInfo      `json:"lastCommentUser"`
+	IsPinned        bool           `json:"isPinned"`
 	LastCommentTime int64          `json:"lastCommentTime"`
 	ViewCount       int64          `json:"viewCount"`
 	LikeCount       int64          `json:"likeCount"`
 	CreateTime      int64          `json:"createTime"`
+	ImageList       *[]string      `json:"imageList"`
+	Node            *NodeResponse  `json:"node"`
+	Tags            *[]TagResponse `json:"tags"`
+	User            *UserInfo      `json:"user"`
+	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 }
 
 // 帖子详情返回实体

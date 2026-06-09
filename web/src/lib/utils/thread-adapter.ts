@@ -21,6 +21,11 @@ export function adaptToThreadView(source: ThreadSource): ThreadViewItem {
     ? (post.user?.nickname || post.user?.username)
     : (listItem.user?.nickname || listItem.user?.username);
 
+  const avatar = isPostEntity
+      ? (post.user?.avatar || undefined)
+      : (listItem.user?.avatar || undefined);
+
+
   // ✅ 统一提取时间戳，并确保输出严格为 number (ms)
   let rawTimestamp: number | string | undefined;
   if (isPostEntity) {
@@ -42,6 +47,7 @@ export function adaptToThreadView(source: ThreadSource): ThreadViewItem {
       : listItem.parentId,
     title: source.title,
     author: author ?? '匿名用户', // ✅ 最终兜底，保证一定有值
+    avatar,
     date: Number.isFinite(timestamp) ? timestamp : 0, // ✅ 防止 NaN 污染视图层
     nodeName: isPostEntity
       ? post.node?.name

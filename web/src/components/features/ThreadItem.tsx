@@ -98,7 +98,6 @@ export default function ThreadItem({
           {isRoot && item.nodeName && <span className="category">({item.nodeName})</span>}
         </span>
 
-        {/* ✅ 标题区域：hover 时显示预览图标 */}
         <a
           className="preview-btn"
           data-post-id={String(item.id)}

@@ -11,6 +11,7 @@ type Post struct {
 	Title             string `gorm:"size:128" json:"title" form:"title"`                             // 标题
 	Content           string `gorm:"type:longtext" json:"content" form:"content"`                    // 内容
 	ImageList         string `gorm:"type:longtext" json:"imageList" form:"imageList"`                // 图片
+	IsPinned 		  bool   `gorm:"not null;default:false;index:idx_post_is_pinned" json:"isPinned" form:"isPinned"` // 是否置顶
 	Recommend         bool   `gorm:"not null;index:idx_recommend" json:"recommend" form:"recommend"` // 是否推荐
 	ViewCount         int64  `gorm:"not null" json:"viewCount" form:"viewCount"`                     // 查看数量
 	LikeCount         int64  `gorm:"not null" json:"likeCount" form:"likeCount"`                     // 点赞数量
