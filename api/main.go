@@ -18,7 +18,7 @@ func init() {
 func main() {
 	app := &cli.App{
 		Name:    "UltraThreads",
-		Usage:   "A free, open-source, self-hosted forum software written in Go.",
+		Usage:   "A free, open-source, self-hosted web forum built with Go and React, featuring threaded view for posts.",
 		Version: APP_VER,
 		Commands: []*cli.Command{
 			cmd.CmdWeb,

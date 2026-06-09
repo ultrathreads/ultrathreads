@@ -16,7 +16,6 @@ import (
 var CmdMock = &cli.Command{
 	Name:        "mock",
 	Usage:       "Mock Data",
-	Description: "A free, open-source, self-hosted forum software written in Go",
 	Action:      runMock,
 	Flags:       []cli.Flag{},
 }
