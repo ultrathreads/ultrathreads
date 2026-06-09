@@ -42,7 +42,9 @@ export async function apiFetch<T>(
   } = options;
 
   const headers = new Headers(fetchOptions.headers);
-  headers.set('Content-Type', 'application/json');
+  if (!(fetchOptions.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   let credentials: RequestCredentials | undefined = fetchOptions.credentials;
 

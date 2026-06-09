@@ -33,7 +33,7 @@ uploader:
     access_id: 请配置成你自己的
     access_secret: 请配置成你自己的
   local:
-    host: https://static.ultrathreads.com/ # 上传文件域名
+    host: https://localhost:3000/ # 上传文件域名
     path: /data/www # 上传目录
 
 # github登录配置，回调地址：http://base.url/oauth/github/callback
