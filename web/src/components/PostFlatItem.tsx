@@ -77,7 +77,12 @@ export default function PostFlatItem({
     handleAction(() => favoritePost(post.id), setFavCount, '收藏', 'favorite');
 
   return (
-    <div className="post-detail-card" style={{ marginBottom: '12px' }}>
+    // 注入原生 id + scrollMarginTop 防顶部导航遮挡
+    <div
+      id={`post-${post.id}`}
+      className="post-detail-card"
+      style={{ marginBottom: '12px', scrollMarginTop: '100px' }}
+    >
       {/* ✅ 仅根帖显示标题 */}
       {isRoot && <h2 className="post-detail-title">{post.title}</h2>}
 
@@ -90,7 +95,7 @@ export default function PostFlatItem({
         <span className="author-name">{post.user.nickname}</span>
         <RelativeTime timestamp={post.createTime} />
 
-        {/* ✅ 修复：使用 Fragment 包裹，仅根帖显示节点标签、阅读数和回复数 */}
+        {/* 仅根帖显示节点标签、阅读数和回复数 */}
         {isRoot && (
           <>
             {post.node && (

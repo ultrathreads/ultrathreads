@@ -7,21 +7,27 @@ import { usePathname, useSearchParams } from 'next/navigation';
 export function ViewModeSwitcher() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
-  // ✅ 从 URL 读取当前模式，保持与服务端 page.tsx 的判断逻辑完全一致
   const currentView = searchParams.get('view') === 'flat' ? 'flat' : 'tree';
+
+  // ✅ 直接从路径中提取 ID，硬拼 #post-id，不再依赖 window.location.hash
+  // 假设路径格式为 /post/123 或 /post/123/xxx
+  const postId = pathname.split('/').filter(Boolean)[1]; 
+  const hash = postId ? `#post-${postId}` : '';
 
   const createHref = (targetView: 'tree' | 'flat') => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     if (targetView === 'flat') {
       params.set('view', 'flat');
     } else {
-      params.delete('view'); // tree 是默认值，删除参数保持 URL 整洁
+      params.delete('view');
     }
-    
+
     const qs = params.toString();
-    return qs ? `${pathname}?${qs}` : pathname;
+    const base = qs ? `${pathname}?${qs}` : pathname;
+
+    // 只有 flat 带 hash，tree 不带
+    return targetView === 'flat' ? `${base}${hash}` : base;
   };
 
   return (
