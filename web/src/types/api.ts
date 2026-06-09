@@ -23,6 +23,15 @@ export interface PageResponse<T> {
   pageSize: number;
 }
 
+export interface PaginationMeta {
+  /** 总记录数 */
+  totalItems: number;
+  /** 当前页码（从 1 开始） */
+  currentPage: number;
+  /** 每页条数 */
+  pageSize: number;
+}
+
 /** 论坛首页聚合数据 */
 export interface ForumBoardEntity {
   name: string;
