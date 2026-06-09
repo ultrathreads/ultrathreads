@@ -149,6 +149,26 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 			}
 		}
 	}
+
+	// ✅ 随机设置 2 个根帖为置顶
+	pinCount := 2
+	if len(rootPosts) < pinCount {
+		pinCount = len(rootPosts)
+	}
+
+	// Fisher-Yates 洗牌后取前 N 个，保证不重复且均匀随机
+	rand.Shuffle(len(rootPosts), func(i, j int) {
+		rootPosts[i], rootPosts[j] = rootPosts[j], rootPosts[i]
+	})
+
+	for i := 0; i < pinCount; i++ {
+		rootPosts[i].IsPinned = true
+		if err := dao.PostDao.Update(rootPosts[i]); err != nil {
+			fmt.Printf("mock set is_pinned error: %v\n", err)
+		} else {
+			fmt.Printf("[mock] pinned root post id=%d title=%q\n", rootPosts[i].ID, rootPosts[i].Title)
+		}
+	}
 }
 
 // ========== 权重分配工具函数 ==========

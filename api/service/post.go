@@ -60,6 +60,7 @@ func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.P
 	}
 
 	rootCnd = rootCnd.
+		Desc("is_pinned").
 		Desc("last_comment_time").
 		Page(page, limit)
 
