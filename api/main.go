@@ -1,49 +1,42 @@
 package main
 
 import (
-	"os"
 	"log"
-	"runtime"
+	"os"
 
-	"github.com/urfave/cli"
-	"ultrathreads/config"
+	"github.com/urfave/cli/v2"
 	"ultrathreads/cmd"
+	"ultrathreads/config"
 )
 
-const APP_VER = "0.0.3-dev"
+const APP_VER = "0.0.1-dev"
 
 func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	config.AppName = "UltraThreads"
 }
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "UltraThreads"
-	app.Usage = "A free, open-source, self-hosted forum software written in Go."
-	app.Version = APP_VER
-	app.Commands = []cli.Command{
-		cmd.CmdWeb,
-		cmd.CmdMock,
-	}
-	
-	// default configuration flags
-	defaultFlags := []cli.Flag{
-		cli.StringFlag{
-			Name:  "conf, c",
-			Value: "./app.yaml",
-			Usage: "Custom configuration file path",
+	app := &cli.App{
+		Name:    "UltraThreads",
+		Usage:   "A free, open-source, self-hosted forum software written in Go.",
+		Version: APP_VER,
+		Commands: []*cli.Command{
+			cmd.CmdWeb,
+			cmd.CmdMock,
 		},
-		cli.VersionFlag,
+		Flags: append(
+			cmd.CmdWeb.Flags,
+			&cli.StringFlag{
+				Name:    "conf",
+				Aliases: []string{"c"},
+				Value:   "./app.yaml",
+				Usage:   "Custom configuration file path",
+			},
+		),
+		Action: cmd.CmdWeb.Action,
 	}
-
-	// Set the default to be equivalent to cmdWeb and add the default flags
-	app.Flags = append(app.Flags, cmd.CmdWeb.Flags...)
-	app.Flags = append(app.Flags, defaultFlags...)
-	app.Action = cmd.CmdWeb.Action
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal("Failed to start application: %v", err)
+		log.Fatalf("Failed to start application: %v", err)
 	}
 }
-
