@@ -1,4 +1,4 @@
-// src/lib/api/auth.ts
+// src/services/auth.ts
 import { apiFetch } from '@/lib/api/client';
 
 /** Go 后端 /auth/login 响应数据内容 (data 字段内部结构) */

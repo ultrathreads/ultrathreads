@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { RegisterFormData } from './types';
+import type { RegisterFormData } from '@/types/auth';
 
 export default function RegisterForm() {
   const router = useRouter();

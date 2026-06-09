@@ -2,11 +2,11 @@
 
 import type { PostEntity } from './domain';
 
-/** 通用 API 响应信封 */
 export interface ApiResponse<T> {
   code: number;
-  data: T;
   message: string;
+  success: boolean;
+  data: T;
 }
 
 /** 帖子详情 + 扁平回帖列表 组合响应 */

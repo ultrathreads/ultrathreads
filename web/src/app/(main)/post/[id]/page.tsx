@@ -1,7 +1,7 @@
 // src/app/post/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getPostWithThread, getPostFlat } from '@/services/post-service';
+import { getPostWithThread, getPostFlat, getPostDetail } from '@/services/post-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
 import { ViewModeSwitcher } from '@/components/ViewModeSwitcher';
 import { PostTree } from './PostTree';
@@ -70,12 +70,34 @@ export default async function ReadPage({ params, searchParams }: Props) {
 
   try {
     if (view === 'flat') {
-      const result = await getPostFlat(id);
-      const posts = result.posts ?? [];
+      // ✅ 先尝试用当前 ID 获取平铺数据
+      let result = await getPostFlat(id);
+      let posts = result.posts ?? [];
+
+      // ✅ 判断是否为非根帖（根据实际 API 行为调整此条件）
+      const isNonRootFlat =
+        posts.length === 0 ||
+        (posts[0] && String(posts[0].id) !== String(id));
+
+      if (isNonRootFlat) {
+        // ✅ 轻量级获取元数据，仅取 threadId
+        const detail = await getPostDetail(id);
+
+        // ✅ threadId 缺失时直接抛出，让外层 catch 兜底或触发 notFound
+        if (!detail.threadId) {
+          throw new Error(`Post ${id} is missing threadId, cannot resolve flat view`);
+        }
+
+        const threadId = String(detail.threadId);
+        result = await getPostFlat(threadId);
+        posts = result.posts ?? [];
+      }
+
       viewData = posts;
-      totalReplyCount = posts.length -1 ;
-      post = posts[0]
+      totalReplyCount = posts.length > 0 ? posts.length - 1 : 0;
+      post = posts[0];
     } else {
+      // 树形模式保持原有逻辑不变
       const result = await getPostWithThread(id);
       post = result.post;
       const replies = result.replies ?? [];
@@ -84,6 +106,29 @@ export default async function ReadPage({ params, searchParams }: Props) {
     }
   } catch (error) {
     console.error(`[ReadPage] Failed to fetch post ${id} (${view}):`, error);
+
+    // ✅ 兜底：flat 模式报错时，用轻量接口重试一次
+    if (view === 'flat') {
+      try {
+        const detail = await getPostDetail(id);
+
+        if (!detail.threadId) {
+          console.error(`[ReadPage] Post ${id} missing threadId, skip flat retry`);
+        } else {
+          const threadId = String(detail.threadId);
+          const result = await getPostFlat(threadId);
+          const posts = result.posts ?? [];
+
+          if (posts.length > 0) {
+            viewData = posts;
+            totalReplyCount = posts.length - 1;
+            post = posts[0];
+          }
+        }
+      } catch (retryError) {
+        console.error(`[ReadPage] Flat mode retry failed for ${id}:`, retryError);
+      }
+    }
   }
 
   if (!post) {
@@ -102,7 +147,6 @@ export default async function ReadPage({ params, searchParams }: Props) {
         <PostFlat
           posts={viewData}
           totalReplyCount={totalReplyCount}
-          backState={backState}
         />
       ) : (
         <PostTree
