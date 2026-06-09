@@ -24,7 +24,8 @@ jwt:
   key: secret key
 
 uploader:
-  enable: oss
+  enable: local
+  max_size: 5 #5MB
   oss:
     host: 请配置成你自己的
     bucket: 请配置成你自己的
