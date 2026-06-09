@@ -9,6 +9,7 @@ export interface ThreadViewItem {
   avatar?: string; 
   date: number;            // Unix timestamp (ms)
   lastCommentTime: number;
+  isPinned?: boolean;
   nodeName?: string;
   replies?: ThreadViewItem[];
 }

@@ -75,19 +75,25 @@ export default function ThreadItem({
         )}
 
         {isRoot ? (
-          <svg className="icon-topic" width="14" height="14" viewBox="0 0 14 14" fill="#3498db">
-            <circle cx="7" cy="7" r="5"></circle>
-          </svg>
+          item.isPinned ? (
+            <svg className="icon-pinned" width="14" height="14" viewBox="0 0 24 24" fill="#e74c3c">
+              <path d="M16 2H8a1 1 0 0 0-1 1v3.27l-3.88 3.88a1 1 0 0 0-.29.7V12a1 1 0 0 0 1 1h7v5l-2 2v1h6v-1l-2-2v-5h7a1 1 0 0 0 1-1v-1.15a1 1 0 0 0-.29-.7L17 5.27V3a1 1 0 0 0-1-1zM9 4h6v1.5l3.5 3.5H5.5L9 5.5V4z" />
+            </svg>
+          ) : (
+            <svg className="icon-topic" width="14" height="14" viewBox="0 0 14 14" fill="#3498db">
+              <circle cx="7" cy="7" r="5" />
+            </svg>
+          )
         ) : (
-          <svg className="icon-reply-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264 264">
-            <path d="M6,16 v108 a57 57, 0, 0, 0, 57, 57 h92 v27 l 45.5,-45.5 -45.5,-45.5 v27 h-92 a20 20, 0, 0, 1, -20,-20 v-108 z"></path>
+          <svg className="icon-reply-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264 264" width="14" height="14">
+            <path d="M6,16 v108 a57 57,0 0 0 57,57 h92 v27 l45.5-45.5-45.5-45.5 v27 h-92 a20 20,0 0 1-20-20 v-108z" />
           </svg>
         )}
         <Link
           className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`}
           href={buildPostUrl(item.id, backState)}
         >
-          {item.title}
+          {item.title} 
         </Link>
 
         <span className="metadata">

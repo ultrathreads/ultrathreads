@@ -40,25 +40,36 @@ function buildPostUrl(postId: number | string, backState?: BackState): string {
 /** 客户端排序函数 */
 function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewItem[] {
   const sorted = [...threads];
-  switch (sortType) {
-    case 'latest':
-      return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    case 'reply':
-      return sorted.sort((a, b) => {
+
+  sorted.sort((a, b) => {
+    // ✅ 1. 最高优先级：置顶帖始终排在非置顶帖前面
+    const pinA = a.isPinned ? 1 : 0;
+    const pinB = b.isPinned ? 1 : 0;
+    if (pinA !== pinB) {
+      return pinB - pinA; // 降序：true(1) > false(0)
+    }
+
+    // ✅ 2. 次级优先级：仅在置顶状态相同时，才应用业务排序规则
+    switch (sortType) {
+      case 'latest':
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      case 'reply': {
         const diff = b.lastCommentTime - a.lastCommentTime;
         return diff !== 0 ? diff : b.id - a.id;
-      });
-    case 'most':
-      return sorted.sort((a, b) => (b.replies?.length || 0) - (a.replies?.length || 0));
-    case 'hot':
-      return sorted.sort((a, b) => {
+      }
+      case 'most':
+        return (b.replies?.length || 0) - (a.replies?.length || 0);
+      case 'hot': {
         const scoreA = (a.replies?.length || 0) * 10 - new Date(a.date).getTime() / 1e12;
         const scoreB = (b.replies?.length || 0) * 10 - new Date(b.date).getTime() / 1e12;
         return scoreB - scoreA;
-      });
-    default:
-      return sorted;
-  }
+      }
+      default:
+        return 0;
+    }
+  });
+
+  return sorted;
 }
 
 export default function ThreadTree({ threads, activeNode, backState }: Props) {

@@ -46,6 +46,7 @@ export function adaptToThreadView(source: ThreadSource): ThreadViewItem {
       ? (post.parentId ?? 0)   // ✅ 兜底为 0，避免树构建时误判为根节点
       : listItem.parentId,
     title: source.title,
+    isPinned: source.isPinned,
     author: author ?? '匿名用户', // ✅ 最终兜底，保证一定有值
     avatar,
     date: Number.isFinite(timestamp) ? timestamp : 0, // ✅ 防止 NaN 污染视图层
