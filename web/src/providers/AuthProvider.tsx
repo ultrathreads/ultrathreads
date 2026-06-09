@@ -2,8 +2,9 @@
 'use client';
 
 import { createContext, useState, useCallback, useRef } from 'react';
-import { getCurrentUser, type CurrentUser } from '@/services/auth-service';
+import { getCurrentUser, type CurrentUser } from '@/services/auth.server';
 import { ApiBusinessError } from '@/lib/api/client';
+import { toast } from 'sonner'; 
 
 interface AuthContextType {
   user: CurrentUser | null;
@@ -53,6 +54,7 @@ export function AuthProvider({ initialUser, children }: AuthProviderProps) {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
       setUser(null);
+      toast.success('已成功退出登录');
       window.location.href = '/';
     }
   }, []);

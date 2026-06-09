@@ -41,10 +41,13 @@ export default function LoginForm() {
       password: values.password,
     });
 
-    await refreshUser();
-    toast.success('登录成功，欢迎回来 👋');
-    router.push('/');
-    router.refresh();
+    toast.success('登录成功，欢迎回来 👋', {
+      duration: 3000, // 确保有足够展示时间
+    });
+
+    refreshUser(); 
+
+    router.replace('/');
   };
 
   return (

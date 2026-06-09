@@ -1,19 +1,18 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { login, type LoginParams, type LoginEnvelope } from '@/services/auth-service';
+import { login } from '@/services/auth.server';
 import { ApiBusinessError } from '@/lib/api/client';
+import type { LoginParams, LoginResponse } from '@/types/auth';
+import type { ApiResponse } from '@/types/api';
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as LoginParams;
 
-    // 🔍 诊断日志 1：确认请求参数
     console.log('[BFF Login] Request params:', { username: body.username });
 
-    const result = await login(body);
+    const result: ApiResponse<LoginResponse> = await login(body);
 
-    // 🔍 诊断日志 2：确认 skipDataUnwrap 是否生效（关键！）
-    // 如果这里打印出 undefined，说明 client.ts 的 skipDataUnwrap 没起作用
     console.log('[BFF Login] Raw result success field:', result?.success);
     console.log('[BFF Login] Raw result keys:', Object.keys(result || {}));
 
@@ -36,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ 成功响应
+    // ✅ 成功响应并写入 Cookie
     const response = NextResponse.json({ success: true });
 
     response.cookies.set('access_token', access_token, {
@@ -61,12 +60,10 @@ export async function POST(req: NextRequest) {
     return response;
 
   } catch (error) {
-    // 🔍 诊断日志 3：确认是否是 apiFetch 抛出的异常
     if (error instanceof ApiBusinessError) {
       console.error('[BFF Login] ❌ ApiBusinessError caught:', {
         message: error.message,
         code: error.code,
-        raw: error,
       });
       return NextResponse.json(
         { error: error.message, code: error.code },

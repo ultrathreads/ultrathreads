@@ -1,6 +1,6 @@
 // src/lib/auth/session.ts
 import { cookies } from 'next/headers';
-import { getCurrentUser, type CurrentUser } from '@/services/auth-service';
+import { getCurrentUser, type CurrentUser } from '@/services/auth.server';
 
 /**
  * 服务端专用：安全地获取当前会话用户

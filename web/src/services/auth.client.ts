@@ -1,3 +1,5 @@
+// src/services/auth.client.ts
+
 'use client';
 
 import { ApiBusinessError } from '@/lib/api/client';
