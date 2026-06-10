@@ -9,8 +9,18 @@ import (
 	"ultrathreads/service"
 )
 
+const (
+	// ContextKeyUserClaims 是存储基础用户凭证的 Context Key
+	// 供 CurrentUserReadState 及业务 Handler 读取
+	ContextKeyUserClaims = "user_claims"
+
+	// ContextKeyCurrentUser 是存储完整用户对象的 Context Key
+	// 供 Controller 层读取
+	ContextKeyCurrentUser = "CurrentUser"
+)
+
 // OptionalAuth 可选鉴权中间件
-// 与强制鉴权的区别：Token 无效或缺失时不拦截请求，仅跳过用户注入
+// Token 有效时注入用户信息；Token 缺失或无效时不拦截请求，仅跳过注入
 func OptionalAuth(auth *jwt.GinJWTMiddleware) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims, err := auth.GetClaimsFromJWT(c)
@@ -19,44 +29,46 @@ func OptionalAuth(auth *jwt.GinJWTMiddleware) gin.HandlerFunc {
 			return
 		}
 
-		// 从 JWT Claims 中提取用户ID并构造 Service 层期望的 UserClaims
 		userClaims := extractUserClaims(claims)
 		if userClaims == nil {
 			c.Next()
 			return
 		}
 
-		// 写入 Service 层读取的 Key，使 GetCurrent 能正常工作
+		// 写入 identityKey 供 gin-jwt 生态及 service.UserService.GetCurrent 使用
 		identityKey := viper.GetString("jwt.identity_key")
 		c.Set(identityKey, *userClaims)
 
-		// 调用 Service 获取完整用户对象，并写入 Controller 层读取的 Key
-		user := service.UserService.GetCurrent(c)
-		if user != nil {
-			c.Set("CurrentUser", user)
+		// 写入统一 Key 供下游中间件和业务层读取
+		c.Set(ContextKeyUserClaims, *userClaims)
+
+		// 获取完整用户对象并注入 Context
+		if user := service.UserService.GetCurrent(c); user != nil {
+			c.Set(ContextKeyCurrentUser, user)
 		}
 
 		c.Next()
 	}
 }
 
-// extractUserClaims 将 JWT MapClaims 转换为项目自定义的 UserClaims
-// ⚠️ 请根据 model.UserClaims 的实际字段调整此处逻辑
+// extractUserClaims 将 JWT MapClaims 安全转换为 model.UserClaims
+// 返回 nil 表示 Claims 格式异常或缺少必要字段
 func extractUserClaims(claims jwt.MapClaims) *model.UserClaims {
 	idVal, exists := claims["id"]
 	if !exists {
 		return nil
 	}
 
-	// JWT 解析出的数字默认为 float64，需安全转换为 int64
-	f, ok := idVal.(float64)
-	if !ok || f <= 0 {
+	// JWT 数字类型默认为 float64，需安全转换
+	id, ok := idVal.(float64)
+	if !ok || id <= 0 {
 		return nil
 	}
 
+	name, _ := claims["name"].(string)
+
 	return &model.UserClaims{
-		ID: int64(f),
-		// 如 UserClaims 还有其他必要字段，在此补充：
-		// Username: fmt.Sprintf("%v", claims["username"]),
+		ID:   int64(id),
+		Name: name,
 	}
 }
