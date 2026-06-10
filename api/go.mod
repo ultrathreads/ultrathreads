@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
-	github.com/PuerkitoBio/goquery v1.5.1
+	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.0+incompatible
 	github.com/appleboy/gin-jwt/v2 v2.10.3
 	github.com/bluele/factory-go v0.0.1
@@ -13,13 +13,13 @@ require (
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/go-resty/resty/v2 v2.2.0
+	github.com/go-resty/resty/v2 v2.17.2
 	github.com/goburrow/cache v0.1.0
 	github.com/gorilla/feeds v1.1.1
 	github.com/issue9/identicon v1.0.1
 	github.com/jinzhu/gorm v1.9.11
 	github.com/jordan-wright/email v0.0.0-20200322182553-8eef2508c362
-	github.com/microcosm-cc/bluemonday v1.0.19
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
 	github.com/rs/zerolog v1.35.1
@@ -30,11 +30,12 @@ require (
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/vinta/pangu v3.0.0+incompatible
 	golang.org/x/crypto v0.53.0
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/oauth2 v0.36.0
 )
 
 require (
-	github.com/andybalholm/cascadia v1.1.0 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
+	github.com/andybalholm/cascadia v1.3.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -49,13 +50,13 @@ require (
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
+	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
-	github.com/gorilla/css v1.0.0 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -92,7 +93,7 @@ require (
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
+	golang.org/x/time v0.12.0 // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/ini.v1 v1.51.0 // indirect
