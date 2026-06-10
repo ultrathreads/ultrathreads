@@ -24,15 +24,15 @@ func main() {
 			cmd.CmdWeb,
 			cmd.CmdMock,
 		},
-		Flags: append(
-			cmd.CmdWeb.Flags,
+		// ✅ 只定义全局 flag，不再 append 子命令的 flags
+		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "conf",
 				Aliases: []string{"c"},
 				Value:   "./app.yaml",
 				Usage:   "Custom configuration file path",
 			},
-		),
+		},
 		Action: cmd.CmdWeb.Action,
 	}
 
