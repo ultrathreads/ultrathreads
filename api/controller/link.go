@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
+	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -15,7 +15,7 @@ type LinkController struct {
 
 // List 列表
 func (c *LinkController) List(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
 	links, paging := service.LinkService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Page(page, 20).Asc("id"))

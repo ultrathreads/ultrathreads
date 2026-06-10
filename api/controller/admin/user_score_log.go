@@ -32,8 +32,8 @@ func (c *UserScoreLogController) Show(ctx *gin.Context) {
 
 // List 显示积分列表
 func (c *UserScoreLogController) List(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
-	limit := form.FormValueIntDefault(ctx, "limit", 20)
+	page := util.FormValueIntDefault(ctx, "page", 1)
+	limit := util.FormValueIntDefault(ctx, "limit", 20)
 	userId := ctx.Request.FormValue("userId")
 	sourceType := ctx.Request.FormValue("sourceType")
 	sourceId := ctx.Request.FormValue("sourceId")

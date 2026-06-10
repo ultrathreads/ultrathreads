@@ -77,7 +77,7 @@ func (c *UserController) GetScoreRank(ctx *gin.Context) {
 
 // GetScorelogs 用户积分记录
 func (c *UserController) GetScorelogs(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 	user := c.GetCurrentUser(ctx)
 
 	logs, paging := service.UserScoreLogService.List(querybuilder.NewQueryBuilder().
@@ -108,7 +108,7 @@ func (c *UserController) GetNotificationsRecent(ctx *gin.Context) {
 // GetNotifications 用户通知
 func (c *UserController) GetNotifications(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
 	messages, paging := service.NotificationService.List(querybuilder.NewQueryBuilder().
 		Eq("user_id", user.ID).
@@ -126,7 +126,7 @@ func (c *UserController) GetNotifications(ctx *gin.Context) {
 // GetFavorites get favorites
 func (c *UserController) GetFavorites(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	cursor := form.FormValueInt64Default(ctx, "cursor", 0)
+	cursor := util.FormValueInt64Default(ctx, "cursor", 0)
 
 	// 查询列表
 	var favorites []model.Favorite
@@ -181,7 +181,7 @@ func (c *UserController) Watch(ctx *gin.Context) {
 func (c *UserController) GetWatched(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	userID := form.FormValueInt64Default(ctx, "userId", 0)
+	userID := util.FormValueInt64Default(ctx, "userId", 0)
 
 	data := map[string]interface{}{}
 	if user == nil || userID <= 0 {
@@ -197,7 +197,7 @@ func (c *UserController) GetWatched(ctx *gin.Context) {
 func (c *UserController) WatchDelete(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	userID := form.FormValueInt64Default(ctx, "userId", 0)
+	userID := util.FormValueInt64Default(ctx, "userId", 0)
 
 	tmp := service.UserWatchService.GetBy(userID, user.ID)
 	if tmp != nil {

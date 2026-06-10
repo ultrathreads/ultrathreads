@@ -6,6 +6,7 @@ import (
 	"ultrathreads/oauth/gitee"
 	"ultrathreads/oauth/github"
 	"ultrathreads/oauth/qq"
+	"ultrathreads/util"
 )
 
 // OAuthController oauth controller
@@ -15,7 +16,7 @@ type OAuthController struct {
 
 // Authorize authorize
 func (c *OAuthController) Authorize(ctx *gin.Context) {
-	ref := ctx.Request.FormValue("ref")
+	ref := util.FormValueStringDefault(ctx, "ref","")
 	provider := ctx.Param("provider")
 	params := map[string]string{"ref": ref}
 	var url string

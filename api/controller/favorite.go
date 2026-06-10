@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
 )
@@ -15,8 +14,8 @@ type FavoriteController struct {
 // GetFavorited 是否收藏了
 func (c *FavoriteController) GetFavorited(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	entityType := ctx.Request.FormValue("entityType")
-	entityID := form.FormValueInt64Default(ctx, "entityId", 0)
+	entityType := util.FormValueStringDefault(ctx, "entityType", "")
+	entityID := util.FormValueInt64Default(ctx, "entityId", 0)
 
 	data := map[string]interface{}{}
 	if user == nil || len(entityType) == 0 || entityID <= 0 {
@@ -36,8 +35,8 @@ func (c *FavoriteController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	entityType := ctx.Request.FormValue("entityType")
-	entityID := form.FormValueInt64Default(ctx, "entityId", 0)
+	entityType := util.FormValueStringDefault(ctx, "entityType","")
+	entityID := util.FormValueInt64Default(ctx, "entityId", 0)
 
 	tmp := service.FavoriteService.GetBy(user.ID, entityType, entityID)
 	if tmp != nil {

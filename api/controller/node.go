@@ -31,7 +31,7 @@ func (c *NodeController) Show(ctx *gin.Context) {
 }
 
 func (c *NodeController) MarkAsRead(ctx *gin.Context) {
-	nodeId := form.ParamInt64Default(ctx, "id", 0)
+	nodeId := util.ParamInt64Default(ctx, "id", 0)
 
     user := c.GetCurrentUser(ctx)
     now := util.NowTimestamp();

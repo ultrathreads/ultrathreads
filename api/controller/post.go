@@ -32,7 +32,7 @@ func (c *PostController) Show(ctx *gin.Context) {
 
 // List 帖子列表
 func (c *PostController) List(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
 	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
@@ -46,9 +46,9 @@ func (c *PostController) List(ctx *gin.Context) {
 
 // ListWithReplies 帖子列表（含扁平化回帖）
 func (c *PostController) ListWithReplies(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
-	limit := form.FormValueIntDefault(ctx, "limit", 20)
-	nodeId := form.FormValueIntDefault(ctx, "nodeId", 0)
+	page := util.FormValueIntDefault(ctx, "page", 1)
+	limit := util.FormValueIntDefault(ctx, "limit", 20)
+	nodeId := util.FormValueIntDefault(ctx, "nodeId", 0)
 
 	posts, paging := service.PostService.ListThreadsWithReplies(page, limit, nodeId)
 
@@ -228,7 +228,7 @@ func (c *PostController) GetPostsExcellent(ctx *gin.Context) {
 
 // 推荐帖子
 func (c *PostController) GetPostsRecommend(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
 	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
 		Eq("recommend", true).
@@ -243,7 +243,7 @@ func (c *PostController) GetPostsRecommend(ctx *gin.Context) {
 
 // 最新发布帖子列表
 func (c *PostController) GetPostsLast(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
 	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
@@ -257,7 +257,7 @@ func (c *PostController) GetPostsLast(ctx *gin.Context) {
 
 // 无人问津帖子列表
 func (c *PostController) GetPostsNoreply(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
 	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
@@ -272,8 +272,8 @@ func (c *PostController) GetPostsNoreply(ctx *gin.Context) {
 
 // 节点帖子列表
 func (c *PostController) GetNodePosts(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
-	nodeId := form.FormValueInt64Default(ctx, "nodeId", 0)
+	page := util.FormValueIntDefault(ctx, "page", 1)
+	nodeId := util.FormValueInt64Default(ctx, "nodeId", 0)
 
 	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
 		Eq("node_id", nodeId).
@@ -289,8 +289,8 @@ func (c *PostController) GetNodePosts(ctx *gin.Context) {
 
 // 标签帖子列表
 func (c *PostController) GetTagPosts(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
-	tagId, err := form.FormValueInt64(ctx, "tagId")
+	page := util.FormValueIntDefault(ctx, "page", 1)
+	tagId, err := util.FormValueInt64(ctx, "tagId")
 	if err != nil {
 		c.Fail(ctx, util.ErrorTagNotFound)
 		return
@@ -315,7 +315,7 @@ func (c *PostController) GetUserRecent(ctx *gin.Context) {
 
 // GetUserPosts 用户的帖子
 func (c *PostController) GetUserPosts(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormValueIntDefault(ctx, "page", 1)
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
 		posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().

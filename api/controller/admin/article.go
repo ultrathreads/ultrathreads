@@ -73,8 +73,8 @@ func (c *ArticleController) Delete(ctx *gin.Context) {
 
 // List list articles
 func (c *ArticleController) List(ctx *gin.Context) {
-	page := form.FormValueIntDefault(ctx, "page", 1)
-	limit := form.FormValueIntDefault(ctx, "limit", 20)
+	page := util.FormValueIntDefault(ctx, "page", 1)
+	limit := util.FormValueIntDefault(ctx, "limit", 20)
 	name := ctx.Request.FormValue("name")
 
 	conditions := querybuilder.NewQueryBuilder()
