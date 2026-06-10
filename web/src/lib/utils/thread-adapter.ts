@@ -52,31 +52,18 @@ export function adaptToThreadView(
     ? contentTime <= options.lastReadAt
     : false;
 
-  // ✅ 统一提取时间戳，并确保输出严格为 number (ms)
-  let rawTimestamp: number | string | undefined;
-  if (isPostEntity) {
-    rawTimestamp = post.createTime;
-  } else {
-    rawTimestamp = listItem.lastCommentTime || listItem.createTime;
-  }
-
-  // 防御性转换：兼容后端可能返回字符串时间戳或非法值的情况
-  const timestamp = typeof rawTimestamp === 'number'
-    ? rawTimestamp
-    : new Date(rawTimestamp ?? 0).getTime();
-
   return {
     id: source.id,
-    threadId: source.threadId, // ✅ 补全必填字段
+    threadId: source.threadId,
     parentId: isPostEntity
-      ? (post.parentId ?? 0)   // ✅ 兜底为 0，避免树构建时误判为根节点
+      ? (post.parentId ?? 0)
       : listItem.parentId,
     title: source.title,
     isPinned: source.isPinned,
     isRead,
-    author: author ?? '匿名用户', // ✅ 最终兜底，保证一定有值
+    author: author ?? '匿名用户',
     avatar,
-    date: Number.isFinite(timestamp) ? timestamp : 0, // ✅ 防止 NaN 污染视图层
+    date: Number.isFinite(contentTimestamp) ? contentTimestamp : 0,
     nodeName: isPostEntity
       ? post.node?.name
       : listItem.node?.name,
