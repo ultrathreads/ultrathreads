@@ -41,17 +41,16 @@ export default async function HomePage({ searchParams }: Props) {
     parsedNodeId ? getNodeDetail(parsedNodeId) : Promise.resolve({ node: null, error: null }),
   ]);
 
-  const { posts, paging, lastReadAt, error } = threadResult;
+  const { posts, paging, lastReadAtMap, error } = threadResult;
   const { node } = nodeResult;
 
   if (error) {
     return <div className="p-8 text-center text-red-500">{t('common:loadFailed')}</div>;
   }
 
-  // ✅ 将 lastReadAt 透传给树构建器
-  const viewPosts = buildThreadTree(posts, { lastReadAt });
+  const viewPosts = buildThreadTree(posts, { lastReadAtMap });
 
-  // ✅ 构建回溯状态：仅当有实际值时才传递，避免生成无意义的空参数
+  // 构建回溯状态：仅当有实际值时才传递，避免生成无意义的空参数
   const backState: BackState = {};
   if (parsedNodeId !== undefined) {
     backState.nodeId = String(parsedNodeId);

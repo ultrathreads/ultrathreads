@@ -2,8 +2,9 @@ import type { PostEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 import { adaptToThreadView } from './thread-adapter';
 
-interface ThreadNode extends PostEntity {
-  children: ThreadNode[];
+/** 帖子在树形结构中的包装项，直接继承帖子实体字段 */
+interface PostTreeItem extends PostEntity {
+  children: PostTreeItem[];
 }
 
 interface BuildTreeOptions {
@@ -19,53 +20,61 @@ export function buildThreadTree(
   posts: PostEntity[],
   options?: BuildTreeOptions,
 ): ThreadViewItem[] {
-  const { lastReadAt } = options;
+  const { lastReadAtMap } = options ?? {};
 
-  // 1. O(n) 建图
-  const nodeMap = new Map<number, ThreadNode>();
-  const roots: ThreadNode[] = [];
+  // 1. O(n) 建立帖子索引
+  const postIndex = new Map<number, PostTreeItem>();
+  const roots: PostTreeItem[] = [];
 
   for (const post of posts) {
-    nodeMap.set(post.id, { ...post, children: [] });
+    postIndex.set(post.id, { ...post, children: [] });
   }
 
   // 2. 挂载子节点（保持原始相对顺序，后续统一排序）
   for (const post of posts) {
-    const node = nodeMap.get(post.id)!;
+    const currentPost = postIndex.get(post.id)!;
     const isRoot = !post.parentId || post.parentId <= 0;
 
     if (isRoot) {
-      roots.push(node);
+      roots.push(currentPost);
     } else {
-      const parent = nodeMap.get(post.parentId);
-      if (parent) {
-        parent.children.push(node);
+      const parentPost = postIndex.get(post.parentId);
+      if (parentPost) {
+        parentPost.children.push(currentPost);
       } else {
         console.warn(
-          `[buildThreadTree] Parent ${post.parentId} not found for post ${post.id}`
+          `[buildThreadTree] Parent ${post.parentId} not found for post ${post.id}`,
         );
-        roots.push(node);
+        // 父节点缺失时降级为根节点，避免丢失数据
+        roots.push(currentPost);
       }
     }
   }
 
-  // 3. 递归适配视图，每层子节点固定按时间正序
-  function adaptTreeNode(node: ThreadNode): ThreadViewItem {
-    node.children.sort(
+  // 3. 递归转换为视图模型，每层子节点固定按时间正序
+  function toThreadView(treeItem: PostTreeItem): ThreadViewItem {
+    treeItem.children.sort(
       (a, b) =>
-        new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
+        new Date(a.createTime).getTime() - new Date(b.createTime).getTime(),
     );
 
-    const lastReadAt = options?.lastReadAtMap?.[String(treeNode.node.node.nodeId)];
-    const base = adaptToThreadView(node, { lastReadAt });
+    const lookupKey = String(treeItem.node.nodeId);
+
+    const lastReadAt =
+      lookupKey !== undefined && lastReadAtMap
+        ? lastReadAtMap[lookupKey]
+        : undefined;
+
+    const base = adaptToThreadView(treeItem, { lastReadAt });
+
     return {
       ...base,
       replies:
-        node.children.length > 0
-          ? node.children.map(adaptTreeNode)
+        treeItem.children.length > 0
+          ? treeItem.children.map(toThreadView)
           : undefined,
     };
   }
 
-  return roots.map(adaptTreeNode);
+  return roots.map(toThreadView);
 }
