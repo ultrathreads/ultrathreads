@@ -121,7 +121,7 @@ export default function ThreadItem({
           </svg>
         </button>
         {isRoot && (
-          <a
+          <Link
             className="icon-btn flat-view-btn"
             href={`/post/${item.id}?view=flat`}
             title={`平铺模式浏览 ${item.author} 的帖子`}
@@ -130,7 +130,7 @@ export default function ThreadItem({
             <svg width="14" height="14" viewBox="0 0 16 16" fill="#95a5a6">
               <path d="M2.5 3.5A.5.5 0 0 1 3 3h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
             </svg>
-          </a>
+          </Link>
         )}
       </div>
 

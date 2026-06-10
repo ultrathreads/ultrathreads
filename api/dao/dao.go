@@ -27,9 +27,9 @@ func Setup() {
 	var dialector gorm.Dialector
 
 	// 1. 日志级别映射
-	logLevel := gormlog.Warn // 默认静默+警告
+	logLevel := gormlog.Warn
 	if viper.GetBool("database.log_sql") {
-		logLevel = gormlog.Info // 打印所有 SQL
+		logLevel = gormlog.Info
 	}
 
 	switch viper.GetString("database.driver") {

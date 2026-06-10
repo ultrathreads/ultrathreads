@@ -48,7 +48,7 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/node/:id", nodeController.Show)
 
 		// Posts
-		optional.GET("/posts/threads", postController.ListWithReplies)
+		optional.GET("/threads", postController.ListThreads)
 		optional.GET("/posts", postController.List)
 		optional.GET("/post/:id", postController.Show)
 		optional.GET("/post/:id/with-thread", postController.GetPostWithThread)

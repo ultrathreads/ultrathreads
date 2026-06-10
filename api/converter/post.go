@@ -30,9 +30,10 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 			log.Error(err.Error())
 		}
 	}
-
-	tags := service.PostService.GetPostTags(post.ID)
-	rsp.Tags = ToTags(tags)
+	if post.IsRoot() {
+		tags := service.PostService.GetPostTags(post.ID)
+		rsp.Tags = ToTags(tags)
+	}
 }
 
 func ToPost(post *model.Post) *model.PostResponse {

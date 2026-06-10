@@ -44,8 +44,8 @@ func (c *PostController) List(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
-// ListWithReplies 帖子列表（含扁平化回帖）
-func (c *PostController) ListWithReplies(ctx *gin.Context) {
+// ListThreads 帖子列表（含扁平化回帖）
+func (c *PostController) ListThreads(ctx *gin.Context) {
 	page := util.FormValueIntDefault(ctx, "page", 1)
 	limit := util.FormValueIntDefault(ctx, "limit", 20)
 	nodeId := util.FormValueIntDefault(ctx, "nodeId", 0)
@@ -53,16 +53,14 @@ func (c *PostController) ListWithReplies(ctx *gin.Context) {
 	posts, paging := service.PostService.ListThreadsWithReplies(page, limit, nodeId)
 
 	lastReadAt := c.GetLastReadAt(ctx, nodeId)
-
 	lastReadAtMap := make(map[int64]int64)
 	if lastReadAt > 0 {
 	    lastReadAtMap[int64(nodeId)] = lastReadAt
 	}
 
 	data := map[string]interface{}{
-		"results": converter.ToSimplePosts(posts),
-		"page":    paging,
-		"lastReadAt": lastReadAt,
+		"results": 		 converter.ToSimplePosts(posts),
+		"page":    		 paging,
 		"lastReadAtMap": lastReadAtMap,
 	}
 	c.Success(ctx, data)

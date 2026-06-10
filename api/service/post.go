@@ -289,12 +289,7 @@ func (s *postService) SetRecommend(postId int64, recommend bool) error {
 
 // GetPostTags 获取话题标签
 func (s *postService) GetPostTags(postId int64) []model.Tag {
-	postTags := dao.PostTagDao.Find(querybuilder.NewQueryBuilder().Where("post_id = ?", postId))
-	var tagIds []int64
-	for _, postTag := range postTags {
-		tagIds = append(tagIds, postTag.TagId)
-	}
-	return cache.TagCache.GetList(tagIds)
+	return cache.TagCache.GetPostTags(postId)
 }
 
 // GetTagPosts 指定标签下话题列表
