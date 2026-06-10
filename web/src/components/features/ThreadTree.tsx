@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import type { NodeEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 import { markNodeAsRead } from '@/services/node-service';
@@ -73,6 +75,8 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
 }
 
 export default function ThreadTree({ threads, activeNode, backState }: Props) {
+  const router = useRouter();
+
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('reply');
   const [markingRead, setMarkingRead] = useState(false);
@@ -87,11 +91,11 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
 
   const toggleAll = () => setAllCollapsed((prev) => !prev);
 
-  // ✅ 标记已读回调：使用预计算的 effectiveNodeId
+  // ✅ 标记已读回调：使用 router.refresh() 替代整页刷新
   const handleMarkAsRead = useCallback(async () => {
-    console.log('[ThreadTree] markAsRead clicked', { 
-      nodeId: effectiveNodeId, 
-      markingRead 
+    console.log('[ThreadTree] markAsRead clicked', {
+      nodeId: effectiveNodeId,
+      markingRead,
     });
 
     if (!effectiveNodeId) {
@@ -102,13 +106,15 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
     setMarkingRead(true);
     try {
       await markNodeAsRead(effectiveNodeId);
-      // TODO: 成功后刷新未读状态
+      toast.success('标记已读成功');
+      router.refresh();
     } catch (err) {
       console.error('标记已读失败:', err);
+      toast.error('标记已读失败，请重试');
     } finally {
       setMarkingRead(false);
     }
-  }, [effectiveNodeId, markingRead, activeNode]);
+  }, [effectiveNodeId, markingRead, activeNode, router]);
 
   // ✅ 判断按钮是否应该禁用
   const isMarkReadDisabled = markingRead || !effectiveNodeId;
