@@ -18,6 +18,7 @@ database:
     ssl: false
   sqlite:
     path: data/ultrathreads.db
+  log_sql: false
 
 jwt:
   identity_key: ultrathreads_id

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -33,7 +32,6 @@ func Setup() {
 			log.Fatal(fmt.Sprintf("Failed to connect sqlite %s", err.Error()))
 		} else {
 			log.Info("Successfully connect to sqlite3, path: %s.", path)
-			db.LogMode(true)
 		}
 	case DRIVER_MYSQL:
 		host := viper.GetString("database.mysql.host")
@@ -51,12 +49,15 @@ func Setup() {
 			db.DB().SetMaxIdleConns(viper.GetInt("database.mysql.pool.min"))
 			db.DB().SetMaxOpenConns(viper.GetInt("database.mysql.pool.max"))
 			db.DB().SetConnMaxLifetime(time.Minute)
-			if gin.Mode() != gin.ReleaseMode {
-				db.LogMode(true)
-			}
 		}
 	default:
 		log.Fatal("We do not support this kind of storage system yet!")
+	}
+
+	if viper.GetBool("database.log_sql") {
+	    db.LogMode(true)
+	} else {
+	    db.LogMode(false)
 	}
 
 	db.SingularTable(true) //禁用表名复数

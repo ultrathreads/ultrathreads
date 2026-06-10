@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"time"
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/converter"
@@ -35,7 +34,8 @@ func (c *NodeController) MarkAsRead(ctx *gin.Context) {
 	nodeId := form.ParamInt64Default(ctx, "id", 0)
 
     user := c.GetCurrentUser(ctx)
-    if err := service.UserReadStateService.MarkAsRead(user.ID, nodeId, time.Now().Unix()); err != nil {
+    now := util.NowTimestamp();
+    if err := service.UserReadStateService.MarkAsRead(user.ID, nodeId, now); err != nil {
         c.Fail(ctx, util.FromError(err))
         return
     }
