@@ -489,6 +489,7 @@ ul.reply li:last-child > ul {border: none; }
 
 /* 图标、标题、已读状态 */
 .entry .icon-topic { flex-shrink: 0; vertical-align: middle; }
+.entry .icon-topic.is-unread { color: #3498db; }
 .entry .icon-reply-svg { flex-shrink: 0; vertical-align: middle; width: 14px; height: 14px; }
 .entry .icon-reply-svg path { fill: #bdc3c7; stroke: #bdc3c7; stroke-width: 12; stroke-linejoin: round; }
 a.subject { font-size: 1rem; font-weight: 600; color: #2c3e50; text-decoration: none; word-break: break-word; }

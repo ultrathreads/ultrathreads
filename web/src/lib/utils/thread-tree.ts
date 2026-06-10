@@ -6,12 +6,22 @@ interface ThreadNode extends PostEntity {
   children: ThreadNode[];
 }
 
+interface BuildThreadTreeOptions {
+  /** 用户对该节点/版块的最后阅读时间戳 (ms) */
+  lastReadAt?: number;
+}
+
 /**
  * 通用帖子树形构建器
  * - 根帖顺序保持传入顺序（由后端控制）
  * - 所有层级回帖按时间正序排列（最早在前）
  */
-export function buildThreadTree(posts: PostEntity[]): ThreadViewItem[] {
+export function buildThreadTree(
+  posts: PostEntity[],
+  options: BuildThreadTreeOptions = {} // ✅ 新增可选参数
+): ThreadViewItem[] {
+  const { lastReadAt } = options;
+
   // 1. O(n) 建图
   const nodeMap = new Map<number, ThreadNode>();
   const roots: ThreadNode[] = [];
@@ -47,7 +57,8 @@ export function buildThreadTree(posts: PostEntity[]): ThreadViewItem[] {
         new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
     );
 
-    const base = adaptToThreadView(node);
+    // ✅ 将 lastReadAt 透传给适配器
+    const base = adaptToThreadView(node, { lastReadAt });
     return {
       ...base,
       replies:

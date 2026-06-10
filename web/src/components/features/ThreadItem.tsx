@@ -80,7 +80,13 @@ export default function ThreadItem({
               <path d="M16 2H8a1 1 0 0 0-1 1v3.27l-3.88 3.88a1 1 0 0 0-.29.7V12a1 1 0 0 0 1 1h7v5l-2 2v1h6v-1l-2-2v-5h7a1 1 0 0 0 1-1v-1.15a1 1 0 0 0-.29-.7L17 5.27V3a1 1 0 0 0-1-1zM9 4h6v1.5l3.5 3.5H5.5L9 5.5V4z" />
             </svg>
           ) : (
-            <svg className="icon-topic" width="14" height="14" viewBox="0 0 14 14" fill="#3498db">
+            <svg 
+              className={`icon-topic ${item.isRead ? 'is-read' : 'is-unread'}`} 
+              width="14" 
+              height="14" 
+              viewBox="0 0 14 14" 
+              fill="currentColor"
+            >
               <circle cx="7" cy="7" r="5" />
             </svg>
           )

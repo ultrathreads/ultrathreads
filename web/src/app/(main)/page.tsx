@@ -41,15 +41,15 @@ export default async function HomePage({ searchParams }: Props) {
     parsedNodeId ? getNodeDetail(parsedNodeId) : Promise.resolve({ node: null, error: null }),
   ]);
 
-  const { posts, paging, error } = threadResult;
+  const { posts, paging, lastReadAt, error } = threadResult;
   const { node } = nodeResult;
 
   if (error) {
     return <div className="p-8 text-center text-red-500">{t('common:loadFailed')}</div>;
   }
 
-  // ✅ 将传输模型适配为视图模型，使 nodeName 等字段正确传递到 ThreadItem
-  const viewPosts = buildThreadTree(posts);
+  // ✅ 将 lastReadAt 透传给树构建器
+  const viewPosts = buildThreadTree(posts, { lastReadAt });
 
   // ✅ 构建回溯状态：仅当有实际值时才传递，避免生成无意义的空参数
   const backState: BackState = {};
