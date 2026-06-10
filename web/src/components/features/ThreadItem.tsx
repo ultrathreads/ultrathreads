@@ -109,18 +109,29 @@ export default function ThreadItem({
           </span>
           {isRoot && item.nodeName && <span className="category">({item.nodeName})</span>}
         </span>
-
-        <a
-          className="preview-btn"
+        <button
+          className="icon-btn preview-btn"
           data-post-id={String(item.id)}
           title={`回复 ${item.author}`}
           aria-label={`回复 ${item.author}`}
           type="button"
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="#95a5a6">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="#95a5a6" aria-hidden="true">
             <path d="M8 3C4 3 1 8 1 8s3 5 7 5 7-5 7-5-3-5-7-5zm0 8a3 3 0 110-6 3 3 0 010 6z" />
           </svg>
-        </a>
+        </button>
+        {isRoot && (
+          <a
+            className="icon-btn flat-view-btn"
+            href={`/post/${item.id}?view=flat`}
+            title={`平铺模式浏览 ${item.author} 的帖子`}
+            aria-label={`平铺模式浏览 ${item.author} 的帖子`}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="#95a5a6">
+              <path d="M2.5 3.5A.5.5 0 0 1 3 3h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+            </svg>
+          </a>
+        )}
       </div>
 
       {hasReplies && (

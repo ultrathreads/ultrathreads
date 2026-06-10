@@ -526,21 +526,21 @@ a.subject.read { font-weight: 400; color: #555; }
 .category:hover { color: #3498db; }
 
 /* 悬浮预览按钮 */
-.preview-btn {
+.icon-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; border-radius: 4px;
+    width: 20px; height: 20px; border:none; border-radius: 4px;
     cursor: pointer; transition: background-color 0.15s, color 0.15s;
     flex-shrink: 0; vertical-align: middle;
 }
-.preview-btn:hover { background-color: #eaf2f8; }
-.preview-btn:hover svg { fill: #3498db; }
-.preview-btn svg { display: block; transition: fill 0.15s; }
-.entry .preview-btn {
+.icon-btn:hover { background-color: #eaf2f8; }
+.icon-btn:hover svg { fill: #3498db; }
+.icon-btn svg { display: block; transition: fill 0.15s; }
+.entry .icon-btn {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
-.entry:hover .preview-btn {
+.entry:hover .icon-btn {
   opacity: 1;
   visibility: visible;
 }
