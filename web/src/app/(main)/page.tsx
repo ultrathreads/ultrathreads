@@ -17,13 +17,24 @@ interface BackState {
   page?: string;
 }
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+async function parseSearchParams(searchParams: Props['searchParams']) {
   const { page: pageStr, nodeId } = await searchParams;
-  const page = Math.max(1, parseInt(pageStr || '1', 10));
-  let title = page > 1 ? `帖子列表 - 第 ${page} 页` : '帖子列表';
+  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
 
-  if (nodeId) {
-    const { node } = await getNodeDetail(Number(nodeId));
+  const rawNodeId = nodeId ? Number(nodeId) : NaN;
+  const validNodeId = Number.isFinite(rawNodeId) && rawNodeId > 0 
+    ? rawNodeId 
+    : undefined;
+
+  return { currentPage, validNodeId };
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { currentPage, validNodeId } = await parseSearchParams(searchParams);
+  let title = currentPage > 1 ? `帖子列表 - 第 ${currentPage} 页` : '帖子列表';
+
+  if (validNodeId) {
+    const { node } = await getNodeDetail(validNodeId);
     if (node) title = `${node.name} - ${title}`;
   }
   return { title };
@@ -31,14 +42,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function HomePage({ searchParams }: Props) {
   const t = await getServerTranslation(['common', 'home']);
-  const { page: pageStr, nodeId } = await searchParams;
-  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
-
-  const parsedNodeId = nodeId ? Number(nodeId) : undefined;
+  const { currentPage, validNodeId } = await parseSearchParams(searchParams);
 
   const [threadResult, nodeResult] = await Promise.all([
-    getThreadPageData(currentPage, parsedNodeId),
-    parsedNodeId ? getNodeDetail(parsedNodeId) : Promise.resolve({ node: null, error: null }),
+    getThreadPageData(currentPage, validNodeId),
+    // ✅ 现在 -1、0、NaN、undefined 全部被过滤，不会再发起无效请求
+    validNodeId 
+      ? getNodeDetail(validNodeId) 
+      : Promise.resolve({ node: null, error: null }),
   ]);
 
   const { posts, paging, lastReadAtMap, error } = threadResult;
@@ -51,6 +62,7 @@ export default async function HomePage({ searchParams }: Props) {
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
 
   // 构建回溯状态：仅当有实际值时才传递，避免生成无意义的空参数
+  const parsedNodeId = validNodeId ? Number(validNodeId) : undefined;
   const backState: BackState = {};
   if (parsedNodeId !== undefined) {
     backState.nodeId = String(parsedNodeId);
