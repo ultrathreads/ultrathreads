@@ -8,7 +8,6 @@ import (
 )
 
 // dropAndCreateTable 清空并重建表
-// ⚠️ v2 不再有 DropTable/CreateTable，使用 Migrator 接口替代
 func dropAndCreateTable(table interface{}) {
 	db := dao.DB()
 	migrator := db.Migrator()
