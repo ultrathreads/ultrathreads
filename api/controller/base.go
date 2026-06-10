@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	evbus "github.com/asaskevich/EventBus"
 
+	"ultrathreads/events"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
@@ -19,6 +21,11 @@ type R struct {
 
 // BaseController controller
 type BaseController struct {
+}
+
+// GetBus 从请求上下文中获取事件总线
+func (c *BaseController) GetBus(ctx *gin.Context) evbus.Bus {
+	return ctx.MustGet(events.BusKey).(evbus.Bus)
 }
 
 // BindAndValidate bind and validate

@@ -7,6 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.0+incompatible
 	github.com/appleboy/gin-jwt/v2 v2.10.3
+	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
 	github.com/bluele/factory-go v0.0.1
 	github.com/dchest/captcha v0.0.0-20170622155422-6a29415a8364
 	github.com/emirpasic/gods v1.12.0

@@ -5,6 +5,7 @@ import (
 
 	"ultrathreads/converter"
 	"ultrathreads/cache"
+	"ultrathreads/events"
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -41,4 +42,18 @@ func (c *NodeController) MarkAsRead(ctx *gin.Context) {
     }
     
     c.Success(ctx, nil)
+}
+
+func (c *NodeController) ViewPost(ctx *gin.Context) {
+	nodeId := util.ParamInt64Default(ctx, "id", 0)
+	user := c.GetCurrentUser(ctx)
+
+	// ✅ 直接传入底层 Bus，无需 Manager 包装方法
+	events.PublishTyped(c.GetBus(ctx), events.NodeViewedPayload{
+		UserID:     user.ID,
+		NodeID:     nodeId,
+		ViewedTime: util.NowTimestamp(),
+	})
+
+	c.Success(ctx, nil)
 }

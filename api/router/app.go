@@ -12,6 +12,7 @@ func setupApp(e *gin.Engine) {
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
 	api.Any("/stat", new(controller.SiteController).Stat)
+	api.Any("/ping", new(controller.SiteController).Ping)
 
 	// Auth
 	api.POST("/auth/login", jwtAuth.LoginHandler)
@@ -102,6 +103,7 @@ func setupApp(e *gin.Engine) {
 
 		// Nodes
 		jwtApi.POST("/nodes/:id/read", nodeController.MarkAsRead)
+		jwtApi.Any("/nodes/:id/view-post", nodeController.ViewPost)
 
 		// Posts（写操作）
 		jwtApi.POST("/posts", postController.Store)

@@ -17,6 +17,7 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/cron"
 	"ultrathreads/dao"
+	"ultrathreads/events"
 	"ultrathreads/middleware"
 	"ultrathreads/router"
 )
@@ -51,6 +52,10 @@ func runWeb(c *cli.Context) error {
 		return fmt.Errorf("parse conf file fail: %w", err)
 	}
 
+	// 1. 初始化事件管理器 & 注册处理器
+	mgr := events.NewManager()
+	events.RegisterHandlers(mgr)
+
 	// 3. Set up run mode
 	mode := viper.GetString("mode")
 	gin.SetMode(mode)
@@ -68,7 +73,7 @@ func runWeb(c *cli.Context) error {
 	middleware.InitLang()
 
 	engine := gin.Default()
-	router.Setup(engine)
+	router.Setup(engine, mgr)
 
 	port := viper.GetString("base.port")
 	addr := ":" + port

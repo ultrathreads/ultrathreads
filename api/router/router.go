@@ -6,6 +6,7 @@ import (
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/events"
 	"ultrathreads/middleware"
 )
 
@@ -15,9 +16,14 @@ var (
 )
 
 // Setup 初始化路由引擎
-func Setup(e *gin.Engine) {
+func Setup(e *gin.Engine, mgr *events.Manager) {
 	e.Use(gin.Recovery())
 	e.Use(middleware.Cors())
+
+	e.Use(func(c *gin.Context) {
+		c.Set(events.BusKey, mgr.Bus)
+		c.Next()
+	})
 
 	e.Any("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "UltraThreads API\n")

@@ -31,6 +31,9 @@ func userFactory(i int) *factory.Factory {
 	if i == 0 {
 		username = "admin"
 		password = "admin12345"
+	} else if i == 1 {
+		username = "ultrathreads"
+		password = "ultrathreads"
 	}
 
 	u := &model.User{

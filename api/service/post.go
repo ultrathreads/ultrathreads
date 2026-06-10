@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/feeds"
 	"github.com/spf13/viper"
-	"gorm.io/gorm" // ✅ v2 替换 jinzhu/gorm
+	"gorm.io/gorm"
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"

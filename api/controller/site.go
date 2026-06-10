@@ -17,3 +17,12 @@ func (c *SiteController) Stat(ctx *gin.Context) {
 
 	c.Success(ctx, data)
 }
+
+// Ping 健康检查 - 通过事件总线异步输出 pong
+func (c *SiteController) Ping(ctx *gin.Context) {
+	c.GetBus(ctx).Publish("health.ping")
+
+	c.Success(ctx, gin.H{
+		"message": "pong",
+	})
+}
