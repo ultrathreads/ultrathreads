@@ -22,6 +22,10 @@ type Post struct {
 	ExtraData         string `gorm:"type:text" json:"extraData" form:"extraData"`                                            // 扩展数据
 }
 
+func (Post) TableName() string {
+    return "post"
+}
+
 func (p *Post) IsRoot() bool {
 	return p.ParentId == 0
 }

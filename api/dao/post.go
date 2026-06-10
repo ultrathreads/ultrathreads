@@ -106,3 +106,11 @@ func (d *postDao) GetRootPosts(limit int) ([]*model.Post, error) {
 		Find(&posts).Error
 	return posts, err
 }
+
+// IncrViewCount 原子递增/递减指定字段（Service 层解耦 gorm 的关键方法）
+func (d *postDao) IncrViewCount(id int64) error {
+	field := "view_count"
+	return db.Model(&model.Post{}).
+		Where("id = ?", id).
+		UpdateColumn(field, gorm.Expr(field+" + ?", 1)).Error
+}
