@@ -6,9 +6,8 @@ interface ThreadNode extends PostEntity {
   children: ThreadNode[];
 }
 
-interface BuildThreadTreeOptions {
-  /** 用户对该节点/版块的最后阅读时间戳 (ms) */
-  lastReadAt?: number;
+interface BuildTreeOptions {
+  lastReadAtMap?: Record<number, number>;
 }
 
 /**
@@ -18,7 +17,7 @@ interface BuildThreadTreeOptions {
  */
 export function buildThreadTree(
   posts: PostEntity[],
-  options: BuildThreadTreeOptions = {} // ✅ 新增可选参数
+  options?: BuildTreeOptions,
 ): ThreadViewItem[] {
   const { lastReadAt } = options;
 
@@ -57,7 +56,7 @@ export function buildThreadTree(
         new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
     );
 
-    // ✅ 将 lastReadAt 透传给适配器
+    const lastReadAt = options?.lastReadAtMap?.[String(treeNode.node.node.nodeId)];
     const base = adaptToThreadView(node, { lastReadAt });
     return {
       ...base,

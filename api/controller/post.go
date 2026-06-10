@@ -54,10 +54,16 @@ func (c *PostController) ListWithReplies(ctx *gin.Context) {
 
 	lastReadAt := c.GetLastReadAt(ctx, nodeId)
 
+	lastReadAtMap := make(map[int64]int64)
+	if lastReadAt > 0 {
+	    lastReadAtMap[int64(nodeId)] = lastReadAt
+	}
+
 	data := map[string]interface{}{
 		"results": converter.ToSimplePosts(posts),
 		"page":    paging,
 		"lastReadAt": lastReadAt,
+		"lastReadAtMap": lastReadAtMap,
 	}
 	c.Success(ctx, data)
 }

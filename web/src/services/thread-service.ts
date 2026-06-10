@@ -26,7 +26,7 @@ export interface ThreadListItem {
 interface ThreadsApiResponse {
   results: ThreadListItem[];
   page: PaginationMeta;
-  lastReadAt?: number;
+  lastReadAtMap: Record<string, number>;
 }
 
 // ==================== 视图层类型 ====================
@@ -35,7 +35,7 @@ export interface ThreadPageData {
   posts: ThreadListItem[];
   paging: PaginationMeta;
   error: string | null;
-  lastReadAt?: number;
+  lastReadAtMap: Record<string, number>;
 }
 
 // ==================== 服务函数 ====================
@@ -77,7 +77,7 @@ export async function getThreadPageData(
     return {
       posts: data.results ?? [],
       paging: data.page,
-      lastReadAt: data.lastReadAt,
+      lastReadAtMap: data.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {
@@ -85,7 +85,7 @@ export async function getThreadPageData(
     return {
       posts: [],
       paging: { currentPage: safePage, pageSize: DEFAULT_LIMIT, totalItems: 0 },
-      lastReadAt: 0,
+      lastReadAtMap: {},
       error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
