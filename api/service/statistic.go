@@ -2,6 +2,7 @@ package service
 
 import (
 	"strconv"
+	"sync/atomic"
 
 	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
@@ -14,25 +15,29 @@ func newStatisticService() *statisticService {
 }
 
 type statisticService struct {
-	running bool // is in running
+	running atomic.Bool // ✅ 修复：bool → atomic.Bool，解决并发数据竞争
 }
 
+// GenerateData 生成统计数据
 func (s *statisticService) GenerateData() {
-	if s.running {
+	// ✅ 原子 CAS 操作，替代非线程安全的 bool 读写
+	if !s.running.CompareAndSwap(false, true) {
 		log.Info("statistic is in building")
 		return
 	}
-
-	s.running = true
-	defer func() {
-		s.running = false
-	}()
+	defer s.running.Store(false)
 
 	var (
-		statUserCount    = strconv.Itoa(UserService.Count(querybuilder.NewQueryBuilder()))
-		statPostCount   = strconv.Itoa(PostService.Count(querybuilder.NewQueryBuilder()))
+		// ✅ int → int64 适配：Count 返回 int64，strconv.FormatInt 替代 strconv.Itoa
+		statUserCount = strconv.FormatInt(UserService.Count(querybuilder.NewQueryBuilder()), 10)
+		statPostCount = strconv.FormatInt(PostService.Count(querybuilder.NewQueryBuilder()), 10)
 	)
 
-	SettingService.Set("statUserCount", statUserCount, "社区会员", "社区会员总数")
-	SettingService.Set("statPostCount", statPostCount, "帖子数", "主题总数")
+	// 注意：Set 内部已有事务，此处无需额外包装
+	if err := SettingService.Set("statUserCount", statUserCount, "社区会员", "社区会员总数"); err != nil {
+		log.Error("set statUserCount failed: %v", err)
+	}
+	if err := SettingService.Set("statPostCount", statPostCount, "帖子数", "主题总数"); err != nil {
+		log.Error("set statPostCount failed: %v", err)
+	}
 }

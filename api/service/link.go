@@ -4,8 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/jinzhu/gorm"
-
 	"ultrathreads/dao"
 	"ultrathreads/form"
 	"ultrathreads/model"
@@ -19,8 +17,7 @@ func newLinkService() *linkService {
 	return &linkService{}
 }
 
-type linkService struct {
-}
+type linkService struct{}
 
 func (s *linkService) Get(id int64) *model.Link {
 	return dao.LinkDao.Get(id)
@@ -34,6 +31,8 @@ func (s *linkService) List(cnd *querybuilder.QueryBuilder) (list []model.Link, p
 	return dao.LinkDao.List(cnd)
 }
 
+// Create 创建链接
+// ✅ 移除无效事务包装：单条 Create 无需事务，且原代码 DAO 内部用全局 db 导致 tx 未生效
 func (s *linkService) Create(dto form.LinkCreateForm) (*model.Link, error) {
 	link := &model.Link{
 		Title:      dto.Title,
@@ -42,18 +41,14 @@ func (s *linkService) Create(dto form.LinkCreateForm) (*model.Link, error) {
 		Logo:       dto.Logo,
 		CreateTime: util.NowTimestamp(),
 	}
-	err := dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		err := dao.LinkDao.Create(link)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	return link, err
+	if err := dao.LinkDao.Create(link); err != nil {
+		return nil, err
+	}
+	return link, nil
 }
 
 func (s *linkService) Update(dto form.LinkUpdateForm) error {
-	err := dao.LinkDao.Updates(dto.ID, map[string]interface{}{
+	return dao.LinkDao.Updates(dto.ID, map[string]interface{}{
 		"title":       dto.Title,
 		"url":         dto.URL,
 		"summary":     dto.Summary,
@@ -61,16 +56,16 @@ func (s *linkService) Update(dto form.LinkUpdateForm) error {
 		"status":      dto.Status,
 		"update_time": util.NowTimestamp(),
 	})
-
-	return err
 }
 
-func (s *linkService) Delete(id int64) {
-	dao.LinkDao.Delete(id)
+// Delete 删除链接
+func (s *linkService) Delete(id int64) error { // ✅ 补充 error 返回值，与 DAO 层对齐
+	return dao.LinkDao.Delete(id)
 }
 
-// 提交友情链接
-func (s *linkService) Submit(url, title, summary, logo string) (link *model.Link, err error) {
+// Submit 提交友情链接
+// ✅ 同样移除无效事务包装
+func (s *linkService) Submit(url, title, summary, logo string) (*model.Link, error) {
 	url = strings.TrimSpace(url)
 	title = strings.TrimSpace(title)
 	summary = strings.TrimSpace(summary)
@@ -83,7 +78,7 @@ func (s *linkService) Submit(url, title, summary, logo string) (link *model.Link
 		return nil, errors.New("标题不能为空")
 	}
 
-	link = &model.Link{
+	link := &model.Link{
 		Url:        url,
 		Title:      title,
 		Summary:    summary,
@@ -92,13 +87,8 @@ func (s *linkService) Submit(url, title, summary, logo string) (link *model.Link
 		CreateTime: util.NowTimestamp(),
 	}
 
-	err = dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		err := dao.LinkDao.Create(link)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	return
+	if err := dao.LinkDao.Create(link); err != nil {
+		return nil, err
+	}
+	return link, nil
 }

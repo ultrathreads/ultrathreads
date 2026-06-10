@@ -118,7 +118,7 @@ func runWeb(c *cli.Context) error {
 	fmt.Println("✅ Cache closed")
 
 	// 4) 关闭数据库连接
-	dao.Shutdown()
+	dao.Close()
 	fmt.Println("✅ Database closed")
 
 	fmt.Println("👋 UltraThreads exited cleanly")

@@ -4,7 +4,6 @@ import (
 	"ultrathreads/model"
 )
 
-
 func ToTag(tag *model.Tag) *model.TagResponse {
 	if tag == nil {
 		return nil
@@ -12,13 +11,16 @@ func ToTag(tag *model.Tag) *model.TagResponse {
 	return &model.TagResponse{TagId: tag.ID, TagName: tag.Name}
 }
 
-func ToTags(tags []model.Tag) *[]model.TagResponse {
+func ToTags(tags []model.Tag) []model.TagResponse {
 	if len(tags) == 0 {
-		return nil
+		return []model.TagResponse{}
 	}
-	var responses []model.TagResponse
-	for _, tag := range tags {
-		responses = append(responses, *ToTag(&tag))
+	responses := make([]model.TagResponse, 0, len(tags))
+	for i := range tags {
+		responses = append(responses, model.TagResponse{
+			TagId:   tags[i].ID,
+			TagName: tags[i].Name,
+		})
 	}
-	return &responses
+	return responses
 }

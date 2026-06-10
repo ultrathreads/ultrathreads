@@ -1,7 +1,7 @@
 package querybuilder
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"ultrathreads/util/log"
 )
@@ -13,7 +13,7 @@ type QueryBuilder struct {
 	Paging     *Paging      // 分页
 }
 
-// selectCols: 需要查询的列
+// NewQueryBuilder 创建新的查询构建器
 func NewQueryBuilder(selectCols ...string) *QueryBuilder {
 	s := &QueryBuilder{}
 	if len(selectCols) > 0 {
@@ -23,32 +23,32 @@ func NewQueryBuilder(selectCols ...string) *QueryBuilder {
 }
 
 func (s *QueryBuilder) Eq(column string, args ...interface{}) *QueryBuilder {
-	s.Where(column+" = ?", args)
+	s.Where(column+" = ?", args...)
 	return s
 }
 
 func (s *QueryBuilder) NotEq(column string, args ...interface{}) *QueryBuilder {
-	s.Where(column+" <> ?", args)
+	s.Where(column+" <> ?", args...)
 	return s
 }
 
 func (s *QueryBuilder) Gt(column string, args ...interface{}) *QueryBuilder {
-	s.Where(column+" > ?", args)
+	s.Where(column+" > ?", args...)
 	return s
 }
 
 func (s *QueryBuilder) Gte(column string, args ...interface{}) *QueryBuilder {
-	s.Where(column+" >= ?", args)
+	s.Where(column+" >= ?", args...)
 	return s
 }
 
 func (s *QueryBuilder) Lt(column string, args ...interface{}) *QueryBuilder {
-	s.Where(column+" < ?", args)
+	s.Where(column+" < ?", args...)
 	return s
 }
 
 func (s *QueryBuilder) Lte(column string, args ...interface{}) *QueryBuilder {
-	s.Where(column+" <= ?", args)
+	s.Where(column+" <= ?", args...)
 	return s
 }
 
@@ -68,12 +68,12 @@ func (s *QueryBuilder) Ending(column string, str string) *QueryBuilder {
 }
 
 func (s *QueryBuilder) In(column string, params interface{}) *QueryBuilder {
-	s.Where(column+" in (?) ", params)
+	s.Where(column+" IN (?)", params)
 	return s
 }
 
 func (s *QueryBuilder) Where(query string, args ...interface{}) *QueryBuilder {
-	s.Params = append(s.Params, ParamPair{query, args})
+	s.Params = append(s.Params, ParamPair{Query: query, Args: args})
 	return s
 }
 
@@ -102,69 +102,63 @@ func (s *QueryBuilder) Page(page, limit int) *QueryBuilder {
 	return s
 }
 
+// Build 将查询条件应用到 GORM v2 DB 实例
 func (s *QueryBuilder) Build(db *gorm.DB) *gorm.DB {
-	ret := db
+	ret := db.Session(&gorm.Session{}) // ✅ v2 最佳实践：创建新会话避免污染全局 db
 
 	if len(s.SelectCols) > 0 {
 		ret = ret.Select(s.SelectCols)
 	}
 
 	// where
-	if len(s.Params) > 0 {
-		for _, param := range s.Params {
-			ret = ret.Where(param.Query, param.Args...)
-		}
+	for _, param := range s.Params {
+		ret = ret.Where(param.Query, param.Args...)
 	}
 
 	// order
-	if len(s.Orders) > 0 {
-		for _, order := range s.Orders {
-			if order.Asc {
-				ret = ret.Order(order.Column + " ASC")
-			} else {
-				ret = ret.Order(order.Column + " DESC")
-			}
+	for _, order := range s.Orders {
+		direction := "DESC"
+		if order.Asc {
+			direction = "ASC"
 		}
+		ret = ret.Order(order.Column + " " + direction)
 	}
 
-	// limit
+	// paging
 	if s.Paging != nil && s.Paging.Limit > 0 {
 		ret = ret.Limit(s.Paging.Limit)
 	}
-
-	// offset
 	if s.Paging != nil && s.Paging.Offset() > 0 {
 		ret = ret.Offset(s.Paging.Offset())
 	}
+
 	return ret
 }
 
+// Find 执行列表查询
 func (s *QueryBuilder) Find(db *gorm.DB, out interface{}) {
 	if err := s.Build(db).Find(out).Error; err != nil {
-		log.Error(err.Error())
+		log.Error("QueryBuilder.Find error: %v", err)
 	}
 }
 
+// FindOne 查询单条记录
 func (s *QueryBuilder) FindOne(db *gorm.DB, out interface{}) error {
-	if err := s.Limit(1).Build(db).Find(out).Error; err != nil {
-		return err
-	}
-	return nil
+	// ✅ v2 中查询单条应使用 First 而非 Find+Limit
+	return s.Build(db).First(out).Error
 }
 
-func (s *QueryBuilder) Count(db *gorm.DB, model interface{}) int {
-	ret := db.Model(model)
+// Count 统计总数
+func (s *QueryBuilder) Count(db *gorm.DB, model interface{}) int64 {
+	ret := db.Session(&gorm.Session{}).Model(model)
 
-	// where
-	if len(s.Params) > 0 {
-		for _, query := range s.Params {
-			ret = ret.Where(query.Query, query.Args...)
-		}
+	for _, param := range s.Params {
+		ret = ret.Where(param.Query, param.Args...)
 	}
 
-	var count int
+	var count int64 // ✅ v2 推荐 int64，避免大表溢出
 	if err := ret.Count(&count).Error; err != nil {
-		log.Error(err.Error())
+		log.Error("QueryBuilder.Count error: %v", err)
 	}
 	return count
 }

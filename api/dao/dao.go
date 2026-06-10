@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	gormlog "gorm.io/gorm/logger"
 	"github.com/spf13/viper"
 
 	"ultrathreads/model"
@@ -20,19 +21,23 @@ var (
 const DRIVER_MYSQL = "mysql"
 const DRIVER_SQLITE = "sqlite"
 
-// Setup : Connect to mysql database
+// Setup 初始化数据库连接（GORM v2）
 func Setup() {
 	var err error
+	var dialector gorm.Dialector
 
-	switch viper.Get("database.driver") {
+	// 1. 日志级别映射
+	logLevel := gormlog.Warn // 默认静默+警告
+	if viper.GetBool("database.log_sql") {
+		logLevel = gormlog.Info // 打印所有 SQL
+	}
+
+	switch viper.GetString("database.driver") {
 	case DRIVER_SQLITE:
 		path := viper.GetString("database.sqlite.path")
-		db, err = gorm.Open("sqlite3", path)
-		if err != nil {
-			log.Fatal(fmt.Sprintf("Failed to connect sqlite %s", err.Error()))
-		} else {
-			log.Info("Successfully connect to sqlite3, path: %s.", path)
-		}
+		dialector = sqlite.Open(path)
+		log.Info("Connecting to SQLite3, path: %s", path)
+
 	case DRIVER_MYSQL:
 		host := viper.GetString("database.mysql.host")
 		user := viper.GetString("database.mysql.user")
@@ -40,61 +45,57 @@ func Setup() {
 		name := viper.GetString("database.mysql.name")
 		charset := viper.GetString("database.mysql.charset")
 
-		dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s&parseTime=True&loc=Local", user, password, host, name, charset)
-		db, err = gorm.Open("mysql", dsn)
-		if err != nil {
-			log.Fatal(fmt.Sprintf("Failed to connect mysql %s", err.Error()))
-		} else {
-			log.Info("Successfully connect to MySQL, database: %s.", name)
-			db.DB().SetMaxIdleConns(viper.GetInt("database.mysql.pool.min"))
-			db.DB().SetMaxOpenConns(viper.GetInt("database.mysql.pool.max"))
-			db.DB().SetConnMaxLifetime(time.Minute)
-		}
+		dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s&parseTime=True&loc=Local",
+			user, password, host, name, charset)
+		dialector = mysql.Open(dsn)
+		log.Info("Connecting to MySQL, database: %s", name)
+
 	default:
-		log.Fatal("We do not support this kind of storage system yet!")
+		log.Fatal("Unsupported database driver: %s", viper.GetString("database.driver"))
+		return
 	}
 
-	if viper.GetBool("database.log_sql") {
-	    db.LogMode(true)
+	// 2. GORM v2 初始化
+	db, err = gorm.Open(dialector, &gorm.Config{
+		Logger: gormlog.Default.LogMode(logLevel),
+		// v2 默认使用单数表名，无需 SingularTable(true)
+	})
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Failed to connect database: %v", err))
+	}
+
+	// 3. 连接池配置（仅 MySQL 需要）
+	if viper.GetString("database.driver") == DRIVER_MYSQL {
+		sqlDB, _ := db.DB()
+		sqlDB.SetMaxIdleConns(viper.GetInt("database.mysql.pool.min"))
+		sqlDB.SetMaxOpenConns(viper.GetInt("database.mysql.pool.max"))
+		sqlDB.SetConnMaxLifetime(time.Minute)
+	}
+
+	// 4. AutoMigrate
+	if err = db.AutoMigrate(model.Models...); err != nil {
+		log.Error("Auto migrate tables failed: %v", err)
 	} else {
-	    db.LogMode(false)
-	}
-
-	db.SingularTable(true) //禁用表名复数
-	if err = db.AutoMigrate(model.Models...).Error; nil != err {
-		log.Error("auto migrate tables failed")
+		log.Info("Database migration completed successfully")
 	}
 }
 
-// Shutdown - close database connection
-func Shutdown() error {
-	log.Info("Closing database's connections")
-	return db.Close()
+// Close 关闭数据库连接（替代原 Shutdown）
+func Close() error {
+	log.Info("Closing database connections")
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }
 
-// GetDb - get a database connection
+// DB 获取全局数据库实例
 func DB() *gorm.DB {
 	return db
 }
 
-// 事务环绕
-func Tx(db *gorm.DB, txFunc func(tx *gorm.DB) error) (err error) {
-	tx := db.Begin()
-	if tx.Error != nil {
-		return
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			panic(r) // re-throw panic after Rollback
-		} else if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit().Error
-		}
-	}()
-
-	err = txFunc(tx)
-	return err
+// Tx 事务环绕（GORM v2 推荐写法）
+func Tx(txFunc func(tx *gorm.DB) error) (err error) {
+	return db.Transaction(txFunc)
 }

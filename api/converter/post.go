@@ -12,7 +12,6 @@ import (
 )
 
 // basePostFields 提取两个响应共有的字段赋值逻辑
-// simpleRsp 作为基础载体传入，避免重复定义公共字段
 func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.Id = post.ID
 	rsp.Type = post.Type
@@ -42,8 +41,6 @@ func ToPost(post *model.Post) *model.PostResponse {
 	}
 
 	rsp := &model.PostResponse{}
-
-	// 填充公共字段（PostResponse 内嵌或包含 PostSimpleResponse 的所有公共字段）
 	basePostFields(&rsp.PostSimpleResponse, post)
 
 	// 详情页特有：Node 走 Service（可能需要实时数据）
@@ -80,24 +77,30 @@ func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
 	return rsp
 }
 
+// ToSimplePosts 返回列表页帖子切片
 func ToSimplePosts(posts []model.Post) []model.PostSimpleResponse {
 	if len(posts) == 0 {
-		return nil
+		return []model.PostSimpleResponse{}
 	}
 	responses := make([]model.PostSimpleResponse, 0, len(posts))
 	for i := range posts {
-		responses = append(responses, *ToSimplePost(&posts[i]))
+		if r := ToSimplePost(&posts[i]); r != nil {
+			responses = append(responses, *r)
+		}
 	}
 	return responses
 }
 
+// ToPosts 返回详情页帖子切片（注意性能警告 ⚠️）
 func ToPosts(posts []model.Post) []model.PostResponse {
 	if len(posts) == 0 {
-		return nil
+		return []model.PostResponse{}
 	}
 	responses := make([]model.PostResponse, 0, len(posts))
 	for i := range posts {
-		responses = append(responses, *ToPost(&posts[i]))
+		if r := ToPost(&posts[i]); r != nil {
+			responses = append(responses, *r)
+		}
 	}
 	return responses
 }

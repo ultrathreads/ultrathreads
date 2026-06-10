@@ -12,19 +12,21 @@ func ToNode(node *model.Node) *model.NodeResponse {
 		NodeId:      node.ID,
 		Name:        node.Name,
 		Description: node.Description,
-		Icon: 		 node.Icon,
+		Icon:        node.Icon,
 		TopicCount:  node.TopicCount,
 	}
 }
 
-//func ToTags(tags []model.Tag) *[]model.TagResponse {
-func ToNodes(nodes []model.Node) *[]model.NodeResponse {
+// ToNodes 返回 []model.NodeResponse（非指针），与 Response 结构体对齐
+func ToNodes(nodes []model.Node) []model.NodeResponse {
 	if len(nodes) == 0 {
-		return nil
+		return []model.NodeResponse{}
 	}
-	var ret []model.NodeResponse
-	for _, node := range nodes {
-		ret = append(ret, *ToNode(&node))
+	responses := make([]model.NodeResponse, 0, len(nodes))
+	for i := range nodes {
+		if r := ToNode(&nodes[i]); r != nil {
+			responses = append(responses, *r)
+		}
 	}
-	return &ret
+	return responses
 }

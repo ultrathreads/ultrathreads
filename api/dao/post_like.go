@@ -1,6 +1,10 @@
 package dao
 
 import (
+	"errors"
+
+	"gorm.io/gorm"
+
 	"ultrathreads/model"
 	"ultrathreads/util/querybuilder"
 )
@@ -11,20 +15,27 @@ func newPostLikeDao() *postLikeDao {
 	return &postLikeDao{}
 }
 
-type postLikeDao struct {
-}
+type postLikeDao struct{}
 
+// Get 根据 ID 获取点赞记录，未找到返回 nil
 func (d *postLikeDao) Get(id int64) *model.PostLike {
 	ret := &model.PostLike{}
 	if err := db.First(ret, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
 		return nil
 	}
 	return ret
 }
 
+// Take 按条件获取单条记录，未找到返回 nil
 func (d *postLikeDao) Take(where ...interface{}) *model.PostLike {
 	ret := &model.PostLike{}
 	if err := db.Take(ret, where...).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
 		return nil
 	}
 	return ret
@@ -35,9 +46,14 @@ func (d *postLikeDao) Find(cnd *querybuilder.QueryBuilder) (list []model.PostLik
 	return
 }
 
+// FindOne 通过 QueryBuilder 查询单条记录
 func (d *postLikeDao) FindOne(cnd *querybuilder.QueryBuilder) *model.PostLike {
 	ret := &model.PostLike{}
-	if err := cnd.FindOne(db, &ret); err != nil {
+	// ✅ 修复：传入 ret 而非 &ret，避免 **model.PostLike 导致 v2 扫描失败
+	if err := cnd.FindOne(db, ret); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
 		return nil
 	}
 	return ret
@@ -50,31 +66,33 @@ func (d *postLikeDao) List(cnd *querybuilder.QueryBuilder) (list []model.PostLik
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
 		Limit: cnd.Paging.Limit,
-		Total: count,
+		Total: count, // ✅ int64，与升级后的 Paging.Total 类型一致
 	}
 	return
 }
 
-func (d *postLikeDao) Create(t *model.PostLike) (err error) {
-	err = db.Create(t).Error
-	return
+// Count 统计数量
+func (d *postLikeDao) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ 新增方法，返回 int64
+	return cnd.Count(db, &model.PostLike{})
 }
 
-func (d *postLikeDao) Update(t *model.PostLike) (err error) {
-	err = db.Save(t).Error
-	return
+func (d *postLikeDao) Create(t *model.PostLike) error {
+	return db.Create(t).Error
 }
 
-func (d *postLikeDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = db.Model(&model.PostLike{}).Where("id = ?", id).Updates(columns).Error
-	return
+func (d *postLikeDao) Update(t *model.PostLike) error {
+	return db.Save(t).Error
 }
 
-func (d *postLikeDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = db.Model(&model.PostLike{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
+func (d *postLikeDao) Updates(id int64, columns map[string]interface{}) error {
+	return db.Model(&model.PostLike{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *postLikeDao) Delete(id int64) {
-	db.Delete(&model.PostLike{}, "id = ?", id)
+func (d *postLikeDao) UpdateColumn(id int64, name string, value interface{}) error {
+	return db.Model(&model.PostLike{}).Where("id = ?", id).UpdateColumn(name, value).Error
+}
+
+// Delete 根据 ID 删除
+func (d *postLikeDao) Delete(id int64) error { // ✅ 补充 error 返回值
+	return db.Delete(&model.PostLike{}, "id = ?", id).Error
 }

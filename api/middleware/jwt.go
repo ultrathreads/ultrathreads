@@ -60,7 +60,7 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 			c.JSON(http.StatusOK, gin.H{
 				"code":    code,
 				"message": "login success",
-				"success": true, // ✅ 新增：显式标识成功
+				"success": true,
 				"data": LoginResponseData{
 					AccessToken:  token,
 					RefreshToken: token,
@@ -111,7 +111,7 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    code,
 				"message": message,
-				"success": false, // ✅ 新增：显式标识失败
+				"success": false,
 			})
 		},
 

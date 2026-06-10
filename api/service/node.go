@@ -2,13 +2,13 @@ package service
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
 
+	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/form"
 	"ultrathreads/model"
-	"ultrathreads/cache"
 	"ultrathreads/util"
+	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -18,8 +18,7 @@ func newNodeService() *nodeService {
 	return &nodeService{}
 }
 
-type nodeService struct {
-}
+type nodeService struct{}
 
 func (s *nodeService) Get(id int64) *model.Node {
 	return dao.NodeDao.Get(id)
@@ -52,23 +51,45 @@ func (s *nodeService) Update(dto form.NodeUpdateForm) error {
 		"status":      dto.Status,
 		"update_time": util.NowTimestamp(),
 	})
-
-	return err
+	if err != nil {
+		return errors.New("更新节点失败")
+	}
+	cache.NodeCache.InvalidateAll()
+	return nil
 }
 
-func (s *nodeService) Delete(id int64) {
-	dao.NodeDao.Delete(id)
+func (s *nodeService) Delete(id int64) error {
+	if err := dao.NodeDao.Delete(id); err != nil {
+		return errors.New("删除节点失败")
+	}
+	cache.NodeCache.InvalidateAll()
+	return nil
 }
 
-// 主题数+1
+// IncrTopicCount 主题数+1（高频写操作，仅失效单条缓存）
 func (s *nodeService) IncrTopicCount(nodeId int64) {
-	dao.DB().Model(&model.Node{}).Where("id = ?", nodeId).UpdateColumn("topic_count", gorm.Expr("topic_count + ?", 1))
+	if err := dao.NodeDao.IncrField(nodeId, "topic_count", 1); err != nil {
+		log.Error("IncrTopicCount failed: nodeId=%d, err=%v", nodeId, err)
+		return
+	}
+	cache.NodeCache.Invalidate(nodeId)
 }
 
 func (s *nodeService) GetRecommendNodes() []model.Node {
-	return dao.NodeDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Asc("sort_no").Desc("id").Limit(3))
+	return dao.NodeDao.Find(
+		querybuilder.NewQueryBuilder().
+			Eq("status", model.StatusOk).
+			Asc("sort_no").
+			Desc("id").
+			Limit(3),
+	)
 }
 
 func (s *nodeService) GetNodes() []model.Node {
-	return dao.NodeDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Asc("sort_no").Desc("id"))
+	return dao.NodeDao.Find(
+		querybuilder.NewQueryBuilder().
+			Eq("status", model.StatusOk).
+			Asc("sort_no").
+			Desc("id"),
+	)
 }

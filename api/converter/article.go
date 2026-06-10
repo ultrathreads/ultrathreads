@@ -47,12 +47,14 @@ func ToArticle(article *model.Article) *model.ArticleResponse {
 }
 
 func ToArticles(articles []model.Article) []model.ArticleResponse {
-	if articles == nil || len(articles) == 0 {
-		return nil
+	if len(articles) == 0 {
+		return []model.ArticleResponse{}
 	}
-	var responses []model.ArticleResponse
-	for _, article := range articles {
-		responses = append(responses, *ToArticle(&article))
+	responses := make([]model.ArticleResponse, 0, len(articles))
+	for i := range articles {
+		if r := ToArticle(&articles[i]); r != nil {
+			responses = append(responses, *r)
+		}
 	}
 	return responses
 }
@@ -77,13 +79,12 @@ func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
 	tags := cache.TagCache.GetList(tagIds)
 	rsp.Tags = ToTags(tags)
 
-	if article.ContentType == model.ContentTypeMarkdown {
-		if len(rsp.Summary) == 0 {
-			mr := markdown.NewMd(markdown.MdWithTOC()).Run(article.Content)
+	// 列表页仅需 Summary，无需解析完整 Markdown + TOC
+	if len(rsp.Summary) == 0 {
+		if article.ContentType == model.ContentTypeMarkdown {
+			mr := markdown.NewMd().Run(article.Content) // 不传 MdWithTOC()
 			rsp.Summary = mr.SummaryText
-		}
-	} else {
-		if len(rsp.Summary) == 0 {
+		} else {
 			rsp.Summary = strtrim.GetTextSummary(strtrim.GetHtmlText(article.Content), 256)
 		}
 	}
@@ -92,12 +93,14 @@ func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
 }
 
 func ToSimpleArticles(articles []model.Article) []model.ArticleSimpleResponse {
-	if articles == nil || len(articles) == 0 {
-		return nil
+	if len(articles) == 0 {
+		return []model.ArticleSimpleResponse{}
 	}
-	var responses []model.ArticleSimpleResponse
-	for _, article := range articles {
-		responses = append(responses, *ToSimpleArticle(&article))
+	responses := make([]model.ArticleSimpleResponse, 0, len(articles))
+	for i := range articles {
+		if r := ToSimpleArticle(&articles[i]); r != nil {
+			responses = append(responses, *r)
+		}
 	}
 	return responses
 }

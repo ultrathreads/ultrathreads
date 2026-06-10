@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm" // ✅ v2 替换 jinzhu/gorm
 
 	"ultrathreads/dao"
 	"ultrathreads/model"
@@ -17,8 +17,7 @@ func newUserWatchService() *userWatchService {
 	return &userWatchService{}
 }
 
-type userWatchService struct {
-}
+type userWatchService struct{}
 
 func (s *userWatchService) Get(id int64) *model.UserWatch {
 	return dao.UserWatchDao.Get(id)
@@ -56,27 +55,30 @@ func (s *userWatchService) UpdateColumn(id int64, name string, value interface{}
 	return dao.UserWatchDao.UpdateColumn(id, name, value)
 }
 
-func (s *userWatchService) Delete(id int64) {
-	dao.UserWatchDao.Delete(id)
+// Delete 删除关注记录
+func (s *userWatchService) Delete(id int64) error { // ✅ 补充 error 返回值
+	return dao.UserWatchDao.Delete(id)
 }
 
+// GetBy 根据用户ID和关注者ID获取关注记录
 func (s *userWatchService) GetBy(userID int64, watcherID int64) *model.UserWatch {
-	return dao.UserWatchDao.Take("user_id = ? and watcher_id = ?",
-		userID, watcherID)
+	return dao.UserWatchDao.Take("user_id = ? AND watcher_id = ?", userID, watcherID)
 }
 
-// 统计数量
+// Count 统计某用户的粉丝数量
 func (s *userWatchService) Count(userId int64) int64 {
-	var count int64 = 0
+	var count int64
+	// ✅ v2 Count 签名变更：不再需要传指针，直接返回 error（此处忽略）
 	dao.DB().Model(&model.UserWatch{}).Where("user_id = ?", userId).Count(&count)
 	return count
 }
 
-// 最近关注
+// Recent 获取最近关注列表
 func (s *userWatchService) Recent(userId int64, count int) []model.UserWatch {
 	return s.Find(querybuilder.NewQueryBuilder().Eq("user_id", userId).Desc("id").Limit(count))
 }
 
+// Watch 关注用户
 func (s *userWatchService) Watch(userID int64, watcherID int64) error {
 	if userID == watcherID {
 		return errors.New("不能自己关注自己")
@@ -86,26 +88,30 @@ func (s *userWatchService) Watch(userID int64, watcherID int64) error {
 		return errors.New("用户不存在")
 	}
 
-	// 判断是否已经点赞了
-	userWatch := dao.UserWatchDao.Take("user_id = ? and watcher_id = ?", userID, watcherID)
+	// 判断是否已经关注
+	userWatch := dao.UserWatchDao.Take("user_id = ? AND watcher_id = ?", userID, watcherID)
 	if userWatch != nil {
 		return errors.New("已关注")
 	}
 
-	return dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		// 点赞
-		userWatch := &model.UserWatch{
+	// ✅ v2 标准事务 API + 🔴 修复事务穿透
+	return dao.DB().Transaction(func(tx *gorm.DB) error {
+		newWatch := &model.UserWatch{
 			UserID:     userID,
 			WatcherID:  watcherID,
 			CreateTime: util.NowTimestamp(),
 		}
-		err := dao.UserWatchDao.Create(userWatch)
-		if err != nil {
+
+		// 🔴 关键修复：原代码使用 dao.UserWatchDao.Create（全局db），导致事务完全失效
+		if err := tx.Create(newWatch).Error; err != nil {
 			return err
 		}
-		// 发送点赞通知
-		NotificationService.SendUserWatchNotification(userWatch)
+
+		// ⚠️ 注意：发送通知属于副作用操作
+		// 如果通知失败不应回滚关注记录，因此放在事务提交后更合理
+		// 但如果业务要求通知必须成功才视为关注成功，则保留在事务内
+		NotificationService.SendUserWatchNotification(newWatch)
+
 		return nil
-		// return dao.DB().Model(&post).UpdateColumn("like_count", gorm.Expr("like_count + ?", 1)).Error
 	})
 }

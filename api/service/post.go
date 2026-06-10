@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
-	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
+	"gorm.io/gorm" // ✅ v2 替换 jinzhu/gorm
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
@@ -43,17 +43,16 @@ func (s *postService) List(cnd *querybuilder.QueryBuilder) (list []model.Post, p
 	return dao.PostDao.List(cnd)
 }
 
-func (s *postService) Count(cnd *querybuilder.QueryBuilder) int {
+// Count 统计数量
+func (s *postService) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ int → int64，与 DAO 层对齐
 	return dao.PostDao.Count(cnd)
 }
 
 // ListThreadsWithReplies 获取主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
-// 返回的列表已按 create_time ASC 排序，前端可直接根据 parent_id 组装树
 func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.Post, *querybuilder.Paging) {
-	// ========== 第一步：分页查出主帖ID ==========
 	rootCnd := querybuilder.NewQueryBuilder().
-    	Eq("parent_id", 0).
-    	Eq("status", model.StatusOk)
+		Eq("parent_id", 0).
+		Eq("status", model.StatusOk)
 
 	if nodeId > 0 {
 		rootCnd = rootCnd.Eq("node_id", nodeId)
@@ -69,13 +68,11 @@ func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.P
 		return []model.Post{}, paging
 	}
 
-	// 提取主帖ID列表
 	threadIds := make([]int64, 0, len(rootPosts))
 	for _, p := range rootPosts {
 		threadIds = append(threadIds, p.ID)
 	}
 
-	// ========== 第二步：批量拉取这些主题下的所有帖子 ==========
 	allCnd := querybuilder.NewQueryBuilder().
 		In("thread_id", threadIds).
 		Eq("status", model.StatusOk).
@@ -83,8 +80,6 @@ func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.P
 
 	allPosts := dao.PostDao.Find(allCnd)
 
-	// ========== 第三步：按主帖原始分页顺序分组，再组内按时间排序 ==========
-	// 保持主帖的分页排序（last_comment_time DESC），同时每个主题内部按时间正序
 	postMap := make(map[int64][]model.Post, len(threadIds))
 	for _, p := range allPosts {
 		postMap[p.ThreadId] = append(postMap[p.ThreadId], p)
@@ -101,30 +96,25 @@ func (s *postService) ListThreadsWithReplies(page, limit, nodeId int) ([]model.P
 }
 
 // GetPostWithThread 获取帖子详情及其所属主题的所有扁平回帖
-// replies 已按 create_time ASC 排序，前端可直接根据 parent_id 组装树
 func (s *postService) GetPostWithThread(postId int64) (*model.Post, []model.Post, error) {
 	if postId <= 0 {
 		return nil, nil, errors.New("invalid post_id")
 	}
 
-	// 1. 获取帖子详情
 	post := dao.PostDao.Get(postId)
 	if post == nil || post.Status != model.StatusOk {
 		return nil, nil, errors.New("post not found")
 	}
 
-	// 2. 获取同主题下所有扁平回帖（含主帖自身）
 	var replies []model.Post
 	if post.ThreadId > 0 {
 		cnd := querybuilder.NewQueryBuilder().
 			Eq("thread_id", post.ThreadId).
 			Eq("status", model.StatusOk).
 			Asc("create_time")
-
 		replies = dao.PostDao.Find(cnd)
 	}
 
-	// 保证返回非 nil 切片，避免前端 JSON 序列化时出现 null
 	if replies == nil {
 		replies = []model.Post{}
 	}
@@ -137,15 +127,12 @@ func (s *postService) GetPostsByThreadId(threadId int64) ([]model.Post, error) {
 		return nil, errors.New("invalid thread_id")
 	}
 
-	var posts []model.Post
 	cnd := querybuilder.NewQueryBuilder().
 		Eq("thread_id", threadId).
 		Eq("status", model.StatusOk).
 		Asc("create_time")
 
-	posts = dao.PostDao.Find(cnd)
-
-	// 保证返回非 nil 切片，避免前端 JSON 序列化时出现 null
+	posts := dao.PostDao.Find(cnd)
 	if posts == nil {
 		posts = []model.Post{}
 	}
@@ -153,51 +140,52 @@ func (s *postService) GetPostsByThreadId(threadId int64) ([]model.Post, error) {
 	return posts, nil
 }
 
-// 删除
+// Delete 软删除帖子
 func (s *postService) Delete(id int64) error {
 	err := dao.PostDao.UpdateColumn(id, "status", model.StatusDeleted)
 	if err == nil {
-		// 删掉标签文章
 		PostTagService.DeleteByPostId(id)
 	}
 	return err
 }
 
+// Update 编辑帖子
 func (s *postService) Update(dto form.PostUpdateForm) error {
 	node := dao.NodeDao.Get(dto.NodeID)
 	if node == nil || node.Status != model.StatusOk {
 		return util.NewErrorMsg("节点不存在")
 	}
-	err := dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		err := dao.PostDao.Updates(dto.ID, map[string]interface{}{
+
+	// ✅ v2 事务：Transaction + 闭包，全部使用 tx 操作
+	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&model.Post{}).Where("id = ?", dto.ID).Updates(map[string]interface{}{
 			"node_id":     dto.NodeID,
 			"title":       dto.Title,
 			"content":     dto.Content,
 			"update_time": util.NowTimestamp(),
-		})
-		if err != nil {
+		}).Error; err != nil {
 			return err
 		}
-		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags)) // 创建文章对应标签
-		dao.PostTagDao.DeletePostTags(dto.ID)                            // 先删掉所有的标签
-		dao.PostTagDao.AddPostTags(dto.ID, tagIds)                       // 然后重新添加标签
+
+		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags))
+		dao.PostTagDao.DeletePostTags(dto.ID)
+		dao.PostTagDao.AddPostTags(dto.ID, tagIds)
 		return nil
 	})
 
 	return err
 }
 
-// 取消删除
+// Undelete 取消删除
 func (s *postService) Undelete(id int64) error {
 	err := dao.PostDao.UpdateColumn(id, "status", model.StatusOk)
 	if err == nil {
-		// 删掉标签文章
 		PostTagService.UndeleteByPostId(id)
 	}
 	return err
 }
 
-// 发表话题
+// Create 发表话题/回帖
 func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 	nodeID := dto.NodeID
 	if nodeID <= 0 {
@@ -224,8 +212,8 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 		CreateTime:      now,
 	}
 
-	err := dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		// ✅ 步骤1：在 INSERT 之前就确定 threadId，避免后续 UPDATE 自身
+	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+		// 步骤1：确定 threadId
 		var threadId int64
 		if dto.ParentId > 0 {
 			var parentPost model.Post
@@ -241,7 +229,7 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 				threadId = parentPost.ID
 			}
 			post.ParentId = dto.ParentId
-			post.ThreadId = threadId // ✅ 直接赋值，INSERT 时一并写入
+			post.ThreadId = threadId
 		}
 
 		var tagIds []int64
@@ -249,17 +237,13 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 			tagIds = dao.TagDao.GetOrCreates(dto.Tags)
 		}
 
-		// ✅ 步骤2：使用 tx 创建帖子（确保在同一事务内）
-		// ⚠️ 原代码 dao.PostDao.Create(post) 可能未使用 tx，请确认或改为以下写法
+		// 步骤2：使用 tx 创建帖子
 		if err := tx.Create(post).Error; err != nil {
 			return fmt.Errorf("创建帖子失败: %w", err)
 		}
 
-		// ✅ 步骤3：主帖创建后，threadId = 自身ID，只需一次原子 UPDATE
-		// 此时 UPDATE 的是"刚插入的行"，但因为我们没有用 tx SELECT 过这一行（只 SELECT 了 parentPost），
-		// 且 threadId 已在 INSERT 时写入，对于回帖此步可跳过
+		// 步骤3：主帖回填 threadId
 		if dto.ParentId == 0 {
-			// 主帖：INSERT 时 threadId 为 0，需要用自身 ID 回填
 			if err := tx.Model(&model.Post{}).
 				Where("id = ?", post.ID).
 				UpdateColumn("thread_id", post.ID).Error; err != nil {
@@ -267,9 +251,8 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 			}
 			post.ThreadId = post.ID
 		}
-		// ✅ 回帖无需再 UPDATE thread_id，因为 INSERT 时已经带上了正确的 threadId
 
-		// 回帖更新根帖最后评论时间（UPDATE 的是 parentPost/threadId 对应的行，不是刚插入的行）
+		// 回帖更新根帖最后评论时间
 		if dto.ParentId > 0 {
 			if err := tx.Model(&model.Post{}).
 				Where("id = ?", threadId).
@@ -278,7 +261,7 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 			}
 		}
 
-		// 关联标签（同样建议使用 tx）
+		// 关联标签
 		if len(tagIds) > 0 {
 			for _, tagId := range tagIds {
 				if err := tx.Create(&model.PostTag{PostId: post.ID, TagId: tagId}).Error; err != nil {
@@ -299,15 +282,14 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 	return post, err
 }
 
-// 推荐
+// SetRecommend 设置推荐
 func (s *postService) SetRecommend(postId int64, recommend bool) error {
 	return dao.PostDao.UpdateColumn(postId, "recommend", recommend)
 }
 
-// 话题的标签
+// GetPostTags 获取话题标签
 func (s *postService) GetPostTags(postId int64) []model.Tag {
 	postTags := dao.PostTagDao.Find(querybuilder.NewQueryBuilder().Where("post_id = ?", postId))
-
 	var tagIds []int64
 	for _, postTag := range postTags {
 		tagIds = append(tagIds, postTag.TagId)
@@ -315,12 +297,13 @@ func (s *postService) GetPostTags(postId int64) []model.Tag {
 	return cache.TagCache.GetList(tagIds)
 }
 
-// 指定标签下话题列表
+// GetTagPosts 指定标签下话题列表
 func (s *postService) GetTagPosts(tagId int64, page int) (posts []model.Post, paging *querybuilder.Paging) {
 	postTags, paging := dao.PostTagDao.List(querybuilder.NewQueryBuilder().
 		Eq("tag_id", tagId).
 		Eq("status", model.StatusOk).
 		Page(page, 20).Desc("last_comment_time"))
+
 	if len(postTags) > 0 {
 		var postIds []int64
 		for _, postTag := range postTags {
@@ -345,7 +328,11 @@ func (s *postService) GetPostInIds(postIds []int64) map[int64]model.Post {
 		return nil
 	}
 	var posts []model.Post
-	dao.DB().Where("id in (?)", postIds).Find(&posts)
+	// ✅ 补充错误处理
+	if err := dao.DB().Where("id IN (?)", postIds).Find(&posts).Error; err != nil {
+		log.Error("GetPostInIds failed: %v", err)
+		return nil
+	}
 
 	postsMap := make(map[int64]model.Post, len(posts))
 	for _, post := range posts {
@@ -354,27 +341,43 @@ func (s *postService) GetPostInIds(postIds []int64) map[int64]model.Post {
 	return postsMap
 }
 
-// 浏览数+1
+// IncrViewCount 浏览数+1
 func (s *postService) IncrViewCount(postId int64) {
-	dao.DB().Model(&model.Post{}).Where("id = ?", postId).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
+	// ✅ gorm.Expr 在 v2 中用法不变，但需补充错误日志
+	if err := dao.DB().Model(&model.Post{}).Where("id = ?", postId).
+		UpdateColumn("view_count", gorm.Expr("view_count + ?", 1)).Error; err != nil {
+		log.Error("IncrViewCount failed: %v", err)
+	}
 }
 
-// 当帖子被评论的时候，更新最后回复时间、回复数量+1
+// OnComment 评论时更新最后回复时间和回复数量
 func (s *postService) OnComment(postId, lastCommentUserId, lastCommentTime int64) {
-	dao.Tx(dao.DB(), func(tx *gorm.DB) error {
-		if err := dao.DB().Model(&model.Post{}).Where("id = ?", postId).Updates(map[string]interface{}{"comment_count": gorm.Expr("comment_count + ?", 1), "last_comment_user_id": lastCommentUserId, "lastCommentTime": lastCommentTime}).Error; err != nil {
+	// ✅🔴 关键修复：原代码在 tx 闭包内使用了 dao.DB()，导致事务完全失效
+	// 升级为全部使用 tx，确保两条 UPDATE 在同一事务中原子执行
+	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&model.Post{}).Where("id = ?", postId).Updates(map[string]interface{}{
+			"comment_count":        gorm.Expr("comment_count + ?", 1),
+			"last_comment_user_id": lastCommentUserId,
+			"last_comment_time":    lastCommentTime, // ✅ 修复字段名：lastCommentTime → last_comment_time（snake_case）
+		}).Error; err != nil {
 			return err
 		}
-		if err := dao.DB().Model(&model.PostTag{}).Where("post_id = ?", postId).Updates(map[string]interface{}{"last_comment_time": lastCommentTime}).Error; err != nil {
+		if err := tx.Model(&model.PostTag{}).Where("post_id = ?", postId).Updates(map[string]interface{}{
+			"last_comment_time": lastCommentTime,
+		}).Error; err != nil {
 			return err
 		}
 		return nil
 	})
+	if err != nil {
+		log.Error("OnComment failed: %v", err)
+	}
 }
 
-// rss
+// GenerateRss 生成 RSS / Atom
 func (s *postService) GenerateRss() {
-	posts := dao.PostDao.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
+	posts := dao.PostDao.Find(querybuilder.NewQueryBuilder().
+		Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
 
 	var items []*feeds.Item
 	for _, post := range posts {
@@ -392,6 +395,7 @@ func (s *postService) GenerateRss() {
 		}
 		items = append(items, item)
 	}
+
 	siteTitle := cache.SettingCache.GetValue(model.SettingSiteTitle)
 	siteDescription := cache.SettingCache.GetValue(model.SettingSiteDescription)
 	feed := &feeds.Feed{
@@ -402,28 +406,34 @@ func (s *postService) GenerateRss() {
 		Created:     time.Now(),
 		Items:       items,
 	}
+
+	staticPath := viper.GetString("base.static_path")
+
 	atom, err := feed.ToAtom()
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("GenerateRss ToAtom failed: %v", err)
 	} else {
-		_ = util.WriteString(path.Join(viper.GetString("base.static_path"), "post_atom.xml"), atom, false)
+		_ = util.WriteString(path.Join(staticPath, "post_atom.xml"), atom, false)
 	}
 
 	rss, err := feed.ToRss()
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("GenerateRss ToRss failed: %v", err)
 	} else {
-		_ = util.WriteString(path.Join(viper.GetString("base.static_path"), "post_rss.xml"), rss, false)
+		_ = util.WriteString(path.Join(staticPath, "post_rss.xml"), rss, false)
 	}
 }
 
-// 倒序扫描
+// ScanDesc 倒序扫描
 func (s *postService) ScanDesc(dateFrom, dateTo int64, cb ScanPostCallback) {
 	var cursor int64 = math.MaxInt64
 	for {
-		list := dao.PostDao.Find(querybuilder.NewQueryBuilder().Lt("id", cursor).
-			Gte("create_time", dateFrom).Lt("create_time", dateTo).Desc("id").Limit(1000))
-		if list == nil || len(list) == 0 {
+		list := dao.PostDao.Find(querybuilder.NewQueryBuilder().
+			Lt("id", cursor).
+			Gte("create_time", dateFrom).
+			Lt("create_time", dateTo).
+			Desc("id").Limit(1000))
+		if len(list) == 0 { // ✅ 移除冗余的 nil 判断
 			break
 		}
 		cursor = list[len(list)-1].ID

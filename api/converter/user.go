@@ -43,11 +43,11 @@ func ToUser(user *model.User) *model.UserInfo {
 		Username:     user.Username.String,
 		Nickname:     user.Nickname,
 		Avatar:       a,
-		Email:        user.Email.String,
 		Level:        user.Level,
 		LevelName:    levelName,
 		Website:      user.Website,
 		Description:  user.Description,
+		Score:        0, // 占位，下方按状态赋值
 		TopicCount:   user.TopicCount,
 		CommentCount: user.CommentCount,
 		PasswordSet:  len(user.Password) > 0,
@@ -58,7 +58,6 @@ func ToUser(user *model.User) *model.UserInfo {
 		ret.Username = "blacklist"
 		ret.Nickname = "黑名单用户"
 		ret.Avatar = avatar.DefaultAvatar
-		ret.Email = ""
 		ret.Website = ""
 		ret.Description = ""
 	} else {
@@ -69,12 +68,11 @@ func ToUser(user *model.User) *model.UserInfo {
 
 func ToUsers(users []model.User) []model.UserInfo {
 	if len(users) == 0 {
-		return nil
+		return []model.UserInfo{}
 	}
-	var responses []model.UserInfo
-	for _, user := range users {
-		item := ToUser(&user)
-		if item != nil {
+	responses := make([]model.UserInfo, 0, len(users))
+	for i := range users {
+		if item := ToUser(&users[i]); item != nil {
 			responses = append(responses, *item)
 		}
 	}

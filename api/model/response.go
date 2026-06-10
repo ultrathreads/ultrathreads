@@ -4,20 +4,20 @@ import (
 	"html/template"
 )
 
+// UserInfo 用户信息响应（✅ 安全修复：移除敏感字段）
 type UserInfo struct {
 	Id           int64  `json:"id"`
 	Username     string `json:"username"`
-	Email        string `json:"email"`
 	Nickname     string `json:"nickname"`
 	Avatar       string `json:"avatar"`
 	Level        int    `json:"level"`
 	LevelName    string `json:"levelName"`
 	Website      string `json:"website"`
 	Description  string `json:"description"`
-	Score        int    `json:"score"`        // 积分
-	TopicCount   int    `json:"topicCount"`   // 话题数量
-	CommentCount int    `json:"commentCount"` // 跟帖数量
-	PasswordSet  bool   `json:"passwordSet"`  // 密码已设置
+	Score        int    `json:"score"`
+	TopicCount   int64  `json:"topicCount"`   // ✅ int → int64，与 User Model 对齐
+	CommentCount int64  `json:"commentCount"` // ✅ int → int64，与 User Model 对齐
+	PasswordSet  bool   `json:"passwordSet"`
 	Status       int    `json:"status"`
 	CreateTime   int64  `json:"createTime"`
 }
@@ -30,7 +30,7 @@ type TagResponse struct {
 type ArticleSimpleResponse struct {
 	ArticleId  int64          `json:"articleId"`
 	User       *UserInfo      `json:"user"`
-	Tags       *[]TagResponse `json:"tags"`
+	Tags       []TagResponse  `json:"tags"` // ✅ *[]T → []T
 	Title      string         `json:"title"`
 	Summary    string         `json:"summary"`
 	Share      bool           `json:"share"`
@@ -53,9 +53,9 @@ type NodeResponse struct {
 	TopicCount  int64  `json:"topicCount"`
 }
 
-// 帖子列表返回实体
+// PostSimpleResponse 帖子列表返回实体
 type PostSimpleResponse struct {
-	Id         int64          `json:"id"`
+	Id              int64          `json:"id"`
 	ThreadId        int64          `json:"threadId"`
 	ParentId        int64          `json:"parentId"`
 	Type            int            `json:"type"`
@@ -65,21 +65,21 @@ type PostSimpleResponse struct {
 	ViewCount       int64          `json:"viewCount"`
 	LikeCount       int64          `json:"likeCount"`
 	CreateTime      int64          `json:"createTime"`
-	ImageList       *[]string      `json:"imageList"`
+	ImageList       []string       `json:"imageList"`      // ✅ *[]string → []string
 	Node            *NodeResponse  `json:"node"`
-	Tags            *[]TagResponse `json:"tags"`
+	Tags            []TagResponse  `json:"tags"`           // ✅ *[]TagResponse → []TagResponse
 	User            *UserInfo      `json:"user"`
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 }
 
-// 帖子详情返回实体
+// PostResponse 帖子详情返回实体
 type PostResponse struct {
 	PostSimpleResponse
 	Content template.HTML `json:"content"`
 	Toc     template.HTML `json:"toc"`
 }
 
-// 回帖详情返回实体
+// CommentResponse 回帖详情返回实体
 type CommentResponse struct {
 	CommentId    int64            `json:"commentId"`
 	User         *UserInfo        `json:"user"`
@@ -105,16 +105,16 @@ type FavoriteResponse struct {
 	CreateTime int64     `json:"createTime"`
 }
 
-// 消息
+// NotificationResponse 消息通知响应
 type NotificationResponse struct {
 	MessageId    int64     `json:"messageId"`
-	From         *UserInfo `json:"from"`    // 消息发送人
-	UserId       int64     `json:"userId"`  // 消息接收人编号
-	Content      string    `json:"content"` // 消息内容
+	From         *UserInfo `json:"from"`
+	UserId       int64     `json:"userId"`
+	Content      string    `json:"content"`
 	QuoteContent string    `json:"quoteContent"`
 	Type         int       `json:"type"`
 	Icon         string    `json:"icon"`
-	DetailUrl    string    `json:"detailUrl"` // 消息详情url
+	DetailUrl    string    `json:"detailUrl"`
 	ExtraData    string    `json:"extraData"`
 	Status       int       `json:"status"`
 	CreateTime   int64     `json:"createTime"`
