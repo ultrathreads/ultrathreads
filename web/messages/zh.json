@@ -19,7 +19,11 @@
     "hoursAgo": "{{n}} 小时前",
     "daysAgo": "{{n}} 天前",
 
-    "noThreads": "No threads."
+    "noThreads": "No threads.",
+    "noPosts": "No posts.",
+
+
+    "lastOne": "lastOne"
   },
   "home": {
     "title": "首页",

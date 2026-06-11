@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import MyPostsList from '@/components/features/MyPostsList';
 import TopicPagination from '@/components/TopicPagination';
+import EmptyTip from '@/components/ui/EmptyTip';
 import { getUserPostsPageData } from '@/services/my-post-service';
 import { getCurrentUser } from '@/services/auth.server';
 
@@ -34,7 +35,7 @@ export default async function MyPostsPage({ searchParams }: Props) {
   );
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{t('common:loadFailed')}</div>;
+    return <EmptyTip text={t('common:loadFailed')} variant="error" />;
   }
 
   return (
@@ -45,7 +46,7 @@ export default async function MyPostsPage({ searchParams }: Props) {
           initialPaging={paging}
         />
       ) : (
-        <div className="p-8 text-center text-gray-400">暂无帖子</div>
+        <EmptyTip text={t('common:noPosts')} />
       )}
 
       {posts.length > 0 && (
