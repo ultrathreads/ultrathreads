@@ -87,23 +87,23 @@ export default function PostDetailCard({
         />
         <RelativeTime timestamp={post.createTime} />
         {post.node && (
-          <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-tag">
+          <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-node">
             {post.node.name}
           </Link>
         )}
 
         {post.tags && post.tags.length > 0 && (
-          <div className="post-tag">
+          <>
             {post.tags.map((tag) => (
               <Link 
                 key={tag.tagId} 
                 href={`/tags/${tag.tagId}`} 
                 className="detail-tag"
               >
-                {tag.tagName}
+                #{tag.tagName}
               </Link>
             ))}
-          </div>
+          </>
         )}
 
         <span>阅读 {post.viewCount.toLocaleString()}</span>

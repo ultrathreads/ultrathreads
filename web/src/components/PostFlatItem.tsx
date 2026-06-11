@@ -105,9 +105,23 @@ export default function PostFlatItem({
         {isRoot && (
           <>
             {post.node && (
-              <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-tag">
+              <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-node">
                 {post.node.name}
               </Link>
+            )}
+
+            {post.tags && post.tags.length > 0 && (
+              <>
+                {post.tags.map((tag) => (
+                  <Link 
+                    key={tag.tagId} 
+                    href={`/tags/${tag.tagId}`} 
+                    className="detail-tag"
+                  >
+                    #{tag.tagName}
+                  </Link>
+                ))}
+              </>
             )}
             <span>阅读 {post.viewCount.toLocaleString()}</span>
             <span>回复 {replyCount}</span>

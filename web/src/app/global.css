@@ -705,9 +705,24 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     padding-bottom: 16px; border-bottom: 1px solid var(--border-light);
 }
 .post-detail-meta .author-name { font-size: 0.875rem; }
+.post-detail-meta .detail-node {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-weight: 600; /* 加粗字体，提升重要性 */
+    color: #ffffff; /* 白色文字，与主色背景形成高对比度 */
+    background: var(--color-primary); /* 使用品牌主色作为实心背景 */
+    border-radius: 10px;
+}
+
+/* 标签 (Tag)：作为辅助关键词，使用轻量级的浅色背景 */
 .post-detail-meta .detail-tag {
-    display: inline-block; padding: 2px 10px; font-size: 0.75rem;
-    color: var(--color-primary); background: var(--bg-tag); border-radius: 10px;
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    color: var(--color-primary); /* 文字使用主色 */
+    background: var(--bg-tag); /* 背景使用你已定义的浅色变量 */
+    border-radius: 10px;
 }
 
 /* 帖子正文 */
