@@ -6,7 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	evbus "github.com/asaskevich/EventBus"
 
-	"ultrathreads/events"
+	"ultrathreads/bus"
+	"ultrathreads/bus/core"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
@@ -23,9 +24,10 @@ type R struct {
 type BaseController struct {
 }
 
-// GetBus 从请求上下文中获取事件总线
-func (c *BaseController) GetBus(ctx *gin.Context) evbus.Bus {
-	return ctx.MustGet(events.BusKey).(evbus.Bus)
+// PublishEvent 是一个便捷方法，用于发布类型化事件
+func (c *BaseController) PublishEvent(ctx *gin.Context, payload interface{}) {
+    busCtx := ctx.MustGet(bus.BusKey).(evbus.Bus)
+    core.PublishTyped(busCtx, payload)
 }
 
 // BindAndValidate bind and validate

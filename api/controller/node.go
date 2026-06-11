@@ -5,7 +5,7 @@ import (
 
 	"ultrathreads/converter"
 	"ultrathreads/cache"
-	"ultrathreads/events"
+	"ultrathreads/bus/event"
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -34,14 +34,14 @@ func (c *NodeController) Show(ctx *gin.Context) {
 func (c *NodeController) MarkAsRead(ctx *gin.Context) {
 	nodeId := util.ParamInt64Default(ctx, "id", 0)
 
-    user := c.GetCurrentUser(ctx)
-    now := util.NowTimestamp();
-    if err := service.UserReadStateService.MarkAsRead(user.ID, nodeId, now); err != nil {
-        c.Fail(ctx, util.FromError(err))
-        return
-    }
-    
-    c.Success(ctx, nil)
+	user := c.GetCurrentUser(ctx)
+	now := util.NowTimestamp()
+	if err := service.UserReadStateService.MarkAsRead(user.ID, nodeId, now); err != nil {
+		c.Fail(ctx, util.FromError(err))
+		return
+	}
+
+	c.Success(ctx, nil)
 }
 
 func (c *NodeController) ViewPost(ctx *gin.Context) {
@@ -49,13 +49,12 @@ func (c *NodeController) ViewPost(ctx *gin.Context) {
 	postId := util.QueryInt64Default(ctx, "postId", 0)
 	user := c.GetCurrentUser(ctx)
 
-	// ✅ 直接传入底层 Bus，无需 Manager 包装方法
-	events.PublishTyped(c.GetBus(ctx), events.NodeViewedPayload{
-		UserID:     user.ID,
-		NodeID:     nodeId,
-		PostID:	    postId,
-		ViewedTime: util.NowTimestamp(),
-	})
+    c.PublishEvent(ctx, event.NodeViewedPayload{
+        UserID:     user.ID,
+        NodeID:     nodeId,
+        PostID:     postId,
+        ViewedTime: util.NowTimestamp(),
+    })
 
 	c.Success(ctx, nil)
 }

@@ -14,10 +14,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
+	"ultrathreads/bus"       // ✅ 更新：导入路径从 "ultrathreads/events" 改为 "ultrathreads/bus"
 	"ultrathreads/cache"
 	"ultrathreads/cron"
 	"ultrathreads/dao"
-	"ultrathreads/events"
 	"ultrathreads/middleware"
 	"ultrathreads/router"
 )
@@ -53,8 +53,8 @@ func runWeb(c *cli.Context) error {
 	}
 
 	// 1. 初始化事件管理器 & 注册处理器
-	mgr := events.NewManager()
-	events.RegisterHandlers(mgr)
+	mgr := bus.NewManager()       // ✅ 更新：使用 bus.NewManager()
+	bus.RegisterHandlers(mgr)     // ✅ 更新：使用 bus.RegisterHandlers()
 
 	// 3. Set up run mode
 	mode := viper.GetString("mode")
