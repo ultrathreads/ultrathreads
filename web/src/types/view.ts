@@ -6,6 +6,7 @@ export interface ThreadViewItem {
   threadId: number;
   title: string;
   author: string;
+  authorId: number;
   avatar?: string; 
   date: number;            // Unix timestamp (ms)
   lastCommentTime: number;

@@ -142,7 +142,6 @@ export default async function ReadPage({ params, searchParams }: Props) {
   // 5. 组装页面布局，根据视图模式分发组件
   return (
     <>
-      <ReadTracker nodeId={String(post.node?.nodeId ?? '')} postId={id} />
       <div className="detail-top-bar">
         <Link className="back-list-btn" href={backUrl}>← 返回列表</Link>
         <ViewModeSwitcher currentView={view} />
@@ -161,6 +160,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
           backState={backState}
         />
       )}
+      <ReadTracker nodeId={String(post.node?.nodeId ?? '')} postId={id} />
     </>
   );
 }

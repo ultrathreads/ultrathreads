@@ -13,7 +13,7 @@ export function SettingsNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="settings-nav">
+    <nav className="profile-nav">
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
 
@@ -21,8 +21,8 @@ export function SettingsNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={clsx('settings-link', {
-              'settings-link active': isActive,
+            className={clsx('profile-link', {
+              'profile-link active': isActive,
             })}
             aria-current={isActive ? 'page' : undefined}
           >

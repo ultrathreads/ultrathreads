@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import type { PostEntity } from '@/types/domain';
 import { RelativeTime } from '@/components/RelativeTime';
+import Avatar from '@/components/ui/Avatar';
 import { likePost, favoritePost } from '@/services/post-service';
 import { ApiBusinessError } from '@/lib/api/client';
+import AuthorLink from '@/components/ui/AuthorLink';
 
 interface PostFlatItemProps {
   post: PostEntity;
@@ -87,12 +89,16 @@ export default function PostFlatItem({
       {isRoot && <h2 className="post-detail-title">{post.title}</h2>}
 
       <div className="post-detail-meta">
-        <img
+        <Avatar
           className="detail-author-avatar"
           src={post.user.avatar}
           alt={post.user.nickname}
         />
-        <span className="author-name">{post.user.nickname}</span>
+        <AuthorLink 
+          author={post.user.nickname} 
+          authorId={post.user.id} 
+          className="author-name" 
+        />
         <RelativeTime timestamp={post.createTime} />
 
         {/* 仅根帖显示节点标签、阅读数和回复数 */}

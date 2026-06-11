@@ -9,6 +9,7 @@ import { uploadAvatar } from '@/services/upload';
 import { useAuth } from '@/hooks/use-auth';
 import { ApiBusinessError } from '@/lib/api/client';
 import type { CurrentUser } from '@/types/auth';
+import Avatar from '@/components/ui/Avatar';
 
 /** 从 CurrentUser 中提取表单所需字段，避免手动维护重复类型 */
 type ProfileForm = Pick<CurrentUser, 'nickname' | 'avatar' | 'website' | 'description'>;
@@ -21,9 +22,7 @@ const DEFAULT_FORM: ProfileForm = {
 };
 
 export default function ProfilePage() {
-  // ✅ 获取全局刷新方法，用于保存后同步 Header 状态
   const { refreshUser } = useAuth();
-
   const [userId, setUserId] = useState<number | null>(null);
   const [form, setForm] = useState<ProfileForm>(DEFAULT_FORM);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -138,38 +137,34 @@ export default function ProfilePage() {
   // 加载中骨架屏，避免闪烁
   if (loading) {
     return (
-      <div className="settings-card">
-        <h2 className="settings-card-title">个人信息</h2>
-        <p className="settings-card-desc">加载中...</p>
+      <div className="profile-card">
+        <h2 className="profile-card-title">个人信息</h2>
+        <p className="profile-card-desc">加载中...</p>
       </div>
     );
   }
 
   return (
-    <div className="settings-card">
-      <h2 className="settings-card-title">个人信息</h2>
-      <p className="settings-card-desc">在这里管理你的公开资料，让其他用户更好地了解你。</p>
+    <div className="profile-card">
+      <h2 className="profile-card-title">个人信息</h2>
+      <p className="profile-card-desc">在这里管理你的公开资料，让其他用户更好地了解你。</p>
 
-      <form className="settings-form" onSubmit={handleSubmit}>
+      <form className="profile-form" onSubmit={handleSubmit}>
         {/* 头像 */}
         <div className="form-group">
           <label className="form-label">头像</label>
           <div className="avatar-upload">
             <div className="avatar-preview">
-              {displayAvatar ? (
-                <img
-                  src={displayAvatar}
-                  alt="头像预览"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: '50%',
-                  }}
-                />
-              ) : (
-                <span style={{ fontSize: 32 }}>👤</span>
-              )}
+              <Avatar
+                src={displayAvatar}
+                alt="头像预览"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                }}
+              />
               {uploading && (
                 <div
                   style={{

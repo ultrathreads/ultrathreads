@@ -29,6 +29,10 @@ export function adaptToThreadView(
     ? (post.user?.nickname || post.user?.username)
     : (listItem.user?.nickname || listItem.user?.username);
 
+  const authorId = isPostEntity
+    ? (post.user?.id || post.user?.id)
+    : (listItem.user?.id || listItem.user?.id);
+
   const avatar = isPostEntity
       ? (post.user?.avatar || undefined)
       : (listItem.user?.avatar || undefined);
@@ -62,6 +66,7 @@ export function adaptToThreadView(
     isPinned: source.isPinned,
     isRead,
     author: author ?? '匿名用户',
+    authorId,
     avatar,
     date: Number.isFinite(contentTimestamp) ? contentTimestamp : 0,
     nodeName: isPostEntity

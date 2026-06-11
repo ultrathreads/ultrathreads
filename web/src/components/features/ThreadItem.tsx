@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ThreadViewItem } from '@/types/view';
 import type { BackState } from './ThreadTree';
 import { RelativeTime } from '@/components/RelativeTime';
+import AuthorLink from '@/components/ui/AuthorLink';
 
 interface Props {
   item: ThreadViewItem;
@@ -104,7 +105,11 @@ export default function ThreadItem({
         </Link>
 
         <span className="metadata">
-          <span className="author-name">{item.author}</span>
+          <AuthorLink 
+            author={item.author} 
+            authorId={item.authorId} 
+            className="author-name" 
+          />
           <span className="tail">
             <RelativeTime timestamp={item.date} />
           </span>

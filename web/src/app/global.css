@@ -10,7 +10,7 @@
    7. 帖子详情页 Detail Page：详情卡片、内容、操作栏、作者信息
    8. 发帖页面 Create Post：编辑器、工具栏、表单、提交按钮
    9. 登录/注册/找回密码 Auth Pages：认证页布局、表单、链接
-   10. 个人设置页 Settings：设置侧边导航、卡片、头像上传、表单
+   10. 个人设置页 profile：设置侧边导航、卡片、头像上传、表单
    11. 悬浮预览气泡 Preview Popover：弹窗、三角箭头、动画
    12. 工具组件：回到顶部、分割线、通用hover/状态
    13. 深色模式适配：系统深色主题样式覆盖
@@ -957,31 +957,31 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 
 /* =============================================
-   10. 个人设置页 Settings Layout & Form
+   10. 个人设置页 profile Layout & Form
    ============================================= */
-.settings-container {
+.profile-container {
     display: flex;
     gap: 30px;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 30px 0;
 }
-.settings-sidebar {
-    width: 220px;
+.profile-sidebar {
+    width: 320px;
     flex-shrink: 0;
 }
-.settings-title {
+.profile-title {
     font-size: 1.125rem;
     font-weight: 700;
     margin-bottom: 16px;
     color: var(--text-primary);
 }
-.settings-nav {
+.profile-nav {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
-.settings-link {
+.profile-link {
     padding: 10px 16px;
     border-radius: 8px;
     font-size: 0.875rem;
@@ -989,41 +989,165 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     text-decoration: none;
     transition: all 0.2s;
 }
-.settings-link:hover {
+.profile-link:hover {
     background-color: var(--bg-muted);
     color: var(--color-primary);
 }
-.settings-link.active {
+.profile-link.active {
     background-color: var(--bg-active);
     color: var(--color-primary);
     font-weight: 600;
 }
-.settings-content {
+.profile-content {
     flex: 1;
     min-width: 0;
 }
-.settings-card {
+.profile-card {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 12px;
     padding: 30px;
 }
-.settings-card-title {
+.profile-card-title {
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 8px;
     color: var(--text-primary);
 }
-.settings-card-desc {
+.profile-card-desc {
     font-size: 0.875rem;
     color: var(--text-extra-muted);
     margin-bottom: 30px;
 }
-.settings-form {
+.profile-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
     max-width: 500px;
+}
+/* =========================================
+   新增：用户详情页卡片特有样式 (UserProfileCard)
+   ========================================= */
+
+/* 头像外层容器居中 */
+.profile-avatar-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+/* 头像基础样式 */
+.detail-author-avatar {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-light);
+}
+
+/* 用户名与等级标签的容器 */
+.profile-username {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* 用户昵称样式 */
+.profile-nickname {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+}
+
+/* 统计数据网格布局 */
+.profile-stats-grid {
+    display: grid;
+    text-align: center;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* 统计数字样式 */
+.stat-number {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+/* 统计标签样式 */
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* 关注按钮全宽 */
+.btn-follow {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* 注册日期和最后登录时间的容器 */
+.profile-meta-info {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-align: left;
+    margin: 0 auto;
+    max-width: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/* 联系信息卡片间距 */
+.profile-contact-card {
+    margin-top: 1rem;
+}
+
+/* 联系信息区域的标题 */
+.profile-section-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.5rem;
+}
+
+/* 联系信息中的标签文字（如：个人主页、个人签名） */
+.profile-label {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+/* 联系信息中的内容文字 */
+.profile-value {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* 个人主页链接样式 */
+.profile-link {
+    font-size: 0.875rem;
+    color: var(--color-primary);
+}
+
+/* 联系信息子项间距 */
+.profile-contact-item {
+    margin-bottom: 0.75rem;
 }
 .avatar-upload {
     display: flex;

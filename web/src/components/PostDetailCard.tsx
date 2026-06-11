@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import type { PostEntity } from '@/types/domain';
 import { RelativeTime } from '@/components/RelativeTime';
+import Avatar from '@/components/ui/Avatar';
+import AuthorLink from '@/components/ui/AuthorLink';
 import { likePost, favoritePost } from '@/services/post-service';
 import { ApiBusinessError } from '@/lib/api/client';
 
@@ -73,8 +75,16 @@ export default function PostDetailCard({
       <h1 className="post-detail-title">{post.title}</h1>
 
       <div className="post-detail-meta">
-        <img className="detail-author-avatar" src={post.user.avatar} alt={post.user.nickname} />
-        <span className="author-name">{post.user.nickname}</span>
+        <Avatar
+          className="detail-author-avatar"
+          src={post.user.avatar}
+          alt={post.user.nickname}
+        />
+        <AuthorLink 
+          author={post.user.nickname} 
+          authorId={post.user.id} 
+          className="author-name" 
+        />
         <RelativeTime timestamp={post.createTime} />
         {post.node && (
           <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-tag">

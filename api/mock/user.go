@@ -13,12 +13,21 @@ import (
 var (
 	// 头像假数据
 	avatars = []string{
-		"https://cdn.learnku.com/uploads/avatars/7850_1481780622.jpeg!/both/380x380",
-		"https://cdn.learnku.com/uploads/avatars/7850_1481780622.jpeg!/both/380x380",
-		"https://cdn.learnku.com/uploads/avatars/7850_1481780622.jpeg!/both/380x380",
-		"https://cdn.learnku.com/uploads/avatars/7850_1481780622.jpeg!/both/380x380",
-		"https://cdn.learnku.com/uploads/avatars/7850_1481780622.jpeg!/both/380x380",
-		"https://cdn.learnku.com/uploads/avatars/7850_1481780622.jpeg!/both/380x380",
+		"https://www.dismall.com/uc_server/data/avatar/000/05/04/86_avatar_middle.jpg",
+		"https://www.dismall.com/uc_server/data/avatar/000/04/32/97_avatar_middle.jpg",
+		"https://www.dismall.com/uc_server/data/avatar/000/00/04/57_avatar_middle.jpg",
+		"https://www.dismall.com/uc_server/data/avatar/000/03/48/31_avatar_middle.jpg",
+		"https://www.dismall.com/uc_server/data/avatar/000/05/33/40_avatar_middle.jpg",
+		"https://www.dismall.com/uc_server/data/avatar/000/04/40/78_avatar_middle.jpg",
+	}
+
+	websites = []string{
+		"https://www.ultrathreads.com",
+		"https://www.baidu.com",
+		"https://www.toutiao.com",
+		"https://www.qq.com",
+		"https://www.163.com",
+		"https://www.taobao.com",
 	}
 )
 
@@ -45,6 +54,7 @@ func userFactory(i int) *factory.Factory {
 	}
 
 	r := RandInt(0, len(avatars)-1)
+	w := RandInt(0, len(websites)-1)
 
 	return factory.NewFactory(
 		u,
@@ -55,6 +65,9 @@ func userFactory(i int) *factory.Factory {
 		}
 		return fmt.Sprintf("user-%d", i+1), nil
 	}).Attr("Avatar", func(args factory.Args) (interface{}, error) {
+		if i == 0 {
+			return "", nil
+		}
 		return avatars[r], nil
 	}).Attr("Description", func(args factory.Args) (interface{}, error) {
 		paragraph := randomdata.Paragraph()
@@ -62,6 +75,8 @@ func userFactory(i int) *factory.Factory {
 			paragraph = paragraph[:70]
 		}
 		return paragraph, nil
+	}).Attr("Website", func(args factory.Args) (interface{}, error) {
+		return websites[w], nil
 	}).Attr("Email", func(args factory.Args) (interface{}, error) {
 		if i == 0 {
 			return util.SqlNullString("admin@test.com"), nil // ✅ admin 专用邮箱

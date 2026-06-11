@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useClickOutside } from '@/hooks/use-click-outside';
+import Avatar from '@/components/ui/Avatar';
 
 export default function UserMenu() {
   const { user, isLoggedIn, isLoading, error, logout, displayName, avatarUrl } = useAuth();
@@ -19,7 +20,11 @@ export default function UserMenu() {
     <div className="user-menu-wrapper" ref={ref}>
       
       <div className="user-menu-trigger" onClick={toggle} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-        <img className="user-avatar" src={avatarUrl} alt={displayName} />
+        <Avatar 
+          className="user-avatar" 
+          src={avatarUrl} 
+          alt={displayName} 
+        />
         <span className="user-name">{displayName}</span>
         <span className={`user-arrow ${isOpen ? 'active' : ''}`}>▼</span>
       </div>

@@ -55,10 +55,9 @@ func Setup() {
 		return
 	}
 
-	// 2. GORM v2 初始化
+	// 2. GORM 初始化
 	db, err = gorm.Open(dialector, &gorm.Config{
 		Logger: gormlog.Default.LogMode(logLevel),
-		// v2 默认使用单数表名，无需 SingularTable(true)
 	})
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Failed to connect database: %v", err))
