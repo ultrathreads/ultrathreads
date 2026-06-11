@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { useAuth } from '@/hooks/use-auth';
-import UserMenu from '@/components/features/auth/UserMenu';
+import UserMenu from '@/components/features/UserMenu';
 import { useTheme } from '@/hooks/useTheme';
 
 interface HeaderProps {
