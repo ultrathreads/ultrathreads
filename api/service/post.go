@@ -98,12 +98,17 @@ func (s *postService) GetNodeThreadsFull(page, limit, nodeId int) ([]model.Post,
 // GetTagThreadsFull 获取指定标签下的主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
 func (s *postService) GetTagThreadsFull(tagId int64, page int) (posts []model.Post, paging *querybuilder.Paging) {
 	// 1. 获取当前页的根帖（通过 IN 子查询过滤标签，保证排序和分页正确）
-	rootCnd := querybuilder.NewQueryBuilder().
-		Eq("parent_id", 0).
-		Eq("status", model.StatusOk).
-		Where("id IN (SELECT post_id FROM post_tag WHERE tag_id = ? AND status = ?)", tagId, model.StatusOk).
-		Desc("last_comment_time").
-		Page(page, 20)
+
+	subQuery := dao.DB().Model(&model.PostTag{}).
+        Select("post_id").
+        Where("tag_id = ? AND status = ?", tagId, model.StatusOk)
+
+ 	rootCnd := querybuilder.NewQueryBuilder().
+        Eq("parent_id", 0).
+        Eq("status", model.StatusOk).
+        Where("id IN (?)", subQuery). 
+        Desc("last_comment_time").
+        Page(page, 20)
 
 	rootPosts, paging := dao.PostDao.List(rootCnd)
 	if len(rootPosts) == 0 {
