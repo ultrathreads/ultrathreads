@@ -7,7 +7,7 @@ import clsx from 'clsx';
 
 const NAV_ITEMS = [
   { href: '/', labelKey: 'common:home', matchType: 'exact' as const },
-  { href: '/my/posts', labelKey: 'common:myPosts', matchType: 'exact' as const },
+  { href: '/my/posts', labelKey: 'common:mine', matchType: 'exact' as const },
 ];
 
 export function SidebarNav() {

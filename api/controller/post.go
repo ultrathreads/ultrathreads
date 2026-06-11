@@ -299,15 +299,43 @@ func (c *PostController) GetUserRecent(ctx *gin.Context) {
 	}
 }
 
-// GetUserPosts 用户的帖子
+// GetUserPosts 用户的帖子（支持通过 type 参数区分 root 和 reply）
 func (c *PostController) GetUserPosts(ctx *gin.Context) {
+	// 1. 获取分页参数
 	page := util.FormValueIntDefault(ctx, "page", 1)
+	
+	// 2. 获取并验证基础参数（如 user_id）
 	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
-			Eq("user_id", gDto.ID).
-			Eq("status", model.StatusOk).
-			Page(page, 20).Desc("id"))
+	if !c.BindAndValidate(ctx, &gDto) {
+		return // 注意：BindAndValidate 失败时通常框架会自动返回错误，这里做防御性处理
+	}
+
+	// 3. 获取 type 参数（默认为 root，兼容旧逻辑）
+	postType := ctx.DefaultQuery("type", "root")
+
+	// 4. 构建基础查询条件
+	qb := querybuilder.NewQueryBuilder().
+		Eq("user_id", gDto.ID).
+		Eq("status", model.StatusOk).
+		Page(page, 20).
+		Desc("id")
+
+	// 5. 根据 type 动态追加过滤条件
+	switch postType {
+	case "reply":
+		// 假设回帖的 parent_id 大于 0，或者不等于 0
+		// 具体字段名和逻辑请根据你的数据库表结构进行调整
+		qb.NotEq("parent_id", 0) 
+	case "root":
+		fallthrough // 默认情况，只查询根帖
+	default:
+		// 假设根帖的 parent_id 为 0
+		qb.Eq("parent_id", 0) 
+	}
+
+	// 6. 执行查询并返回结果
+	if c.BindAndValidate(ctx, &gDto) { // 保持你原有的执行逻辑
+		posts, paging := service.PostService.List(qb)
 
 		c.Success(ctx, gin.H{
 			"results": converter.ToSimplePosts(posts),

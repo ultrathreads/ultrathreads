@@ -4,19 +4,38 @@ import type { UserEntity, NodeEntity } from '@/types/domain';
 import type { PaginationMeta } from '@/types/api';
 
 // ==================== 传输层类型 ====================
-export interface MyPostListItem {
+
+/**
+ * 根帖列表项
+ */
+export interface MyRootPostListItem {
   id: number;
   threadId: number;
-  parentId: number | null;
-  parentTitle: string | null;
   title: string;
   createTime: number;
   user: Pick<UserEntity, 'id' | 'username' | 'nickname'>;
   node: Pick<NodeEntity, 'nodeId' | 'name'> | null;
 }
 
-interface UserPostsApiResponse {
-  results: MyPostListItem[];
+/**
+ * 回帖列表项
+ */
+export interface MyReplyPostListItem {
+  id: number;
+  threadId: number;
+  parentId: number | null;
+  parentTitle: string | null;
+  content: string;
+  createTime: number;
+  user: Pick<UserEntity, 'id' | 'username' | 'nickname'>;
+  node: Pick<NodeEntity, 'nodeId' | 'name'> | null;
+}
+
+/**
+ * 通用 API 响应结构（支持泛型）
+ */
+interface UserPostsApiResponse<T> {
+  results: T[];
   page: {
     page: number;
     limit: number;
@@ -25,39 +44,40 @@ interface UserPostsApiResponse {
 }
 
 // ==================== 视图层类型 ====================
-export interface UserPostsPageData {
-  posts: MyPostListItem[];
+
+export interface UserPostsPageData<T> {
+  posts: T[];
   paging: PaginationMeta;
   error: string | null;
 }
 
 // ==================== 服务函数 ====================
+
 const DEFAULT_LIMIT = 20;
 
 /**
- * 获取指定用户的帖子列表
- * @param userId 目标用户ID（当前用户或他人）
- * @param page   页码
- * @param limit  每页条数
+ * 【内部底层函数】通用的用户帖子数据获取逻辑
+ * 不对外暴露，仅用于复用请求、分页组装和错误处理
  */
-export async function getUserPostsPageData(
+async function fetchUserPostsByType<T>(
   userId: number,
   page: number,
+  type: 'root' | 'reply',
   limit: number = DEFAULT_LIMIT,
-): Promise<UserPostsPageData> {
+): Promise<UserPostsPageData<T>> {
   const safePage = Math.max(1, Number.isNaN(page) ? 1 : page);
 
   const params = new URLSearchParams({
     page: String(safePage),
     limit: String(limit),
+    type,
   });
 
   try {
-    // ✅ 动态拼接 userId，复用同一接口
-    const data = await apiFetch<UserPostsApiResponse>(
+    const data = await apiFetch<UserPostsApiResponse<T>>(
       `/user/posts/${userId}?${params.toString()}`,
       {
-        auth: true, // 保持鉴权，后端可根据 token 判断是否返回敏感字段
+        auth: true,
         cacheStrategy: { next: { revalidate: 0 } },
       },
     );
@@ -72,11 +92,33 @@ export async function getUserPostsPageData(
       error: null,
     };
   } catch (err) {
-    console.error('[UserPostService] Fetch failed:', err);
+    console.error(`[UserPostService] Fetch ${type} posts failed:`, err);
     return {
       posts: [],
       paging: { currentPage: safePage, pageSize: limit, totalItems: 0 },
       error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
+}
+
+/**
+ * 获取指定用户的【根帖】列表
+ */
+export function getUserRootPostsPageData(
+  userId: number,
+  page: number,
+  limit?: number,
+): Promise<UserPostsPageData<MyRootPostListItem>> {
+  return fetchUserPostsByType<MyRootPostListItem>(userId, page, 'root', limit);
+}
+
+/**
+ * 获取指定用户的【回帖】列表
+ */
+export function getUserReplyPostsPageData(
+  userId: number,
+  page: number,
+  limit?: number,
+): Promise<UserPostsPageData<MyReplyPostListItem>> {
+  return fetchUserPostsByType<MyReplyPostListItem>(userId, page, 'reply', limit);
 }
