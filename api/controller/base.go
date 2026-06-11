@@ -11,6 +11,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
+	"ultrathreads/util/log"
 )
 
 type R struct {
@@ -24,10 +25,23 @@ type R struct {
 type BaseController struct {
 }
 
-// PublishEvent 是一个便捷方法，用于发布类型化事件
+// PublishEvent 统一的事件发布入口（已封装异步与异常防御）
 func (c *BaseController) PublishEvent(ctx *gin.Context, payload interface{}) {
+    // 1. 提取必要的依赖（在同步阶段完成，避免异步后获取失败）
     busCtx := ctx.MustGet(bus.BusKey).(evbus.Bus)
-    core.PublishTyped(busCtx, payload)
+    
+    // 2. 启动异步协程处理事件
+    go func() {
+        // 防御性编程：捕获异步协程中的 panic，防止整个进程崩溃
+        defer func() {
+            if r := recover(); r != nil {
+                log.Error("Async event publish panic recovered: %v", r)
+            }
+        }()
+        
+        // 3. 执行核心分发逻辑
+        core.PublishTyped(busCtx, payload)
+    }()
 }
 
 // BindAndValidate bind and validate

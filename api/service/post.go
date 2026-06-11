@@ -319,12 +319,6 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 		return nil
 	})
 
-	if err == nil {
-		NodeService.IncrTopicCount(nodeID)
-		UserService.IncrTopicCount(dto.UserID)
-		UserScoreService.IncrementPostPostScore(post)
-	}
-
 	return post, err
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"ultrathreads/converter"
 	"ultrathreads/cache"
+	"ultrathreads/bus/event"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -140,6 +141,12 @@ func (c *PostController) Store(ctx *gin.Context) {
 			c.Fail(ctx, util.FromError(err))
 			return
 		}
+		//PostCreated
+		c.PublishEvent(ctx, event.PostCreated{
+	        UserID: user.ID,
+	        PostID: post.ID,
+	        IsRoot: post.ParentId == 0,
+	    })
 		c.Success(ctx, converter.ToSimplePost(post))
 	}
 }

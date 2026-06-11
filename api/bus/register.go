@@ -7,5 +7,6 @@ import "ultrathreads/bus/handler"
 func RegisterHandlers(mgr *Manager) {
 
 	// post viewed handler
-	handler.PostViewedHandler(mgr) 
+	handler.PostViewedHandler(mgr)
+	handler.PostCreatedHandler(mgr) 
 }
