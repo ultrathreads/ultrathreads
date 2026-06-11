@@ -49,7 +49,7 @@ func (c *NodeController) ViewPost(ctx *gin.Context) {
 	postId := util.QueryInt64Default(ctx, "postId", 0)
 	user := c.GetCurrentUser(ctx)
 
-    c.PublishEvent(ctx, event.NodeViewedPayload{
+    c.PublishEvent(ctx, event.PostViewed{
         UserID:     user.ID,
         NodeID:     nodeId,
         PostID:     postId,
