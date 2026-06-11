@@ -1,4 +1,4 @@
-// app/(main)/my/posts/page.tsx
+// app/(main)/my/page.tsx
 import type { Metadata } from 'next';
 import { revalidatePath } from 'next/cache'; 
 import { redirect } from 'next/navigation';
@@ -46,7 +46,7 @@ export default async function MyPostsPage({ searchParams }: Props) {
 
   const currentUser = await getCurrentUser();
   if (!currentUser?.id) {
-    redirect('/login?callback=/my/posts');
+    redirect('/login?callback=/my');
   }
 
   // 根据当前 Tab 渲染不同的内容
@@ -151,7 +151,7 @@ async function BookmarksContent({ currentPage, t }: { currentPage: number; t: an
       await deleteFavorite(entityType, entityId);
       
       // 2. 删除成功后，重新验证当前页面的数据
-      revalidatePath(`/my/posts?tab=bookmarks&page=${currentPage}`);
+      revalidatePath(`/my?tab=bookmarks&page=${currentPage}`);
       
       // 3. 如果没有抛出错误，代表操作成功
       // 此时不需要显式 return，客户端的 await 会正常走完
