@@ -4,10 +4,14 @@
 import Link from 'next/link';
 import type { MyPostListItem } from '@/services/my-post-service';
 import { RelativeTime } from '@/components/RelativeTime';
+// 引入已定义的用户类型
+import type { UserEntity } from '@/types/domains';
 
 interface Props {
   initialPosts: MyPostListItem[];
   initialPaging: { currentPage: number; pageSize: number; totalItems: number };
+  // 使用项目现有类型，设为可选
+  user?: UserEntity;
 }
 
 /**
@@ -15,11 +19,14 @@ interface Props {
  * 分页由服务端 TopicPagination 驱动，此组件仅负责 SSR 首屏渲染
  * 零新增 CSS，完全复用 ThreadTree / ThreadItem 已有样式类
  */
-export default function MyPostsList({ initialPosts }: Props) {
+export default function MyPostsList({ initialPosts, user }: Props) {
+  // 假设昵称字段为 nickname，根据你实际字段微调即可
+  const pageTitle = user ? `${user.nickname} 的帖子` : '我的帖子';
+
   return (
     <div className="thread-tree-container">
       <div className="thread-tree-header">
-        <h1>我的帖子</h1>
+        <h1>{pageTitle}</h1>
       </div>
 
       <ul className="thread">

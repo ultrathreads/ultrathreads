@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getServerTranslation } from '@/lib/i18n/i18n-server';
+import EmptyTip from '@/components/ui/EmptyTip';
 import ThreadTree from '@/components/features/ThreadTree';
 import TopicPagination from '@/components/TopicPagination';
 import { getTagPageData } from '@/services/thread-service';
@@ -55,7 +56,7 @@ export default async function TagPage({ params, searchParams }: Props) {
   const { tag } = tagResult;
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{t('common:loadFailed')}</div>;
+    return <EmptyTip text={t('common:loadFailed')} variant="error" />;
   }
 
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
@@ -70,7 +71,7 @@ export default async function TagPage({ params, searchParams }: Props) {
       {viewPosts.length > 0 ? (
         <ThreadTree threads={viewPosts} activeTag={tag} backState={backState} />
       ) : (
-        <div className="p-8 text-center text-gray-400">{t('home:noThreads')}</div>
+        <EmptyTip text={t('common:noThreads')} />
       )}
 
       {viewPosts.length > 0 && (

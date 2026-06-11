@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import ThreadTree from '@/components/features/ThreadTree';
 import TopicPagination from '@/components/TopicPagination';
+import EmptyTip from '@/components/ui/EmptyTip';
 import { getThreadPageData } from '@/services/thread-service';
 import { getNodeDetail } from '@/services/node-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
@@ -56,7 +57,7 @@ export default async function HomePage({ searchParams }: Props) {
   const { node } = nodeResult;
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{t('common:loadFailed')}</div>;
+    return <EmptyTip text={t('common:loadFailed')} variant="error" />;
   }
 
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
@@ -77,7 +78,7 @@ export default async function HomePage({ searchParams }: Props) {
         // ✅ 将回溯状态透传给 ThreadTree，由其内部 Link 拼接到详情页 URL
         <ThreadTree threads={viewPosts} activeNode={node} backState={backState} />
       ) : (
-        <div className="p-8 text-center text-gray-400">{t('home:noThreads')}</div>
+        <EmptyTip text={t('common:noThreads')} />
       )}
 
       {viewPosts.length > 0 && (

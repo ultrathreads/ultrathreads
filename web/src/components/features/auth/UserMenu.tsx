@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useClickOutside } from '@/hooks/use-click-outside';
 import Avatar from '@/components/ui/Avatar';
+import AuthorLink from '@/components/ui/AuthorLink';
 
 export default function UserMenu() {
   const { user, isLoggedIn, isLoading, error, logout, displayName, avatarUrl } = useAuth();
@@ -31,8 +32,13 @@ export default function UserMenu() {
 
       <div className={`user-dropdown ${isOpen ? 'show' : ''}`} id="userDropdown">
         <div className="dropdown-header">
+          <AuthorLink 
+            author={user.username} 
+            authorId={user.id} 
+            className="user-username" 
+            onClick={close}
+          />
           <span className="user-level">{user.levelName}</span>
-          <span className="user-score">积分: {user.score}</span>
         </div>
         <div className="dropdown-divider" />
 

@@ -37,6 +37,7 @@ export default async function UserPublicPostsPage({ params, searchParams }: Prop
         <MyPostsList
           initialPosts={posts}
           initialPaging={paging}
+          user={user}
         />
       ) : (
         <div className="p-8 text-center text-gray-400">该用户还没有发布过帖子</div>

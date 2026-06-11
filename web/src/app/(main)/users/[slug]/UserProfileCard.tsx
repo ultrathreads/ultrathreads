@@ -25,7 +25,7 @@ export default function UserProfileCard({ user }: Props) {
         {/* 头像 */}
         <div className="profile-avatar-wrapper">
           <Avatar
-            className="detail-author-avatar"
+            className="profile-author-avatar"
             src={user.avatar}
             alt={user.nickname || user.username}
           />

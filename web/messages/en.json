@@ -9,6 +9,7 @@
     "myPosts": "📋 My posts",
 
     "loading": "Loading...",
+    "loadFailed": "Failed to load data.",
     "search_default_value":"Search...",
     "posting": "Create new...",
     "register": "Register",
@@ -16,7 +17,9 @@
     "justNow": "Just now",
     "minutesAgo": "{{n}} min ago",
     "hoursAgo": "{{n}} hr ago",
-    "daysAgo": "{{n}} day ago"
+    "daysAgo": "{{n}} day ago",
+
+    "noThreads": "No threads."
   },
   "home": {
     "title": "from home title",

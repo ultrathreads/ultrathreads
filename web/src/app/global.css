@@ -281,7 +281,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
   background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
   white-space: nowrap;
 }
-.user-score {
+.user-username {
   color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 500;
@@ -498,6 +498,21 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     transition: background-color 0.2s;
 }
 .jump-btn:hover { background-color: var(--color-primary-dark); }
+
+/* 通用空状态 / 错误提示组件 EmptyTip */
+.empty-tip {
+  padding: 32px 20px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.error-tip {
+  padding: 32px 20px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-danger);
+}
 
 /* =============================================
    6. 论坛树形列表 Thread Tree - 列表&层级回复
@@ -1037,7 +1052,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 
 /* 头像基础样式 */
-.detail-author-avatar {
+.profile-author-avatar {
     width: 128px;
     height: 128px;
     border-radius: 50%;
