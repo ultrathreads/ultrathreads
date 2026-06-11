@@ -54,16 +54,32 @@ func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 	return nil
 }
 
-func (c *BaseController) GetLastReadAt(ctx *gin.Context, nodeID int) int64 {
-    val, exists := ctx.Get(util.ReadStateKey(nodeID))
-    if !exists {
-        return 0
-    }
-    ts, ok := val.(int64)
-    if !ok {
-        return 0
-    }
-    return ts
+// GetLastReadStates 获取当前用户的已读状态
+// - 不传参：返回全量 map（nodeId=0 场景）
+// - 传一个或多个 nodeID：仅返回指定节点的已读状态，自动过滤零值
+func (c *BaseController) GetLastReadStates(ctx *gin.Context, nodeIDs ...int64) map[int64]int64 {
+	val, exists := ctx.Get("CurrentUserReadStates")
+	if !exists || val == nil {
+		return make(map[int64]int64)
+	}
+	states, ok := val.(map[int64]int64)
+	if !ok {
+		return make(map[int64]int64)
+	}
+
+	// 无参数 → 全量返回（只读场景直接返回引用，避免拷贝开销）
+	if len(nodeIDs) == 0 {
+		return states
+	}
+
+	// 有参数 → 按需提取指定节点
+	result := make(map[int64]int64, len(nodeIDs))
+	for _, id := range nodeIDs {
+		if ts := states[id]; ts > 0 {
+			result[id] = ts
+		}
+	}
+	return result
 }
 
 // Success output json data

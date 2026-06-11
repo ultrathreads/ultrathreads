@@ -59,18 +59,11 @@ func (s *userReadStateService) IsUnread(userID, nodeID int64, postCreatedAt int6
 	return postCreatedAt > lastReadAt
 }
 
-// GetUserReadStates 批量获取用户在多个节点的已读状态
-// 用于列表页一次性加载，避免 N+1 查询
-func (s *userReadStateService) GetUserReadStates(userID int64, nodeIDs []int64) map[int64]int64 {
-	result := make(map[int64]int64, len(nodeIDs))
-	if userID <= 0 || len(nodeIDs) == 0 {
-		return result
+// GetUserReadStates 获取用户所有节点的已读状态
+// 直接走全量缓存，一次加载避免 N+1 查询
+func (s *userReadStateService) GetUserReadStates(userID int64) map[int64]int64 {
+	if userID <= 0 {
+		return make(map[int64]int64)
 	}
-
-	// 逐个查询，LoadingCache 会自动处理命中/回源/防穿透
-	// 后续若需优化为单次 IN 查询，仅需替换此处实现，对外签名不变
-	for _, nodeID := range nodeIDs {
-		result[nodeID] = s.GetLastReadAt(userID, nodeID)
-	}
-	return result
+	return cache.ReadStateCache.GetUserStates(userID)
 }

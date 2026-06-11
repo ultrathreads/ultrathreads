@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"errors"
 	"regexp"
 	"strings"
@@ -152,10 +151,4 @@ func ParseTagsToArray(tags string) []string {
 		ret = append(ret, s)
 	}
 	return ret
-}
-
-// ReadStateKey 生成带 nodeId 绑定的 Context Key
-// 【重要】所有 Handler 必须通过此函数获取已读时间戳，禁止硬编码字符串
-func ReadStateKey(nodeID int) string {
-	return fmt.Sprintf("LastReadAt:Node:%d", nodeID)
 }

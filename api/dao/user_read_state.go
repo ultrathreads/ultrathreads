@@ -54,6 +54,23 @@ func (d *userReadStateDao) Upsert(userID, nodeID int64, readAt int64) error {
 	return nil
 }
 
+// GetAllReadStates 获取用户所有已读状态，返回 map[nodeID]lastReadAt
+// 未找到记录时返回空 map（非 nil），便于上层缓存直接使用
+func (d *userReadStateDao) GetAllReadStates(userID int64) map[int64]int64 {
+	var records []model.UserReadState
+	if err := db.Where("user_id = ?", userID).Find(&records).Error; err != nil {
+		// TODO: 建议接入日志框架记录真实 DB 错误
+		// log.Error("GetAllReadStates failed: userId=%d, err=%v", userID, err)
+		return make(map[int64]int64)
+	}
+
+	states := make(map[int64]int64, len(records))
+	for _, r := range records {
+		states[r.NodeID] = r.LastReadAt
+	}
+	return states
+}
+
 // DeleteByUser 清除用户所有已读状态（注销/重置时使用）
 func (d *userReadStateDao) DeleteByUser(userID int64) error {
 	if err := db.Where("user_id = ?", userID).Delete(&model.UserReadState{}).Error; err != nil {

@@ -52,10 +52,11 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 
 	posts, paging := service.PostService.ListThreadsWithReplies(page, limit, nodeId)
 
-	lastReadAt := c.GetLastReadAt(ctx, nodeId)
-	lastReadAtMap := make(map[int64]int64)
-	if lastReadAt > 0 {
-	    lastReadAtMap[int64(nodeId)] = lastReadAt
+	var lastReadAtMap map[int64]int64
+	if nodeId > 0 {
+	    lastReadAtMap = c.GetLastReadStates(ctx, int64(nodeId))
+	} else {
+	    lastReadAtMap = c.GetLastReadStates(ctx)
 	}
 
 	data := map[string]interface{}{
