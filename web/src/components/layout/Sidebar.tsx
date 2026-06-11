@@ -93,20 +93,15 @@ export default function Sidebar() {
           ) : (
             <ul className="forum-list">
               {nodes.map((node) => {
-                // ✅ 修复：将 isActive 的计算移入 map 回调内部
                 const isActive = node.nodeId === activeNodeId;
                 
                 return (
                   <li
                     key={node.nodeId}
-                    className={clsx('forum-item cursor-pointer', { active: isActive })}
+                    className={clsx('forum-item', { active: isActive })}
                     onClick={() => handleNodeClick(node.nodeId)}
                   >
-                    {/* ✅ 修复：使用正确的 isActive 变量 + 添加兜底值 */}
-                    <NodeIcon 
-                      icon={node.icon} 
-                      className={isActive ? 'text-blue-600 dark:text-blue-400' : ''} 
-                    />
+                    <NodeIcon icon={node.icon} />
                     <span className="truncate">{node.name}</span>
                     <span className="forum-count">{node.topicCount}</span>
                   </li>
