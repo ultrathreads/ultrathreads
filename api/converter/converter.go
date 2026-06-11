@@ -75,6 +75,7 @@ func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 	rsp := &model.FavoriteResponse{}
 	rsp.FavoriteId = favorite.ID
 	rsp.EntityType = favorite.EntityType
+	rsp.EntityId = favorite.EntityId
 	rsp.CreateTime = favorite.CreateTime
 
 	if favorite.EntityType == model.EntityTypeArticle {

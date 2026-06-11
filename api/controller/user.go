@@ -126,24 +126,22 @@ func (c *UserController) GetNotifications(ctx *gin.Context) {
 // GetFavorites get favorites
 func (c *UserController) GetFavorites(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	cursor := util.FormValueInt64Default(ctx, "cursor", 0)
 
-	// 查询列表
-	var favorites []model.Favorite
-	if cursor > 0 {
-		favorites = service.FavoriteService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and id < ?",
-			user.ID, cursor).Desc("id").Limit(20))
-	} else {
-		favorites = service.FavoriteService.Find(querybuilder.NewQueryBuilder().Where("user_id = ?", user.ID).Desc("id").Limit(20))
-	}
+	// 1. 获取分页参数
+	page := util.FormValueIntDefault(ctx, "page", 1)
 
-	if len(favorites) > 0 {
-		cursor = favorites[len(favorites)-1].ID
-	}
+	// 2. 构建查询条件（使用 Page 方法代替手动的 Limit/Offset）
+	qb := querybuilder.NewQueryBuilder().
+		Eq("user_id", user.ID).
+		Page(page, 20).
+		Desc("id")
+
+	// 3. 执行查询并返回结果
+	favorites, paging := service.FavoriteService.List(qb)
 
 	c.Success(ctx, gin.H{
 		"results": converter.ToFavorites(favorites),
-		"cursor":  cursor,
+		"page":    paging,
 	})
 }
 
