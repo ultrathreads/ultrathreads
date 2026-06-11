@@ -29,9 +29,8 @@ export default async function RootLayout({
   const initialUser = await getServerSession();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body>
-        {/* ✅ 保持 I18nClientProvider 在最外层，确保 AuthProvider 及其子组件能使用多语言 */}
         <I18nClientProvider locale={locale}>
            <AuthProvider initialUser={initialUser}>
             {children}

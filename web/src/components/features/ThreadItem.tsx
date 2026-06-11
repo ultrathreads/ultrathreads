@@ -20,6 +20,7 @@ function buildPostUrl(postId: number | string, backState?: BackState): string {
   }
   const params = new URLSearchParams();
   if (backState.nodeId) params.set('nodeId', backState.nodeId);
+  if (backState.tagId) params.set('tagId', backState.tagId);
   if (backState.page) params.set('page', backState.page);
   return `/post/${postId}?${params.toString()}`;
 }

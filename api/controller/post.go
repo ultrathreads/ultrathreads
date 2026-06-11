@@ -50,7 +50,7 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 	limit := util.FormValueIntDefault(ctx, "limit", 20)
 	nodeId := util.FormValueIntDefault(ctx, "nodeId", 0)
 
-	posts, paging := service.PostService.ListThreadsWithReplies(page, limit, nodeId)
+	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeId)
 
 	var lastReadAtMap map[int64]int64
 	if nodeId > 0 {
@@ -62,6 +62,26 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 	data := map[string]interface{}{
 		"results": 		 converter.ToSimplePosts(posts),
 		"page":    		 paging,
+		"lastReadAtMap": lastReadAtMap,
+	}
+	c.Success(ctx, data)
+}
+
+// ListTagThreads 标签帖子列表
+func (c *PostController) ListTagThreads(ctx *gin.Context) {
+	page := util.FormValueIntDefault(ctx, "page", 1)
+	tagId, err := util.FormValueInt64(ctx, "tagId")
+	if err != nil {
+		c.Fail(ctx, util.ErrorTagNotFound)
+		return
+	}
+	posts, paging := service.PostService.GetTagThreadsFull(tagId, page)
+
+	lastReadAtMap := c.GetLastReadStates(ctx)
+
+	data := map[string]interface{}{
+		"results":       converter.ToSimplePosts(posts),
+		"page":          paging,
 		"lastReadAtMap": lastReadAtMap,
 	}
 	c.Success(ctx, data)
@@ -262,39 +282,6 @@ func (c *PostController) GetPostsNoreply(ctx *gin.Context) {
 		Eq("status", model.StatusOk).
 		Eq("comment_count", 0).
 		Page(page, 20).Desc("last_comment_time"))
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	c.Success(ctx, data)
-}
-
-// 节点帖子列表
-func (c *PostController) GetNodePosts(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
-	nodeId := util.FormValueInt64Default(ctx, "nodeId", 0)
-
-	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
-		Eq("node_id", nodeId).
-		Eq("status", model.StatusOk).
-		Page(page, 20).Desc("last_comment_time"))
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-
-	c.Success(ctx, data)
-}
-
-// 标签帖子列表
-func (c *PostController) GetTagPosts(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
-	tagId, err := util.FormValueInt64(ctx, "tagId")
-	if err != nil {
-		c.Fail(ctx, util.ErrorTagNotFound)
-		return
-	}
-	posts, paging := service.PostService.GetTagPosts(tagId, page)
 
 	data := map[string]interface{}{}
 	data["results"] = converter.ToSimplePosts(posts)

@@ -8,20 +8,25 @@ import (
 	"ultrathreads/util"
 )
 
-// CurrentUserReadState 仅当请求包含 nodeId（路径参数或查询参数）时，
+// CurrentUserReadState 仅当请求包含 nodeId 或 tagId（路径参数或查询参数）时，
 // 才注入当前用户该节点的已读时间戳，避免无关接口产生无效 DB 查询
 func CurrentUserReadState() gin.HandlerFunc {
 	const readStatesKey = "CurrentUserReadStates"
 
 	return func(c *gin.Context) {
-		// ✅ 优先取路径参数，为空则回退到查询参数，两者均无时 nodeID 保持 ""
+		// 优先从路径参数获取，其次从查询参数获取
 		nodeID := util.ParamStringDefault(c, "nodeId", "")
 		if nodeID == "" {
 			nodeID = util.QueryStringDefault(c, "nodeId", "")
 		}
 
+		tagID := util.ParamStringDefault(c, "tagId", "")
+		if tagID == "" {
+			tagID = util.QueryStringDefault(c, "tagId", "")
+		}
+
 		// 两者都缺失时直接跳过，不执行任何 DB 查询
-		if nodeID == "" {
+		if nodeID == "" && tagID == "" {
 			c.Next()
 			return
 		}

@@ -9,49 +9,46 @@ import type { ThreadViewItem } from '@/types/view';
 import { markNodeAsRead } from '@/services/node-service';
 
 import ThreadItem from './ThreadItem';
-import NodeHeader from './NodeHeader';
+import NodeHeader, { type HeaderDisplayData } from './NodeHeader'; // 引入新类型
 
 /** 从列表页透传的回溯状态 */
 export interface BackState {
   nodeId?: string;
+  tagId?: string; // 新增 tagId
   page?: string;
 }
 
 interface Props {
   threads: ThreadViewItem[];
   activeNode: NodeEntity | null;
+  activeTag?: HeaderDisplayData | null; // 新增 activeTag 数据
   backState?: BackState;
 }
 
 /**
  * 构建带回溯参数的详情页链接
- * 无参数时返回干净 URL，避免冗余查询字符串
  */
 function buildPostUrl(postId: number | string, backState?: BackState): string {
-  if (!backState || (!backState.nodeId && !backState.page)) {
+  if (!backState || (!backState.nodeId && !backState.tagId && !backState.page)) {
     return `/post/${postId}`;
   }
 
   const params = new URLSearchParams();
   if (backState.nodeId) params.set('nodeId', backState.nodeId);
+  if (backState.tagId) params.set('tagId', backState.tagId); // 处理 tagId
   if (backState.page) params.set('page', backState.page);
 
   return `/post/${postId}?${params.toString()}`;
 }
 
-/** 客户端排序函数 */
+/** 客户端排序函数 (保持不变) */
 function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewItem[] {
   const sorted = [...threads];
-
   sorted.sort((a, b) => {
-    // ✅ 1. 最高优先级：置顶帖始终排在非置顶帖前面
     const pinA = a.isPinned ? 1 : 0;
     const pinB = b.isPinned ? 1 : 0;
-    if (pinA !== pinB) {
-      return pinB - pinA; // 降序：true(1) > false(0)
-    }
+    if (pinA !== pinB) return pinB - pinA;
 
-    // ✅ 2. 次级优先级：仅在置顶状态相同时，才应用业务排序规则
     switch (sortType) {
       case 'latest':
         return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -70,42 +67,40 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
         return 0;
     }
   });
-
   return sorted;
 }
 
-export default function ThreadTree({ threads, activeNode, backState }: Props) {
+export default function ThreadTree({ threads, activeNode, activeTag, backState }: Props) {
   const router = useRouter();
 
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('reply');
   const [markingRead, setMarkingRead] = useState(false);
 
-  // ✅ 提前计算有效的 nodeId，避免重复逻辑
-  const effectiveNodeId = useMemo(() => {
-    return activeNode?.nodeId ?? activeNode?.id;
-  }, [activeNode]);
+  // ✅ 提取有效的 ID：优先取 Node，其次取 Tag
+  const effectiveId = useMemo(() => {
+    return activeNode?.nodeId ?? activeNode?.id ?? backState?.tagId;
+  }, [activeNode, backState]);
 
-  // ✅ 排序逻辑保持不变
   const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);
-
   const toggleAll = () => setAllCollapsed((prev) => !prev);
 
-  // ✅ 标记已读回调：使用 router.refresh() 替代整页刷新
+  // ✅ 标记已读回调
   const handleMarkAsRead = useCallback(async () => {
     console.log('[ThreadTree] markAsRead clicked', {
-      nodeId: effectiveNodeId,
+      id: effectiveId,
       markingRead,
     });
 
-    if (!effectiveNodeId) {
-      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 nodeId', activeNode);
+    if (!effectiveId) {
+      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 ID', { activeNode, backState });
       return;
     }
 
     setMarkingRead(true);
     try {
-      await markNodeAsRead(effectiveNodeId);
+      // 假设你的 service 层已经兼容了传入 tagId 的情况
+      await markNodeAsRead(effectiveId); 
       toast.success('标记已读成功');
       router.refresh();
     } catch (err) {
@@ -114,26 +109,32 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
     } finally {
       setMarkingRead(false);
     }
-  }, [effectiveNodeId, markingRead, activeNode, router]);
+  }, [effectiveId, markingRead, activeNode, backState, router]);
 
-  // ✅ 判断按钮是否应该禁用
-  const isMarkReadDisabled = markingRead || !effectiveNodeId;
+  const isMarkReadDisabled = markingRead || !effectiveId;
+
+  // ✅ 核心转换：将 Tag 的 tagName 映射为 HeaderDisplayData 的 name
+  const headerTagData = useMemo<HeaderDisplayData | null>(() => {
+    if (!activeTag) return null;
+    return {
+      name: activeTag.tagName, // 转换在这里发生
+    };
+  }, [activeTag]);
 
   return (
     <div className="thread-tree-container">
       <div className="thread-tree-header">
-        <NodeHeader node={activeNode} />
+        <NodeHeader node={activeNode} tag={headerTagData} />
 
         <div className="thread-tree-actions">
-          {/* ✅ 标记已读按钮：增加视觉禁用态 + 精确的 disabled 条件 */}
           <button
             className={`detail-action-btn ${isMarkReadDisabled ? 'is-disabled' : ''}`}
             onClick={handleMarkAsRead}
             disabled={isMarkReadDisabled}
-            aria-label="标记当前节点为已读"
-            title={!effectiveNodeId 
-              ? "当前无有效节点，无法标记已读" 
-              : "将本节点所有帖子标记为已读"
+            aria-label="标记当前节点/标签为已读"
+            title={!effectiveId 
+              ? "当前无有效节点或标签，无法标记已读" 
+              : "将当前内容标记为已读"
             }
           >
             {markingRead ? (
@@ -148,7 +149,6 @@ export default function ThreadTree({ threads, activeNode, backState }: Props) {
             )}
           </button>
 
-          {/* 排序和折叠按钮保持不变 */}
           <select
             className="sort-select"
             value={sort}

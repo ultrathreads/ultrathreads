@@ -8,6 +8,30 @@ export interface TagPageData {
 }
 
 /**
+ * 获取单个板块详情
+ * - 用于点击板块时获取名称和简介，供右侧面板展示
+ */
+export async function getTagDetail(tagId: number): Promise<TagDetailData> {
+  try {
+    const data = await apiFetch<tagEntity>(`/tag/${tagId}`, {
+      auth: false,
+      cacheStrategy: { next: { tags: [`tag-${tagId}`], revalidate: 30 } },
+    });
+
+    return {
+      tag: data ?? null,
+      error: null,
+    };
+  } catch (err) {
+    console.error(`[NodeService] Fetch tag ${tagId} failed:`, err);
+    return {
+      tag: null,
+      error: err instanceof Error ? err.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * 获取热门标签列表
  * - 失败时返回空数组兜底，保证侧边栏不白屏
  */
@@ -51,6 +75,6 @@ export async function fetchTagSuggestions(input: string): Promise<TagEntity[]> {
     return Array.isArray(data) ? data : [];
   } catch (err) {
     console.error('[TagService] Auto-complete failed:', err);
-    return []; // ✅ 兜底：联想失败不应阻断用户手动输入
+    return [];
   }
 }

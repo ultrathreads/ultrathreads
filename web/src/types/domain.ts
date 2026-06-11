@@ -71,3 +71,8 @@ export interface NodeDetailData {
   node: NodeEntity | null;
   error: string | null;
 }
+
+export interface TagDetailData {
+  tag: TagEntity | null;
+  error: string | null;
+}

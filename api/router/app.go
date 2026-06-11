@@ -50,16 +50,16 @@ func setupApp(e *gin.Engine) {
 
 		// Posts
 		optional.GET("/threads", postController.ListThreads)
+		optional.GET("/threads/tag", postController.ListTagThreads)
+
 		optional.GET("/posts", postController.List)
 		optional.GET("/post/:id", postController.Show)
 		optional.GET("/post/:id/with-thread", postController.GetPostWithThread)
 		optional.GET("/post/:id/flat", postController.GetPostsFlat)
-		optional.GET("/posts/node", postController.GetNodePosts)
 		optional.GET("/posts/excellent", postController.GetPostsExcellent)
 		optional.GET("/posts/recommend", postController.GetPostsRecommend)
 		optional.GET("/posts/noreply", postController.GetPostsNoreply)
 		optional.GET("/posts/last", postController.GetPostsLast)
-		optional.GET("/posts/tag", postController.GetTagPosts)
 		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
 		optional.GET("/user/posts/:id", postController.GetUserPosts)
 		optional.GET("/post/:id/recentlikes", postController.GetRecentLikes)

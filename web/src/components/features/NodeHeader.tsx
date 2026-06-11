@@ -2,12 +2,23 @@
 import type { NodeEntity } from '@/types/domain';
 import { NodeIcon } from '@/components/NodeIcon';
 
-interface Props {
-  node: NodeEntity | null;
+// 定义一个通用的头部展示接口
+export interface HeaderDisplayData {
+  name: string;
+  description?: string;
+  icon?: string;
 }
 
-export default function NodeHeader({ node }: Props) {
-  if (!node) {
+interface Props {
+  node: NodeEntity | null;
+  tag?: HeaderDisplayData | null;
+}
+
+export default function NodeHeader({ node, tag }: Props) {
+  // 优先展示 Tag，其次展示 Node，最后展示默认首页状态
+  const displayData = tag || node;
+
+  if (!displayData) {
     return (
       <div className="board-title-wrapper">
         <span className="board-title-icon">🏠</span>
@@ -19,15 +30,21 @@ export default function NodeHeader({ node }: Props) {
     );
   }
 
+  // 标签没有 icon，所以这里做个简单的兜底
+  const iconToRender = tag ? (tag.icon || '🏷️') : displayData.icon;
+
   return (
     <div className="board-title-wrapper">
       <NodeIcon 
-        icon={node.icon} 
+        icon={iconToRender}
         className="board-title-icon" 
       />
       <div className="board-title-text">
-        <div className="board-title-name">{node.name}</div>
-        <div className="board-title-desc">{node.description}</div>
+        <div className="board-title-name">{displayData.name}</div>
+        {/* 只有 Node 才有 description，所以仅在非 tag 且有值时渲染 */}
+        {!tag && displayData.description && (
+          <div className="board-title-desc">{displayData.description}</div>
+        )}
       </div>
     </div>
   );

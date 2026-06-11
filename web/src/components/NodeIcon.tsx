@@ -1,12 +1,14 @@
 // components/NodeIcon.tsx
 import clsx from 'clsx';
 
+// ✅ 修复：统一接口名称为 NodeIconProps
 interface NodeIconProps {
   icon: string;
   className?: string;
 }
 
-export function NodeIcon({ icon, className }: Props) {
+// ✅ 修复：将 Props 替换为 NodeIconProps
+export function NodeIcon({ icon, className }: NodeIconProps) {
   // 1. SVG 内容：直接渲染，不做任何过滤
   if (icon.trimStart().startsWith('<svg')) {
     return (

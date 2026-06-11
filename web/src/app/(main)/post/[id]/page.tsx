@@ -21,18 +21,21 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
   backState: BackState;
 } {
   const nodeId = searchParams.nodeId;
+  const tagId = searchParams.tagId;
   const page = searchParams.page;
 
   const backState: BackState = {};
   if (nodeId) backState.nodeId = String(nodeId);
+  if (tagId) backState.tagId = String(tagId);
   if (page) backState.page = String(page);
 
-  if (!backState.nodeId && !backState.page) {
+  if (!backState.nodeId && !backState.tagId && !backState.page) {
     return { backUrl: '/', backState: {} };
   }
 
   const params = new URLSearchParams();
   if (backState.nodeId) params.set('nodeId', backState.nodeId);
+  if (backState.tagId) params.set('tagId', backState.tagId);
   if (backState.page) params.set('page', backState.page);
 
   return {

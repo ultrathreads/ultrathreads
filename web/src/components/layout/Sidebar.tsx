@@ -63,17 +63,8 @@ export default function Sidebar() {
     router.push(`/?${params.toString()}`);
   };
 
-  const handleTagClick = (tagLabel: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (activeTag === tagLabel) {
-      params.delete('tag');
-    } else {
-      params.set('tag', tagLabel);
-      params.set('page', '1');
-    }
-
-    router.push(`/?${params.toString()}`);
+  const handleTagClick = (tagId: number) => {
+     router.push(`/tags/${tagId}?page=1`);
   };
 
   return (
@@ -118,15 +109,20 @@ export default function Sidebar() {
             <div className="forum-list-loading">{t('common:loading')}</div>
           ) : (
             <div className="tag-cloud">
-              {tags.map((tag) => (
-                <span
-                  key={tag.tagName}
-                  className={clsx('tag-item', { active: activeTag === tag.tagName })}
-                  onClick={() => handleTagClick(tag.tagName)}
-                >
-                  {tag.tagName}
-                </span>
-              ))}
+              {tags.map((tag) => {
+
+                const isActive = window.location.pathname === `/tags/${tag.tagId}`;
+
+                return (
+                  <span
+                    key={tag.tagId}
+                    className={clsx('tag-item', { active: isActive })}
+                    onClick={() => handleTagClick(tag.tagId)}
+                  >
+                    {tag.tagName}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
