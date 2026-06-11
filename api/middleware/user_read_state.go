@@ -5,14 +5,27 @@ import (
 
 	"ultrathreads/model"
 	"ultrathreads/service"
+	"ultrathreads/util"
 )
 
-// CurrentUserReadStates 注入当前用户所有节点的已读时间戳
-// 不再依赖 nodeId 参数，一次加载全量供下游按需取用
+// CurrentUserReadState 仅当请求包含 nodeId（路径参数或查询参数）时，
+// 才注入当前用户该节点的已读时间戳，避免无关接口产生无效 DB 查询
 func CurrentUserReadState() gin.HandlerFunc {
 	const readStatesKey = "CurrentUserReadStates"
 
 	return func(c *gin.Context) {
+		// ✅ 优先取路径参数，为空则回退到查询参数，两者均无时 nodeID 保持 ""
+		nodeID := util.ParamStringDefault(c, "nodeId", "")
+		if nodeID == "" {
+			nodeID = util.QueryStringDefault(c, "nodeId", "")
+		}
+
+		// 两者都缺失时直接跳过，不执行任何 DB 查询
+		if nodeID == "" {
+			c.Next()
+			return
+		}
+
 		var userID int64
 		if userVal, exists := c.Get("CurrentUser"); exists && userVal != nil {
 			if user, ok := userVal.(*model.User); ok {
@@ -20,7 +33,6 @@ func CurrentUserReadState() gin.HandlerFunc {
 			}
 		}
 
-		// 未登录时 GetUserReadStates 返回空 map，下游按 key 取值自然得到零值
 		states := service.UserReadStateService.GetUserReadStates(userID)
 		c.Set(readStatesKey, states)
 

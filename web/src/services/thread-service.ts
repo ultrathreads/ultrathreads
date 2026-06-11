@@ -45,24 +45,25 @@ const DEFAULT_LIMIT = 20;
 /**
  * 获取帖子列表页数据
  * @param page 当前页码
- * @param nodeId 可选的板块ID，传入时仅获取该板块下的帖子
+ * @param nodeId 可选的板块ID，传入时仅获取该板块下的帖子；未传或无效时默认为 0
  */
 export async function getThreadPageData(
   page: number,
   nodeId?: number,
 ): Promise<ThreadPageData> {
   const safePage = Math.max(1, Number.isNaN(page) ? 1 : page);
+  // ✅ 确保 nodeId 始终存在：undefined / NaN / 未传 → 0
+  const safeNodeId =
+    nodeId !== undefined && !Number.isNaN(nodeId) ? nodeId : 0;
 
   const params = new URLSearchParams({
     page: String(safePage),
     limit: String(DEFAULT_LIMIT),
+    nodeId: String(safeNodeId), // ✅ 始终携带，不再条件判断
   });
-  if (nodeId !== undefined && !Number.isNaN(nodeId)) {
-    params.set('nodeId', String(nodeId));
-  }
 
   // 缓存标签按节点隔离，避免切换板块时命中旧缓存
-  const cacheTags = ['threads', ...(nodeId ? [`node-${nodeId}`] : [])];
+  const cacheTags = ['threads', ...(safeNodeId ? [`node-${safeNodeId}`] : [])];
 
   try {
     const data = await apiFetch<ThreadsApiResponse>(

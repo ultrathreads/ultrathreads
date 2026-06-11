@@ -162,6 +162,13 @@ func ParamString(ctx *gin.Context, name string) (string, error) {
 	return v, nil
 }
 
+func ParamStringDefault(ctx *gin.Context, name string, def string) string {
+	if v, err := ParamString(ctx, name); err == nil {
+		return v
+	}
+	return def
+}
+
 // ==================== Query (纯 URL 查询参数) ====================
 // 📌 场景: GET 列表筛选/分页 (?page=1&size=20&status=active)
 // ⚠️ 注意: 与 FormValue 的区别是 Query 只读 URL ?后面的参数，不读 POST Body
