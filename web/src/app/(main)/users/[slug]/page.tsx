@@ -2,9 +2,10 @@
 import type { Metadata } from 'next';
 import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import { getUserBySlug } from '@/services/user-service';
-import { getUserPostsPageData } from '@/services/my-post-service';
+import { getUserRootPostsPageData } from '@/services/my-post-service';
 import MyPostsList from '@/components/features/MyPostsList';
 import TopicPagination from '@/components/TopicPagination';
+import EmptyTip from '@/components/ui/EmptyTip';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -25,10 +26,10 @@ export default async function UserPublicPostsPage({ params, searchParams }: Prop
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
 
   const user = await getUserBySlug(slug);
-  const { posts, paging, error } = await getUserPostsPageData(user.id, currentPage);
+  const { posts, paging, error } = await getUserRootPostsPageData(user.id, currentPage);
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{t('common:loadFailed')}</div>;
+    return <EmptyTip text={t('common:loadFailed')} variant="error" />;
   }
 
   return (
@@ -40,7 +41,7 @@ export default async function UserPublicPostsPage({ params, searchParams }: Prop
           user={user}
         />
       ) : (
-        <div className="p-8 text-center text-gray-400">该用户还没有发布过帖子</div>
+        <EmptyTip text={t('common:noPosts')} />
       )}
 
       {posts.length > 0 && (

@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 const TABS = [
-  { key: 'root', label: '我的主帖' },
-  { key: 'replies', label: '我的回帖' },
-  { key: 'bookmarks', label: '我的书签' },
+  { key: 'root', label: '📝 我的主帖' },
+  { key: 'replies', label: '💬 我的回帖' },
+  { key: 'bookmarks', label: '📑 我的书签' },
 ];
 
 export default function MyPostsTabs() {
