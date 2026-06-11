@@ -35,7 +35,7 @@ func (s *userReadStateService) MarkAsRead(userID, nodeID int64, readAt int64) er
 	}
 
 	// 写入成功后立即失效缓存，下次 Get 自动通过 LoadingCache 加载最新值
-	cache.ReadStateCache.Invalidate(userID, nodeID)
+	cache.ReadStateCache.InvalidateUserStates(userID)
 	return nil
 }
 
