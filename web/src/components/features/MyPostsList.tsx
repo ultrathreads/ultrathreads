@@ -44,7 +44,7 @@ export default function MyPostsList({ initialPosts, user, tab }: Props) {
 
                 <Link
                   className={`subject ${!isRootPost ? 'read' : ''}`}
-                  href={`/post/${item.slug}`}
+                  href={`/threads/${item.slug}`}
                 >
                   {item.title || '(无标题)'}
                 </Link>

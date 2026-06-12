@@ -8,7 +8,7 @@ interface PostTreeItem extends PostEntity {
 }
 
 interface BuildTreeOptions {
-  lastReadAtMap?: Record<number, number>;
+  lastReadAtMap?: Record<string, number>;
 }
 
 /**

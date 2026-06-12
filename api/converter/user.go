@@ -80,3 +80,34 @@ func ToUsers(users []model.User) []model.UserInfo {
 	}
 	return responses
 }
+
+func ToLastReadAtMap(m map[int64]int64, nodeSlugs ...string) map[string]int64 {
+	if m == nil {
+		return nil
+	}
+
+	// 未指定 slug，返回全部（key 从 ID 转为 Slug）
+	if len(nodeSlugs) == 0 {
+		result := make(map[string]int64, len(m))
+		for nodeID, lastReadAt := range m {
+			slug := hashid.Id2Slug[model.Node](nodeID)
+			result[slug] = lastReadAt
+		}
+		return result
+	}
+
+	// 指定了 slug，构建反向索引 O(n) 查找，避免对每个 slug 遍历整个 map
+	slugToID := make(map[string]int64, len(m))
+	for nodeID := range m {
+		slug := hashid.Id2Slug[model.Node](nodeID)
+		slugToID[slug] = nodeID
+	}
+
+	result := make(map[string]int64, len(nodeSlugs))
+	for _, slug := range nodeSlugs {
+		if nodeID, ok := slugToID[slug]; ok {
+			result[slug] = m[nodeID]
+		}
+	}
+	return result
+}

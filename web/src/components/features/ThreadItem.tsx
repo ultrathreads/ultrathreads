@@ -17,13 +17,13 @@ interface Props {
 
 function buildPostUrl(postSlug: string | string, backState?: BackState): string {
   if (!backState || (!backState.nodeSlug && !backState.tagSlug && !backState.page)) {
-    return `/post/${postSlug}`;
+    return `/threads/${postSlug}`;
   }
   const params = new URLSearchParams();
   if (backState.nodeSlug) params.set('nodeSlug', backState.nodeSlug);
   if (backState.tagSlug) params.set('tagSlug', backState.tagSlug);
   if (backState.page) params.set('page', backState.page);
-  return `/post/${postSlug}?${params.toString()}`;
+  return `/threads/${postSlug}?${params.toString()}`;
 }
 
 export default function ThreadItem({
@@ -129,7 +129,7 @@ export default function ThreadItem({
         {isRoot && (
           <Link
             className="icon-btn flat-view-btn"
-            href={`/post/${item.slug}?view=flat`}
+            href={`/threads/${item.slug}?view=flat`}
             title={`平铺模式浏览 ${item.author} 的帖子`}
             aria-label={`平铺模式浏览 ${item.author} 的帖子`}
           >

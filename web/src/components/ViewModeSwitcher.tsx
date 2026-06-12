@@ -10,7 +10,7 @@ export function ViewModeSwitcher() {
   const currentView = searchParams.get('view') === 'flat' ? 'flat' : 'tree';
 
   // ✅ 直接从路径中提取 ID，硬拼 #post-id，不再依赖 window.location.hash
-  // 假设路径格式为 /post/123 或 /post/123/xxx
+  // 假设路径格式为 /threads/123 或 /threads/123/xxx
   const postId = pathname.split('/').filter(Boolean)[1]; 
   const hash = postId ? `#post-${postId}` : '';
 

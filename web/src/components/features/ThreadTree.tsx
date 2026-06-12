@@ -30,7 +30,7 @@ interface Props {
  */
 function buildPostUrl(postSlug: string, backState?: BackState): string {
   if (!backState || (!backState.nodeSlug && !backState.tagSlug && !backState.page)) {
-    return `/post/${postSlug}`;
+    return `/threads/${postSlug}`;
   }
 
   const params = new URLSearchParams();
@@ -38,7 +38,7 @@ function buildPostUrl(postSlug: string, backState?: BackState): string {
   if (backState.tagSlug) params.set('tagSlug', backState.tagSlug);
   if (backState.page) params.set('page', backState.page);
 
-  return `/post/${postSlug}?${params.toString()}`;
+  return `/threads/${postSlug}?${params.toString()}`;
 }
 
 /** 客户端排序函数 (保持不变) */

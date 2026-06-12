@@ -17,14 +17,14 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const initialNodeId = (() => {
-    const id = searchParams.get('nodeId');
-    if (id && nodes.some((n) => String(n.nodeId) === id)) return id;
+  const initialNodeSlug = (() => {
+    const slug = searchParams.get('nodeSlug');
+    if (slug && nodes.some((n) => String(n.nodeSlug) === slug)) return slug;
     return '';
   })();
 
   const [title, setTitle] = useState('');
-  const [nodeId, setNodeId] = useState(initialNodeId);
+  const [nodeSlug, setNodeSlug] = useState(initialNodeSlug);
   const [tags, setTags] = useState('');
   const [content, setContent] = useState('');
   const [attempted, setAttempted] = useState(false);
@@ -40,7 +40,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
     setAttempted(true);
 
     // ✅ 纯前端校验失败 → 仅激活行内错误，不弹 Toast
-    if (!nodeId || !title.trim() || !content.trim()) return;
+    if (!nodeSlug || !title.trim() || !content.trim()) return;
 
     if (submittingRef.current) return;
     submittingRef.current = true;
@@ -49,7 +49,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
       await toast.promise(
         createPost({
           title: title.trim(),
-          nodeId: Number(nodeId),
+          nodeSlug: Number(nodeSlug),
           content,
           tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         }),
@@ -58,7 +58,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
           success: (result) => {
             submittingRef.current = false;
             setTimeout(() => {
-              router.push(result?.id ? `/post/${result.id}` : '/');
+              router.push(result?.slug ? `/threads/${result.slug}` : '/');
               router.refresh();
             }, 600);
             return '主题发布成功 🎉';
@@ -76,12 +76,12 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
   };
 
   const errors = {
-    nodeId: attempted && !nodeId,
+    nodeSlug: attempted && !nodeSlug,
     title: attempted && !title.trim(),
     content: attempted && !content.trim(),
   };
 
-  const isFormValid = Boolean(nodeId && title.trim() && content.trim());
+  const isFormValid = Boolean(nodeSlug && title.trim() && content.trim());
 
   return (
     <form id="createPostForm" onSubmit={handleSubmit} noValidate>
@@ -89,16 +89,16 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
         <div className="form-group">
           <label className="form-label">所属板块<span className="required">*</span></label>
           <select
-            className={`form-select ${errors.nodeId ? 'form-error' : ''}`}
-            value={nodeId}
-            onChange={(e) => { setNodeId(e.target.value); if (attempted) setAttempted(true); }}
+            className={`form-select ${errors.nodeSlug ? 'form-error' : ''}`}
+            value={nodeSlug}
+            onChange={(e) => { setNodeSlug(e.target.value); if (attempted) setAttempted(true); }}
           >
             <option value="">请选择板块...</option>
             {nodes.map((node) => (
-              <option key={node.nodeId} value={node.nodeId}>{node.name}</option>
+              <option key={node.slug} value={node.slug}>{node.name}</option>
             ))}
           </select>
-          {errors.nodeId && <p className="form-error-text">请选择所属板块</p>}
+          {errors.nodeSlug && <p className="form-error-text">请选择所属板块</p>}
         </div>
 
         <div className="form-group">

@@ -4,9 +4,9 @@ import { apiFetch, ApiBusinessError } from '@/lib/api/client';
 import type { PostEntity, PostWithThread } from '@/types/domain';
 
 // ✅ 修复：返回类型从 PostDetail 改为 PostEntity
-export async function getPostDetail(postId: string): Promise<PostEntity> {
+export async function getPostDetail(postSlug: string): Promise<PostEntity> {
   try {
-    return await apiFetch<PostEntity>(`/post/${postId}`);
+    return await apiFetch<PostEntity>(`/post/${postSlug}`);
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
@@ -18,9 +18,9 @@ export async function getPostDetail(postId: string): Promise<PostEntity> {
 /**
  * ✅ 获取帖子详情及其所有回帖
  */
-export async function getPostWithThread(postId: string): Promise<PostWithThread> {
+export async function getPostWithThread(postSlug: string): Promise<PostWithThread> {
   try {
-    return await apiFetch<PostWithThread>(`/post/${postId}/with-thread`);
+    return await apiFetch<PostWithThread>(`/post/${postSlug}/with-thread`);
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
@@ -32,9 +32,9 @@ export async function getPostWithThread(postId: string): Promise<PostWithThread>
 /**
  * ✅ 获取帖子详情及其所有回帖（扁平列表）
  */
-export async function getPostFlat(threadId: string): Promise<PostWithFlat> {
+export async function getPostFlat(postSlug: string): Promise<PostWithFlat> {
   try {
-    return await apiFetch<PostWithFlat>(`/post/${threadId}/flat`);
+    return await apiFetch<PostWithFlat>(`/post/${postSlug}/flat`);
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);

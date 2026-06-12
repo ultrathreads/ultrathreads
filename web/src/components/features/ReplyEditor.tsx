@@ -8,16 +8,16 @@ import { createPost } from '@/services/post-service';
 import { extractPostTitle } from '@/lib/utils/post';
 
 interface ReplyEditorProps {
-  parentId: number;
-  nodeId: number;
+  parentSlug: string;
+  nodeSlug: string;
   replyToTitle?: string;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;
 }
 
 export default function ReplyEditor({
-  parentId,
-  nodeId,
+  parentSlug,
+  nodeSlug,
   replyToTitle,
   autoFocus = false,
   onAutoFocusConsumed,
@@ -51,13 +51,13 @@ export default function ReplyEditor({
     if (!title) { toast.warning('无法从内容中提取标题，请输入有效文本'); return; }
 
     toast.promise(
-      createPost({ title, nodeId, parentId, content }),
+      createPost({ title, nodeSlug, parentSlug, content }),
       {
         loading: '发布中...',
         success: (result) => {
           setContent('');
           setTimeout(() => {
-            router.push(result?.id ? `/post/${result.id}` : '/');
+            router.push(result?.slug ? `/threads/${result.slug}` : '/');
             router.refresh();
           }, 600);
           return '回复发布成功 🎉';
@@ -74,8 +74,8 @@ export default function ReplyEditor({
         {replyToTitle && <span className="reply-to-tag">→ {replyToTitle}</span>}
       </h3>
 
-      <input type="hidden" name="parentId" value={parentId} />
-      <input type="hidden" name="nodeId" value={nodeId} />
+      <input type="hidden" name="parentSlug" value={parentSlug} />
+      <input type="hidden" name="nodeSlug" value={nodeSlug} />
 
       <div data-color-mode="light">
         {/* ✅ 核心修复：通过 textareaProps 透传 autoFocus，由 MDEditor 内部在正确时机执行 */}

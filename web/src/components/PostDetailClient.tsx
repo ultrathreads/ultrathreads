@@ -24,8 +24,8 @@ export default function PostDetailClient({
 }: PostDetailClientProps) {
   // 默认隐藏编辑器
   const [showEditor, setShowEditor] = useState(false);
-  const [replyToId, setReplyToId] = useState<string | number>(post.id);
-  const [replyToTitle, setReplyToTitle] = useState<string>(post.title);
+  const [replyToId, setReplyToId] = useState<string | number>(post.slug);
+  const [replyToTitle, setReplyToTitle] = useState<string>(post.slug);
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
 
   const handleThreadReplyClick = useCallback((targetId: string | number, targetTitle: string) => {
@@ -40,13 +40,13 @@ export default function PostDetailClient({
       <PostDetailCard
         post={post}
         replyCount={totalReplyCount}
-        isEditorOpen={showEditor && replyToId === post.id}
+        isEditorOpen={showEditor && replyToId === post.slug}
         onReplyClick={() => {
           // 简化切换逻辑，打开时必定触发聚焦
           setShowEditor((prev) => {
             if (!prev) {
               // 从隐藏变为显示 → 重置目标为主帖并触发聚焦
-              setReplyToId(post.id);
+              setReplyToId(post.slug);
               setReplyToTitle(post.title);
               setShouldAutoFocus(true);
             }
@@ -83,10 +83,10 @@ export default function PostDetailClient({
         <ul className="thread">
           {viewPosts.map((reply) => (
             <ThreadItem
-              key={reply.id}
+              key={reply.slug}
               item={reply}
               isRoot
-              currentPostId={String(post.id)}
+              currentPostSlug={String(post.slug)}
               backState={backState}
               onReplyClick={handleThreadReplyClick}
             />

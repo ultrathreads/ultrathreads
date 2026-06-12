@@ -1,4 +1,4 @@
-// src/app/post/[id]/ReadTracker.tsx
+// src/app/threads/[id]/ReadTracker.tsx
 'use client';
 
 import { useMarkAsRead } from '@/hooks/useMarkAsRead';

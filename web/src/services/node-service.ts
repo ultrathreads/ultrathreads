@@ -1,5 +1,5 @@
 // src/lib/services/node-service.ts
-import { apiFetch } from '@/lib/api/client';
+import { apiFetch, ApiBusinessError } from '@/lib/api/client';
 import type { NodeEntity, NodePageData, NodeDetailData } from '@/types/domain';
 
 // ==================== 服务函数 ====================
@@ -56,13 +56,25 @@ export async function getNodeDetail(nodeId: number): Promise<NodeDetailData> {
 
 /**
  * 标记指定节点为已读
- * POST /nodes/:nodeId/read （JWT 认证接口）
+ * POST /nodes/:nodeSlug/mark-as-read （JWT 认证接口）
  */
-export async function markNodeAsRead(nodeId: number | string): Promise<void> {
-  // auth: true → 客户端自动携带 cookie，服务端自动读取 access_token
-  // skipDataUnwrap 不需要，后端返回 success:true + data:null，解包后即为 void
-  await apiFetch<null>(`/nodes/${nodeId}/read`, {
-    method: 'POST',
-    auth: true,
-  });
+
+export async function markNodeAsRead(nodeSlug: string): Promise<void> {
+  try {
+    await apiFetch<null>(`/nodes/${nodeSlug}/mark-as-read`, {
+      method: 'POST',
+      auth: true,
+    });
+  } catch (error) {
+    if (error instanceof ApiBusinessError) {
+      console.error('[NodeService] markNodeAsRead Biz Error:', {
+        message: error.message,
+        code: error.code,
+        raw: error.raw,
+      });
+    } else {
+      console.error('[NodeService] markNodeAsRead System Error:', error);
+    }
+    throw error;
+  }
 }

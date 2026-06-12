@@ -1,13 +1,24 @@
 package form
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 )
+
+// ValidateErrorMessage : customize error messages
+// ✅ 移到这里，确保 Bind 函数一定能访问到
+var ValidateErrorMessage = map[string]string{
+	"default":        "%s - %s is invalid(%s)",
+	"customValidate": "%s can not be %s",
+	"required":       "%s is required,got empty %#v",
+	"pwdValidate":    "%s is not a valid password",
+}
 
 func init() {
 	// Register custom validate methods
@@ -19,11 +30,21 @@ func init() {
 
 // Bind : bind request dto and auto verify parameters
 func Bind(c *gin.Context, obj interface{}) error {
+	// 1. 始终先从 URI 绑定（:slug 等路径参数）
 	_ = c.ShouldBindUri(obj)
-	if err := c.ShouldBind(obj); err != nil {
-		// ✅ 使用 errors.As 安全断言，避免非 ValidationErrors 导致 panic
+
+	// 2. 再尝试 JSON/Query/Form 绑定
+	err := c.ShouldBind(obj)
+
+	// 3. ✅ Body 为空(EOF)时，静默忽略 JSON 绑定错误
+	if err != nil && errors.Is(err, io.EOF) {
+		return nil
+	}
+
+	// 4. 其他绑定错误正常处理
+	if err != nil {
 		var valErrs validator.ValidationErrors
-		if errors.As(err, &valErrs) {
+		if pkgerrors.As(err, &valErrs) {
 			var tagErrorMsg []string
 			for _, e := range valErrs {
 				if msgTpl, has := ValidateErrorMessage[e.Tag()]; has {
@@ -32,20 +53,10 @@ func Bind(c *gin.Context, obj interface{}) error {
 					tagErrorMsg = append(tagErrorMsg, fmt.Sprintf(ValidateErrorMessage["default"], e.Tag(), e.Field(), e.Value()))
 				}
 			}
-			return errors.New(strings.Join(tagErrorMsg, ","))
+			return pkgerrors.New(strings.Join(tagErrorMsg, ","))
 		}
-
-		// ✅ 非验证错误（如 JSON 类型不匹配、格式错误等），直接返回原始错误信息
-		return errors.Wrap(err, "参数绑定失败")
+		return pkgerrors.Wrap(err, "参数绑定失败")
 	}
 
 	return nil
-}
-
-// ValidateErrorMessage : customize error messages
-var ValidateErrorMessage = map[string]string{
-	"default":        "%s - %s is invalid(%s)",
-	"customValidate": "%s can not be %s",
-	"required":       "%s is required,got empty %#v",
-	"pwdValidate":    "%s is not a valid password",
 }

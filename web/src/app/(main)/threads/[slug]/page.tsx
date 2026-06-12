@@ -1,4 +1,4 @@
-// src/app/post/[id]/page.tsx
+// src/app/threads/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getPostWithThread, getPostFlat, getPostDetail } from '@/services/post-service';
@@ -12,7 +12,7 @@ import { ReadTracker } from './ReadTracker';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
@@ -20,38 +20,32 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
   backUrl: string;
   backState: BackState;
 } {
-  const nodeId = searchParams.nodeId;
-  const tagId = searchParams.tagId;
+  const nodeSlug = searchParams.nodeSlug;
+  const tagSlug = searchParams.tagSlug;
   const page = searchParams.page;
 
   const backState: BackState = {};
-  if (nodeId) backState.nodeId = String(nodeId);
-  if (tagId) backState.tagId = String(tagId);
+  if (nodeSlug) backState.nodeSlug = String(nodeSlug);
+  if (tagSlug) backState.tagSlug = String(tagSlug);
   if (page) backState.page = String(page);
 
   // 如果没有任何有效状态，直接返回首页
-  if (!backState.nodeId && !backState.tagId && !backState.page) {
+  if (!backState.nodeSlug && !backState.tagSlug && !backState.page) {
     return { backUrl: '/', backState: {} };
   }
 
-  // 根据 tagId 或 nodeId 动态决定基础路径
+  // 根据 tagSlug 或 nodeSlug 动态决定基础路径
   let basePath = '/';
-  if (backState.tagId) {
-    basePath = `/tags/${backState.tagId}`;
-  } else if (backState.nodeId) {
-    basePath = '/';
+  if (backState.tagSlug) {
+    basePath = `/tags/${backState.tagSlug}`;
+  } else if (backState.nodeSlug) {
+     basePath = `/nodes/${backState.nodeSlug}`;
   }
 
   // 构建查询参数（仅保留 page 等需要拼接到 URL 上的参数）
   const params = new URLSearchParams();
   if (backState.page) {
     params.set('page', backState.page);
-  }
-  
-  // 注意：对于节点列表，nodeId 作为查询参数传递；
-  // 对于标签列表，tagId 已经包含在路径中，无需再次放入查询参数。
-  if (backState.nodeId) {
-    params.set('nodeId', backState.nodeId);
   }
 
   const queryString = params.toString();
@@ -65,10 +59,10 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
 
 export default async function ReadPage({ params, searchParams }: Props) {
   // 1. 解析路由参数与搜索参数
-  let id: string;
+  let slug: string;
   try {
     const resolved = await params;
-    id = resolved.id;
+    slug = resolved.slug;
   } catch {
     notFound();
   }
@@ -93,26 +87,25 @@ export default async function ReadPage({ params, searchParams }: Props) {
 
   try {
     if (view === 'flat') {
-      // ✅ 先尝试用当前 ID 获取平铺数据
-      let result = await getPostFlat(id);
+      // 先尝试用当前 ID 获取平铺数据
+      let result = await getPostFlat(slug);
       let posts = result.posts ?? [];
 
-      // ✅ 判断是否为非根帖（根据实际 API 行为调整此条件）
+      // 判断是否为非根帖（根据实际 API 行为调整此条件）
       const isNonRootFlat =
         posts.length === 0 ||
-        (posts[0] && String(posts[0].id) !== String(id));
+        (posts[0] && !posts[0].isRoot);
 
       if (isNonRootFlat) {
-        // ✅ 轻量级获取元数据，仅取 threadId
-        const detail = await getPostDetail(id);
+        const detail = await getPostDetail(slug);
 
-        // ✅ threadId 缺失时直接抛出，让外层 catch 兜底或触发 notFound
-        if (!detail.threadId) {
-          throw new Error(`Post ${id} is missing threadId, cannot resolve flat view`);
+        // threadSlug 缺失时直接抛出，让外层 catch 兜底或触发 notFound
+        if (!detail.threadSlug) {
+          throw new Error(`Post ${slug} is missing threadSlug, cannot resolve flat view`);
         }
 
-        const threadId = String(detail.threadId);
-        result = await getPostFlat(threadId);
+        const threadSlug = String(detail.threadSlug);
+        result = await getPostFlat(threadSlug);
         posts = result.posts ?? [];
       }
 
@@ -121,25 +114,25 @@ export default async function ReadPage({ params, searchParams }: Props) {
       post = posts[0];
     } else {
       // 树形模式保持原有逻辑不变
-      const result = await getPostWithThread(id);
+      const result = await getPostWithThread(slug);
       post = result.post;
       const replies = result.replies ?? [];
       viewData = buildThreadTree(replies);
       totalReplyCount = replies.length > 0 ? replies.length - 1 : 0;
     }
   } catch (error) {
-    console.error(`[ReadPage] Failed to fetch post ${id} (${view}):`, error);
+    console.error(`[ReadPage] Failed to fetch post ${slug} (${view}):`, error);
 
     // ✅ 兜底：flat 模式报错时，用轻量接口重试一次
     if (view === 'flat') {
       try {
-        const detail = await getPostDetail(id);
+        const detail = await getPostDetail(slug);
 
-        if (!detail.threadId) {
-          console.error(`[ReadPage] Post ${id} missing threadId, skip flat retry`);
+        if (!detail.threadSlug) {
+          console.error(`[ReadPage] Post ${slug} missing threadSlug, skip flat retry`);
         } else {
-          const threadId = String(detail.threadId);
-          const result = await getPostFlat(threadId);
+          const threadSlug = String(detail.threadSlug);
+          const result = await getPostFlat(threadSlug);
           const posts = result.posts ?? [];
 
           if (posts.length > 0) {
@@ -149,7 +142,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
           }
         }
       } catch (retryError) {
-        console.error(`[ReadPage] Flat mode retry failed for ${id}:`, retryError);
+        console.error(`[ReadPage] Flat mode retry failed for ${slug}:`, retryError);
       }
     }
   }
@@ -179,7 +172,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
           backState={backState}
         />
       )}
-      <ReadTracker nodeId={String(post.node?.nodeId ?? '')} postId={id} />
+      <ReadTracker postSlug={slug} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-// src/app/post/[id]/PostTree.tsx
+// src/app/threads/[id]/PostTree.tsx
 import type { PostEntity } from '@/types/domain';
 import type { BackState } from '@/components/features/ThreadTree';
 import PostDetailClient from '@/components/PostDetailClient';

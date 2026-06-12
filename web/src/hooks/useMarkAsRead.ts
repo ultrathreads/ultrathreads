@@ -19,7 +19,6 @@ export function useMarkAsRead({
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
-    if (!nodeId || hasReported.current) return;
 
     const report = () => {
       if (hasReported.current) return;

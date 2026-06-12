@@ -39,11 +39,14 @@ func (c *NodeController) Show(ctx *gin.Context) {
 }
 
 func (c *NodeController) MarkAsRead(ctx *gin.Context) {
-	nodeId := util.ParamInt64Default(ctx, "id", 0)
+	var gDto form.IdentifierDto
+	if !c.BindAndValidate(ctx, &gDto) {
+		return
+	}
 
 	user := c.GetCurrentUser(ctx)
 	now := util.NowTimestamp()
-	if err := service.UserReadStateService.MarkAsRead(user.ID, nodeId, now); err != nil {
+	if err := service.UserReadStateService.MarkAsRead(user.ID, gDto.Slug, now); err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}

@@ -53,13 +53,7 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 
 	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeSlug)
 
-	nodeId := 0
-	var lastReadAtMap map[int64]int64
-	if nodeId > 0 {
-	    lastReadAtMap = c.GetLastReadStates(ctx, int64(nodeId))
-	} else {
-	    lastReadAtMap = c.GetLastReadStates(ctx)
-	}
+	lastReadAtMap := c.GetLastReadStates(ctx, nodeSlug)
 
 	data := map[string]interface{}{
 		"results": 		 converter.ToSimplePosts(posts),

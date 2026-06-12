@@ -11,6 +11,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 )
 
@@ -70,29 +71,41 @@ func (c *BaseController) GetCurrentUser(ctx *gin.Context) *model.User {
 	return nil
 }
 
-// GetLastReadStates 获取当前用户的已读状态
-// - 不传参：返回全量 map（nodeId=0 场景）
-// - 传一个或多个 nodeID：仅返回指定节点的已读状态，自动过滤零值
-func (c *BaseController) GetLastReadStates(ctx *gin.Context, nodeIDs ...int64) map[int64]int64 {
+func (c *BaseController) GetLastReadStates(ctx *gin.Context, nodeSlugs ...string) map[string]int64 {
+	empty := make(map[string]int64)
+
 	val, exists := ctx.Get("CurrentUserReadStates")
 	if !exists || val == nil {
-		return make(map[int64]int64)
+		return empty
 	}
 	states, ok := val.(map[int64]int64)
 	if !ok {
-		return make(map[int64]int64)
+		return empty
 	}
 
-	// 无参数 → 全量返回（只读场景直接返回引用，避免拷贝开销）
-	if len(nodeIDs) == 0 {
-		return states
+	// 无参数 → 全量返回（key 从 ID 转为 Slug）
+	if len(nodeSlugs) == 0 {
+		result := make(map[string]int64, len(states))
+		for nodeID, lastReadAt := range states {
+			slug := hashid.Id2Slug[model.Node](nodeID)
+			result[slug] = lastReadAt
+		}
+		return result
 	}
 
-	// 有参数 → 按需提取指定节点
-	result := make(map[int64]int64, len(nodeIDs))
-	for _, id := range nodeIDs {
-		if ts := states[id]; ts > 0 {
-			result[id] = ts
+	// 有参数 → 构建反向索引，按指定 slug 按需提取
+	slugToID := make(map[string]int64, len(states))
+	for nodeID := range states {
+		slug := hashid.Id2Slug[model.Node](nodeID)
+		slugToID[slug] = nodeID
+	}
+
+	result := make(map[string]int64, len(nodeSlugs))
+	for _, slug := range nodeSlugs {
+		if nodeID, ok := slugToID[slug]; ok {
+			if ts := states[nodeID]; ts > 0 {
+				result[slug] = ts
+			}
 		}
 	}
 	return result

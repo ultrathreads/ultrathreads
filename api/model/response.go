@@ -27,6 +27,11 @@ type TagResponse struct {
 	TagName string `json:"tagName"`
 }
 
+type LastReadAtMapResponse struct {
+	NodeSlug   string `json:"nodeSlug"`
+	LastReadAt int64 `json:"lastReadAt"`
+}
+
 type ArticleSimpleResponse struct {
 	Slug 	   string 		  `json:"slug"`
 	User       *UserInfo      `json:"user"`

@@ -54,6 +54,11 @@ func setupApp(e *gin.Engine) {
 			nodeGroup.GET("/threads", postController.ListThreads)
 		}
 
+		threadGroup := optional.Group("/threads/:slug")
+		{
+			threadGroup.GET("/with-thread", postController.GetPostWithThread)
+		}
+
 		optional.GET("/posts", postController.List)
 		optional.GET("/post/:slug", postController.Show)
 		optional.GET("/post/:slug/with-thread", postController.GetPostWithThread)
@@ -109,7 +114,7 @@ func setupApp(e *gin.Engine) {
 		uploadController := &controller.UploadController{}
 
 		// Nodes
-		jwtApi.POST("/nodes/:id/read", nodeController.MarkAsRead)
+		jwtApi.POST("/nodes/:slug/mark-as-read", nodeController.MarkAsRead)
 
 		// Posts（写操作）
 		jwtApi.POST("/posts", postController.Store)

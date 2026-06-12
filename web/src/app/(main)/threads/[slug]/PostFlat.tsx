@@ -1,10 +1,10 @@
-// src/app/post/[id]/PostFlat.tsx
+// src/app/threads/[slug]/PostFlat.tsx
 'use client';
 
 import { useState, useCallback } from 'react';
 import type { PostEntity } from '@/types/domain';
 import PostFlatItem from '@/components/PostFlatItem';
-import ReplyEditor from '@/components/features/ReplyEditor'; // ✅ 直接复用现有编辑器
+import ReplyEditor from '@/components/features/ReplyEditor';
 
 interface PostFlatProps {
   posts: PostEntity[];
@@ -12,12 +12,11 @@ interface PostFlatProps {
 }
 
 export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
-  // 记录当前激活编辑器的帖子ID，null 表示无编辑器打开
-  const [activeEditorPostId, setActiveEditorPostId] = useState<number | null>(null);
+  const [activeEditorPostSlug, setActiveEditorPostSlug] = useState<number | null>(null);
 
   // 切换编辑器状态（点击已打开的按钮时自动收起）
-  const toggleEditor = useCallback((postId: number) => {
-    setActiveEditorPostId((prev) => (prev === postId ? null : postId));
+  const toggleEditor = useCallback((postSlug: string) => {
+    setActiveEditorPostSlug((prev) => (prev === postSlug ? null : postSlug));
   }, []);
 
   // 编辑器 autoFocus 消费后的回调，避免重复触发滚动/聚焦
@@ -30,18 +29,18 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
       {posts.length > 0 ? (
         posts.map((post, index) => {
           const isRoot = index === 0;
-          const isEditorOpen = activeEditorPostId === post.id;
+          const isEditorOpen = activeEditorPostSlug === post.slug;
 
           return (
-            <div key={post.id}>
+            <div key={post.slug}>
               <PostFlatItem
                 post={post}
-                detailHref={`/post/${post.id}`}
+                detailHref={`/threads/${post.slug}`}
                 replyCount={isRoot ? (post.commentCount ?? totalReplyCount) : 0}
                 isRoot={isRoot}
                 // ✅ 仅根帖注入回复交互能力
                 {...(isRoot && {
-                  onReplyClick: () => toggleEditor(post.id),
+                  onReplyClick: () => toggleEditor(post.slug),
                   isEditorOpen,
                 })}
               />
@@ -49,8 +48,8 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
               {/* ✅ 编辑器挂载在根帖卡片下方，非根帖不渲染 */}
               {isRoot && isEditorOpen && (
                 <ReplyEditor
-                  parentId={post.id}
-                  nodeId={post.node?.nodeId ?? 0}
+                  parentSlug={post.slug}
+                  nodeSlug={post.node?.nodeSlug ?? 0}
                   replyToTitle={post.title}
                   autoFocus
                   onAutoFocusConsumed={handleAutoFocusConsumed}

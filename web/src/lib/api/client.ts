@@ -54,7 +54,7 @@ export async function apiFetch<T>(
         const { cookies } = await import('next/headers');
         const cookieStore = await cookies();
         const token = cookieStore.get('access_token')?.value;
-        
+
         // 没有 Token 时不再 throw，只是不设置 Header
         // Go 后端的 OptionalAuth 会自动降级为游客模式
         if (token) {
@@ -81,12 +81,21 @@ export async function apiFetch<T>(
     ...finalCacheStrategy,
   });
 
-  // 优先尝试解析响应体，避免丢失后端返回的业务错误信息
+  // ✅ 先读取原始文本，无论是否为 JSON 都保留用于调试
+  // 注意：res.text() 和 res.json() 都是一次性消费，必须用 text + 手动 parse 替代
   let envelope: ApiResponse<unknown> | null = null;
   const contentType = res.headers.get('content-type') ?? '';
-  if (contentType.includes('application/json')) {
+  let rawBodyText = '';
+
+  try {
+    rawBodyText = await res.text();
+  } catch {
+    // 读取失败则保持空字符串
+  }
+
+  if (contentType.includes('application/json') && rawBodyText) {
     try {
-      envelope = (await res.json()) as ApiResponse<unknown>;
+      envelope = JSON.parse(rawBodyText) as ApiResponse<unknown>;
     } catch {
       // JSON 解析失败，envelope 保持 null
     }
@@ -96,12 +105,20 @@ export async function apiFetch<T>(
   if (!res.ok) {
     const message = envelope?.message || `HTTP ${res.status} ${res.statusText}`;
     const code = envelope?.code ?? res.status;
-    throw new ApiBusinessError(message, code, envelope);
+    throw new ApiBusinessError(message, code, envelope ?? rawBodyText);
   }
 
-  // 无响应体或非法信封
+  // ✅ 无响应体或非法信封时，直接暴露原始响应内容
   if (!envelope) {
-    throw new ApiBusinessError('Invalid API response: missing JSON body', -2);
+    throw new ApiBusinessError(
+      'Invalid API response: missing or non-JSON body',
+      -2,
+      {
+        status: res.status,
+        contentType,
+        bodyPreview: rawBodyText.slice(0, 500),
+      }
+    );
   }
 
   // skipDataUnwrap 模式：直接返回完整信封（由重载保证类型安全）
@@ -116,6 +133,11 @@ export async function apiFetch<T>(
       envelope.code,
       envelope
     );
+  }
+
+  // ✅ 兼容无 data 字段的合法成功响应（如 POST/PUT/DELETE 写操作）
+  if (envelope.data === undefined) {
+    return null as T;
   }
 
   return envelope.data as T;
