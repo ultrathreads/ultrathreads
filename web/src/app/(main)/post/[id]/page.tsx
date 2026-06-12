@@ -29,17 +29,36 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
   if (tagId) backState.tagId = String(tagId);
   if (page) backState.page = String(page);
 
+  // 如果没有任何有效状态，直接返回首页
   if (!backState.nodeId && !backState.tagId && !backState.page) {
     return { backUrl: '/', backState: {} };
   }
 
+  // 根据 tagId 或 nodeId 动态决定基础路径
+  let basePath = '/';
+  if (backState.tagId) {
+    basePath = `/tags/${backState.tagId}`;
+  } else if (backState.nodeId) {
+    basePath = '/';
+  }
+
+  // 构建查询参数（仅保留 page 等需要拼接到 URL 上的参数）
   const params = new URLSearchParams();
-  if (backState.nodeId) params.set('nodeId', backState.nodeId);
-  if (backState.tagId) params.set('tagId', backState.tagId);
-  if (backState.page) params.set('page', backState.page);
+  if (backState.page) {
+    params.set('page', backState.page);
+  }
+  
+  // 注意：对于节点列表，nodeId 作为查询参数传递；
+  // 对于标签列表，tagId 已经包含在路径中，无需再次放入查询参数。
+  if (backState.nodeId) {
+    params.set('nodeId', backState.nodeId);
+  }
+
+  const queryString = params.toString();
+  const backUrl = queryString ? `${basePath}?${queryString}` : basePath;
 
   return {
-    backUrl: `/?${params.toString()}`,
+    backUrl,
     backState,
   };
 }
