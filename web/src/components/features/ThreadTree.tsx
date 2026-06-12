@@ -77,10 +77,10 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
   const [sort, setSort] = useState('reply');
   const [markingRead, setMarkingRead] = useState(false);
 
-  // ✅ 提取有效的 ID：优先取 Node，其次取 Tag
+  // 因为 tag 下的列表无法执行 markAsRead，所以这里只从 activeNode 中提取 ID，不再回退到 tagId
   const effectiveId = useMemo(() => {
-    return activeNode?.nodeId ?? activeNode?.id ?? backState?.tagId;
-  }, [activeNode, backState]);
+    return activeNode?.nodeId ?? activeNode?.id;
+  }, [activeNode]);
 
   const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);
   const toggleAll = () => setAllCollapsed((prev) => !prev);
@@ -111,9 +111,10 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
     }
   }, [effectiveId, markingRead, activeNode, backState, router]);
 
+  // 如果当前处于 tag 列表页，effectiveId 为空，按钮自然会被禁用
   const isMarkReadDisabled = markingRead || !effectiveId;
 
-  // ✅ 核心转换：将 Tag 的 tagName 映射为 HeaderDisplayData 的 name
+  // 将 Tag 的 tagName 映射为 HeaderDisplayData 的 name
   const headerTagData = useMemo<HeaderDisplayData | null>(() => {
     if (!activeTag) return null;
     return {

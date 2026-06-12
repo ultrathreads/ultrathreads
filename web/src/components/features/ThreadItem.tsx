@@ -16,7 +16,7 @@ interface Props {
 }
 
 function buildPostUrl(postId: number | string, backState?: BackState): string {
-  if (!backState || (!backState.nodeId && !backState.page)) {
+  if (!backState || (!backState.nodeId && !backState.tagId && !backState.page)) {
     return `/post/${postId}`;
   }
   const params = new URLSearchParams();
