@@ -32,8 +32,8 @@ func (c *UserScoreController) Show(ctx *gin.Context) {
 
 // List 显示积分列表
 func (c *UserScoreController) List(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
-	limit := util.FormValueIntDefault(ctx, "limit", 20)
+	page := util.FormIntDefault(ctx, "page", 1)
+	limit := util.FormIntDefault(ctx, "limit", 20)
 	userId := ctx.Request.FormValue("userId")
 
 	conditions := querybuilder.NewQueryBuilder()

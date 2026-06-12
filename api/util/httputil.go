@@ -26,7 +26,7 @@ func newInvalidError(name, value string) error {
 // ==================== FormValue (POST 表单 + Query 混合) ====================
 // 📌 场景: POST 表单提交、x-www-form-urlencoded、multipart/form-data
 
-func FormValueInt(ctx *gin.Context, name string) (int, error) {
+func FormInt(ctx *gin.Context, name string) (int, error) {
 	str := ctx.Request.FormValue(name)
 	if str == "" {
 		return 0, newMissingError(name)
@@ -38,14 +38,14 @@ func FormValueInt(ctx *gin.Context, name string) (int, error) {
 	return v, nil
 }
 
-func FormValueIntDefault(ctx *gin.Context, name string, def int) int {
-	if v, err := FormValueInt(ctx, name); err == nil {
+func FormIntDefault(ctx *gin.Context, name string, def int) int {
+	if v, err := FormInt(ctx, name); err == nil {
 		return v
 	}
 	return def
 }
 
-func FormValueInt64(ctx *gin.Context, name string) (int64, error) {
+func FormInt64(ctx *gin.Context, name string) (int64, error) {
 	str := ctx.Request.FormValue(name)
 	if str == "" {
 		return 0, newMissingError(name)
@@ -57,16 +57,16 @@ func FormValueInt64(ctx *gin.Context, name string) (int64, error) {
 	return v, nil
 }
 
-func FormValueInt64Default(ctx *gin.Context, name string, def int64) int64 {
-	if v, err := FormValueInt64(ctx, name); err == nil {
+func FormInt64Default(ctx *gin.Context, name string, def int64) int64 {
+	if v, err := FormInt64(ctx, name); err == nil {
 		return v
 	}
 	return def
 }
 
-// 🆕 FormValueBool
+// 🆕 FormBool
 // 📌 场景: 开关类参数 (is_active=true, enable=1, checked=on)
-func FormValueBool(ctx *gin.Context, name string) (bool, error) {
+func FormBool(ctx *gin.Context, name string) (bool, error) {
 	str := strings.ToLower(strings.TrimSpace(ctx.Request.FormValue(name)))
 	if str == "" {
 		return false, newMissingError(name)
@@ -81,16 +81,16 @@ func FormValueBool(ctx *gin.Context, name string) (bool, error) {
 	}
 }
 
-func FormValueBoolDefault(ctx *gin.Context, name string, def bool) bool {
-	if v, err := FormValueBool(ctx, name); err == nil {
+func FormBoolDefault(ctx *gin.Context, name string, def bool) bool {
+	if v, err := FormBool(ctx, name); err == nil {
 		return v
 	}
 	return def
 }
 
-// 🆕 FormValueString (带非空校验)
+// 🆕 FormString (带非空校验)
 // 📌 场景: 必填文本字段 (username, email)，区别于直接 ctx.Request.FormValue 返回空串不报错
-func FormValueString(ctx *gin.Context, name string) (string, error) {
+func FormString(ctx *gin.Context, name string) (string, error) {
 	str := strings.TrimSpace(ctx.Request.FormValue(name))
 	if str == "" {
 		return "", newMissingError(name)
@@ -98,16 +98,16 @@ func FormValueString(ctx *gin.Context, name string) (string, error) {
 	return str, nil
 }
 
-func FormValueStringDefault(ctx *gin.Context, name string, def string) string {
-	if v, err := FormValueString(ctx, name); err == nil {
+func FormStringDefault(ctx *gin.Context, name string, def string) string {
+	if v, err := FormString(ctx, name); err == nil {
 		return v
 	}
 	return def
 }
 
-// 🆕 FormValueInt64Slice
+// 🆕 FormInt64Slice
 // 📌 场景: 批量操作 (ids=1,2,3 或 ids=1&ids=2&ids=3)
-func FormValueInt64Slice(ctx *gin.Context, name string) ([]int64, error) {
+func FormInt64Slice(ctx *gin.Context, name string) ([]int64, error) {
 	raw := ctx.Request.FormValue(name)
 	if raw == "" {
 		return nil, newMissingError(name)

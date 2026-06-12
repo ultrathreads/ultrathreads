@@ -80,8 +80,8 @@ func (c *LinkController) Delete(ctx *gin.Context) {
 
 // List list links
 func (c *LinkController) List(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
-	limit := util.FormValueIntDefault(ctx, "limit", 20)
+	page := util.FormIntDefault(ctx, "page", 1)
+	limit := util.FormIntDefault(ctx, "limit", 20)
 	name := ctx.Request.FormValue("name")
 
 	conditions := querybuilder.NewQueryBuilder()

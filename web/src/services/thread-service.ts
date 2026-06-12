@@ -56,15 +56,21 @@ export async function getThreadPageData(
   const params = new URLSearchParams({
     page: String(safePage),
     limit: String(DEFAULT_LIMIT),
-    nodeSlug: String(nodeSlug),
   });
+
+  // 根据 nodeSlug 是否存在，动态选择 RESTful 路径
+  // 空值 → /threads（首页全局列表）
+  // 有值 → /nodes/:nodeSlug/threads（板块列表）
+  const basePath = nodeSlug
+    ? `/nodes/${encodeURIComponent(nodeSlug)}/threads`
+    : '/threads';
 
   // 缓存标签按节点隔离，避免切换板块时命中旧缓存
   const cacheTags = ['threads', ...(nodeSlug ? [`node-${nodeSlug}`] : [])];
 
   try {
     const data = await apiFetch<ThreadsApiResponse>(
-      `/threads?${params.toString()}`,
+      `${basePath}?${params.toString()}`,
       {
         auth: true,
         cacheStrategy: { next: { tags: cacheTags } },
@@ -103,15 +109,13 @@ export async function getTagPageData(
   const params = new URLSearchParams({
     page: String(safePage),
     limit: String(DEFAULT_LIMIT),
-    tagSlug: String(tagSlug),
   });
 
-  // ✅ 缓存标签按标签ID隔离，避免切换标签时命中旧缓存
   const cacheTags = ['threads', `tag-${tagSlug}`];
 
   try {
     const data = await apiFetch<ThreadsApiResponse>(
-      `/threads/tag?${params.toString()}`, // 对应你后端的 GetTagPosts 接口
+       `/tags/${encodeURIComponent(tagSlug)}/threads?${params.toString()}`,
       {
         auth: true,
         cacheStrategy: { next: { tags: cacheTags } },

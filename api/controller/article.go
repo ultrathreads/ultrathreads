@@ -133,7 +133,7 @@ func (c *ArticleController) GetRecent(ctx *gin.Context) {
 
 // List 文章列表
 func (c *ArticleController) List(ctx *gin.Context) {
-	cursor := util.FormValueInt64Default(ctx, "cursor", 0)
+	cursor := util.FormInt64Default(ctx, "cursor", 0)
 	articles, cursor := service.ArticleService.GetArticles(cursor)
 	c.Success(ctx, gin.H{
 		"results": converter.ToSimpleArticles(articles),
@@ -145,7 +145,7 @@ func (c *ArticleController) List(ctx *gin.Context) {
 func (c *ArticleController) GetTagArticles(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		cursor := util.FormValueInt64Default(ctx, "cursor", 0)
+		cursor := util.FormInt64Default(ctx, "cursor", 0)
 		articles, cursor := service.ArticleService.GetTagArticles(gDto.ID, cursor)
 		c.Success(ctx, gin.H{
 			"results": converter.ToSimpleArticles(articles),
@@ -166,7 +166,7 @@ func (c *ArticleController) GetUserRecent(ctx *gin.Context) {
 
 // GetUserArticles 用户的文章
 func (c *ArticleController) GetUserArticles(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormIntDefault(ctx, "page", 1)
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
 		articles, paging := service.ArticleService.List(querybuilder.NewQueryBuilder().

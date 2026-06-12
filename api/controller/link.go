@@ -15,7 +15,7 @@ type LinkController struct {
 
 // List 列表
 func (c *LinkController) List(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormIntDefault(ctx, "page", 1)
 
 	links, paging := service.LinkService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Page(page, 20).Asc("id"))

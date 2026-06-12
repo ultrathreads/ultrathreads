@@ -16,7 +16,7 @@ type OAuthController struct {
 
 // Authorize authorize
 func (c *OAuthController) Authorize(ctx *gin.Context) {
-	ref := util.FormValueStringDefault(ctx, "ref","")
+	ref := util.FormStringDefault(ctx, "ref","")
 	provider := ctx.Param("provider")
 	params := map[string]string{"ref": ref}
 	var url string

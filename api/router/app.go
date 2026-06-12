@@ -48,9 +48,11 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/nodes", nodeController.List)
 		optional.GET("/node/:slug", nodeController.Show)
 
-		// Posts
 		optional.GET("/threads", postController.ListThreads)
-		optional.GET("/threads/tag", postController.ListTagThreads)
+		nodeGroup := optional.Group("/nodes/:slug")
+		{
+			nodeGroup.GET("/threads", postController.ListThreads)
+		}
 
 		optional.GET("/posts", postController.List)
 		optional.GET("/post/:slug", postController.Show)
@@ -68,6 +70,11 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/tag/:slug", tagController.Show)
 		optional.GET("/tags", tagController.List)
 		optional.GET("/tags/hot", tagController.HotTags)
+
+		tagGroup := optional.Group("/tags/:slug")
+		{
+			 tagGroup.GET("/threads", postController.ListTagThreads)
+		}
 
 		// Articles
 		optional.GET("/articles", articleController.List)

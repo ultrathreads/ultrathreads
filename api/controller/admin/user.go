@@ -73,8 +73,8 @@ func (c *UserController) Delete(ctx *gin.Context) {
 
 // List list users
 func (c *UserController) List(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
-	limit := util.FormValueIntDefault(ctx, "limit", 20)
+	page := util.FormIntDefault(ctx, "page", 1)
+	limit := util.FormIntDefault(ctx, "limit", 20)
 	id := ctx.Request.FormValue("id")
 	nickname := ctx.Request.FormValue("nickname")
 	username := ctx.Request.FormValue("username")

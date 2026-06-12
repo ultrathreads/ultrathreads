@@ -31,7 +31,7 @@ func (c *TagController) Show(ctx *gin.Context) {
 
 // List 标签列表
 func (c *TagController) List(ctx *gin.Context) {
-	page := util.FormValueIntDefault(ctx, "page", 1)
+	page := util.FormIntDefault(ctx, "page", 1)
 
 	tags, paging := service.TagService.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
@@ -45,7 +45,7 @@ func (c *TagController) List(ctx *gin.Context) {
 
 // AutoComplete 标签自动完成
 func (c *TagController) AutoComplete(ctx *gin.Context) {
-	input := util.FormValueStringDefault(ctx, "input","")
+	input := util.FormStringDefault(ctx, "input","")
 	tags := service.TagService.AutoComplete(input)
 	c.Success(ctx, tags)
 }
