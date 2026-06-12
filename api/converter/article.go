@@ -14,9 +14,8 @@ func ToArticle(article *model.Article) *model.ArticleResponse {
 	if article == nil {
 		return nil
 	}
-	slug, _ := hashid.Encode[model.Article](article.ID)
+	slug := hashid.Id2Slug[model.Article](article.ID)
 	rsp := &model.ArticleResponse{}
-	rsp.ArticleId = article.ID
 	rsp.Slug = slug
 	rsp.Title = article.Title
 	rsp.Summary = article.Summary
@@ -67,7 +66,6 @@ func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
 	}
 
 	rsp := &model.ArticleSimpleResponse{}
-	rsp.ArticleId = article.ID
 	rsp.Title = article.Title
 	rsp.Summary = article.Summary
 	rsp.Share = article.Share

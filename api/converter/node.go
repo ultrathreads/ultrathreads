@@ -9,9 +9,8 @@ func ToNode(node *model.Node) *model.NodeResponse {
 	if node == nil {
 		return nil
 	}
-	slug, _ := hashid.Encode[model.Node](node.ID)
+	slug := hashid.Id2Slug[model.Node](node.ID)
 	return &model.NodeResponse{
-		NodeId:      node.ID,
 		Slug:		 slug,
 		Name:        node.Name,
 		Description: node.Description,

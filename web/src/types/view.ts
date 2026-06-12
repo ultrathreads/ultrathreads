@@ -3,11 +3,11 @@
 export interface ThreadViewItem {
   id: number;
   slug: string;
-  parentId: number;
-  threadId: number;
+  parentSlug: string;
+  threadSlug: string;
   title: string;
   author: string;
-  authorId: number;
+  authorSlug: string;
   avatar?: string; 
   date: number;            // Unix timestamp (ms)
   lastCommentTime: number;

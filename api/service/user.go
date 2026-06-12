@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
-	"gorm.io/gorm" // ✅ v2 替换 jinzhu/gorm
+	"gorm.io/gorm"
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
@@ -17,6 +17,7 @@ import (
 	"ultrathreads/util"
 	"ultrathreads/util/avatar"
 	"ultrathreads/util/log"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/uploader"
 )
@@ -33,6 +34,17 @@ type userService struct{}
 
 func (s *userService) Get(id int64) *model.User {
 	return dao.UserDao.Get(id)
+}
+
+func (s *userService) GetBySlug(slug string) *model.User {
+    id := hashid.Slug2Id[model.User](slug)
+
+    user := cache.UserCache.Get(id)
+    if user == nil {
+        user = dao.UserDao.Get(id)
+    }
+
+    return user
 }
 
 func (s *userService) Take(where ...interface{}) *model.User {

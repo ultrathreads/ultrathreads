@@ -9,26 +9,26 @@ import type { PaginationMeta } from '@/types/api';
  * 根帖列表项
  */
 export interface MyRootPostListItem {
-  id: number;
-  threadId: number;
+  slug: string;
+  threadSlug: string;
   title: string;
   createTime: number;
-  user: Pick<UserEntity, 'id' | 'username' | 'nickname'>;
-  node: Pick<NodeEntity, 'nodeId' | 'name'> | null;
+  user: Pick<UserEntity, 'slug' | 'username' | 'nickname'>;
+  node: Pick<NodeEntity, 'slug' | 'name'> | null;
 }
 
 /**
  * 回帖列表项
  */
 export interface MyReplyPostListItem {
-  id: number;
-  threadId: number;
-  parentId: number | null;
+  slug: string;
+  threadSlug: string;
+  parentSlug: string | null;
   parentTitle: string | null;
   content: string;
   createTime: number;
-  user: Pick<UserEntity, 'id' | 'username' | 'nickname'>;
-  node: Pick<NodeEntity, 'nodeId' | 'name'> | null;
+  user: Pick<UserEntity, 'slug' | 'username' | 'nickname'>;
+  node: Pick<NodeEntity, 'slug' | 'name'> | null;
 }
 
 /**
@@ -60,7 +60,7 @@ const DEFAULT_LIMIT = 20;
  * 不对外暴露，仅用于复用请求、分页组装和错误处理
  */
 async function fetchUserPostsByType<T>(
-  userId: number,
+  userSlug: string,
   page: number,
   type: 'root' | 'reply',
   limit: number = DEFAULT_LIMIT,
@@ -75,7 +75,7 @@ async function fetchUserPostsByType<T>(
 
   try {
     const data = await apiFetch<UserPostsApiResponse<T>>(
-      `/user/posts/${userId}?${params.toString()}`,
+      `/user/posts/${userSlug}?${params.toString()}`,
       {
         auth: true,
         cacheStrategy: { next: { revalidate: 0 } },
@@ -105,20 +105,20 @@ async function fetchUserPostsByType<T>(
  * 获取指定用户的【根帖】列表
  */
 export function getUserRootPostsPageData(
-  userId: number,
+  userSlug: string,
   page: number,
   limit?: number,
 ): Promise<UserPostsPageData<MyRootPostListItem>> {
-  return fetchUserPostsByType<MyRootPostListItem>(userId, page, 'root', limit);
+  return fetchUserPostsByType<MyRootPostListItem>(userSlug, page, 'root', limit);
 }
 
 /**
  * 获取指定用户的【回帖】列表
  */
 export function getUserReplyPostsPageData(
-  userId: number,
+  userSlug: string,
   page: number,
   limit?: number,
 ): Promise<UserPostsPageData<MyReplyPostListItem>> {
-  return fetchUserPostsByType<MyReplyPostListItem>(userId, page, 'reply', limit);
+  return fetchUserPostsByType<MyReplyPostListItem>(userSlug, page, 'reply', limit);
 }

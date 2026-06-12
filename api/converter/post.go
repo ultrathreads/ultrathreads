@@ -14,12 +14,14 @@ import (
 
 // basePostFields 提取两个响应共有的字段赋值逻辑
 func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
-	slug, _ := hashid.Encode[model.Post](post.ID)
-	rsp.Id = post.ID
+	slug := hashid.Id2Slug[model.Post](post.ID)
+	parentSlug := hashid.Id2Slug[model.Post](post.ParentId)
+	threadSlug := hashid.Id2Slug[model.Post](post.ThreadId)
 	rsp.Slug = slug
 	rsp.Type = post.Type
-	rsp.ThreadId = post.ThreadId
-	rsp.ParentId = post.ParentId
+	rsp.ThreadSlug = threadSlug
+	rsp.ParentSlug = parentSlug
+	rsp.IsRoot = post.IsRoot()
 	rsp.Title = post.Title
 	rsp.IsPinned = post.IsPinned
 	rsp.User = ToUserDefaultIfNull(post.UserId)

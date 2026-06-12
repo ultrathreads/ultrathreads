@@ -29,9 +29,9 @@ export function adaptToThreadView(
     ? (post.user?.nickname || post.user?.username)
     : (listItem.user?.nickname || listItem.user?.username);
 
-  const authorId = isPostEntity
-    ? (post.user?.id || post.user?.id)
-    : (listItem.user?.id || listItem.user?.id);
+  const authorSlug = isPostEntity
+    ? (post.user?.slug || post.user?.slug)
+    : (listItem.user?.slug || listItem.user?.slug);
 
   const avatar = isPostEntity
       ? (post.user?.avatar || undefined)
@@ -57,17 +57,16 @@ export function adaptToThreadView(
     : false;
 
   return {
-    id: source.id,
     slug: source.slug,
-    threadId: source.threadId,
-    parentId: isPostEntity
-      ? (post.parentId ?? 0)
-      : listItem.parentId,
+    threadSlug: source.threadSlug,
+    parentSlug: isPostEntity
+      ? (post.parentSlug ?? '')
+      : listItem.parentSlug,
     title: source.title,
     isPinned: source.isPinned,
     isRead,
     author: author ?? '匿名用户',
-    authorId,
+    authorSlug,
     avatar,
     date: Number.isFinite(contentTimestamp) ? contentTimestamp : 0,
     nodeName: isPostEntity

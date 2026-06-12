@@ -39,9 +39,8 @@ func ToUser(user *model.User) *model.UserInfo {
 	if user.Level == model.UserLevelAdmin {
 		levelName = "管理员"
 	}
-	slug, _ := hashid.Encode[model.User](user.ID)
+	slug := hashid.Id2Slug[model.User](user.ID)
 	ret := &model.UserInfo{
-		Id:           user.ID,
 		Slug: 		  slug,
 		Username:     user.Username.String,
 		Nickname:     user.Nickname,

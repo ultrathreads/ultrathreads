@@ -27,11 +27,10 @@ export default function MyPostsList({ initialPosts, user, tab }: Props) {
 
       <ul className="thread">
         {initialPosts.map((item) => {
-          // 使用 !item.parentId 兼容 null, undefined, '', 0 等假值
-          const isRootPost = !item.parentId;
+          const isRootPost = item.isRoot;
 
           return (
-            <li key={item.id}>
+            <li key={item.slug}>
               <div className="entry">
                 {isRootPost ? (
                   <svg className="icon-topic" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="#3498db">
@@ -45,7 +44,7 @@ export default function MyPostsList({ initialPosts, user, tab }: Props) {
 
                 <Link
                   className={`subject ${!isRootPost ? 'read' : ''}`}
-                  href={`/post/${item.id}`}
+                  href={`/post/${item.slug}`}
                 >
                   {item.title || '(无标题)'}
                 </Link>

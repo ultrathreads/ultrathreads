@@ -26,7 +26,7 @@ export default async function UserPublicPostsPage({ params, searchParams }: Prop
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
 
   const user = await getUserBySlug(slug);
-  const { posts, paging, error } = await getUserRootPostsPageData(user.id, currentPage);
+  const { posts, paging, error } = await getUserRootPostsPageData(user.slug, currentPage);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;

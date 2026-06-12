@@ -37,7 +37,7 @@ func (s *postService) Get(id int64) *model.Post {
 }
 
 func (s *postService) GetBySlug(slug string) *model.Post {
-	id, _ := hashid.Decode[model.Post](slug)
+	id := hashid.Slug2Id[model.Post](slug)
 	return dao.PostDao.Get(id)
 }
 
@@ -56,7 +56,7 @@ func (s *postService) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ int �
 
 // GetNodeThreadsFull 获取主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
 func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]model.Post, *querybuilder.Paging) {
-	nodeId,_ := hashid.Decode[model.Node](nodeSlug)
+	nodeId := hashid.Slug2Id[model.Node](nodeSlug)
 	rootCnd := querybuilder.NewQueryBuilder().
 		Eq("parent_id", 0).
 		Eq("status", model.StatusOk)
@@ -104,7 +104,7 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]mo
 
 // GetTagThreadsFull 获取指定标签下的主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
 func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model.Post, paging *querybuilder.Paging) {
-	tagId, _ := hashid.Decode[model.Tag](tagSlug)
+	tagId := hashid.Slug2Id[model.Tag](tagSlug)
 
 	// 1. 获取当前页的根帖（通过 IN 子查询过滤标签，保证排序和分页正确）
 	subQuery := dao.DB().Model(&model.PostTag{}).
@@ -156,7 +156,7 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model
 
 // GetPostWithThread 获取帖子详情及其所属主题的所有扁平回帖
 func (s *postService) GetPostWithThread(postSlug string) (*model.Post, []model.Post, error) {
-	postId, _ := hashid.Decode[model.Post](postSlug)
+	postId := hashid.Slug2Id[model.Post](postSlug)
 	if postId <= 0 {
 		return nil, nil, errors.New("invalid post_id")
 	}
@@ -183,7 +183,7 @@ func (s *postService) GetPostWithThread(postSlug string) (*model.Post, []model.P
 }
 
 func (s *postService) GetPostsByThreadId(slug string) ([]model.Post, error) {
-	threadId, _ := hashid.Decode[model.Post](slug)
+	threadId := hashid.Slug2Id[model.Post](slug)
 	if threadId <= 0 {
 		return nil, errors.New("invalid thread_id")
 	}
@@ -199,6 +199,30 @@ func (s *postService) GetPostsByThreadId(slug string) ([]model.Post, error) {
 	}
 
 	return posts, nil
+}
+
+// GetUserPosts 获取用户帖子列表
+func (s *postService) GetUserPosts(userSlug, postType string, page int, pageSize int) ([]model.Post, *querybuilder.Paging) {
+	userID := hashid.Slug2Id[model.User](userSlug)
+	// 1. 构建基础查询条件
+	qb := querybuilder.NewQueryBuilder().
+		Eq("user_id", userID).
+		Eq("status", model.StatusOk).
+		Page(page, pageSize).
+		Desc("id")
+
+	// 2. 根据 type 动态追加过滤条件
+	switch postType {
+	case "reply":
+		qb.NotEq("parent_id", 0) 
+	case "root":
+		fallthrough 
+	default:
+		qb.Eq("parent_id", 0) 
+	}
+
+	// 3. 执行查询
+	return dao.PostDao.List(qb)
 }
 
 // Delete 软删除帖子

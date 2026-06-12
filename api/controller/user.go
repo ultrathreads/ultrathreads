@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"ultrathreads/converter"
-	"ultrathreads/cache"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -26,9 +25,9 @@ func (c *UserController) GetCurrent(ctx *gin.Context) {
 
 // 用户详情
 func (c *UserController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto form.IdentifierDto
 	if c.BindAndValidate(ctx, &gDto) {
-		user := cache.UserCache.Get(gDto.ID)
+		user := service.UserService.GetBySlug(gDto.Slug)
 		if user != nil && user.Status != model.StatusDeleted {
 			c.Success(ctx, converter.ToUser(user))
 		} else {

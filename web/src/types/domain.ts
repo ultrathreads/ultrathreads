@@ -1,7 +1,6 @@
 // src/types/domain.ts
 
 export interface NodeEntity {
-  nodeId: number;
   slug: string;
   name: string;
   description: string;
@@ -9,10 +8,10 @@ export interface NodeEntity {
 }
 
 export interface PostEntity {
-  id: number;
   slug: string;
-  threadId: number;
-  parentId: number;       // 0 = 主帖, >0 = 回帖
+  threadSlug: string;
+  parentSlug: string;
+  isRoot: bool;
   type: number;
   user: UserEntity;
   node: NodeEntity;
@@ -30,7 +29,6 @@ export interface PostEntity {
 }
 
 export interface UserEntity {
-  id: number;
   slug: string;
   username: string;
   email: string;
@@ -49,7 +47,6 @@ export interface UserEntity {
 }
 
 export interface TagEntity {
-  tagId: number;
   slug: string;
   tagName: string;
 }

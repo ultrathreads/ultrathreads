@@ -45,7 +45,7 @@ export default async function MyPostsPage({ searchParams }: Props) {
   const currentTab = params.tab || 'root';
 
   const currentUser = await getCurrentUser();
-  if (!currentUser?.id) {
+  if (!currentUser?.slug) {
     redirect('/login?callback=/my');
   }
 
@@ -54,11 +54,11 @@ export default async function MyPostsPage({ searchParams }: Props) {
     if (currentTab === 'bookmarks') {
       return <BookmarksContent currentPage={currentPage} t={t} />;
     } else if (currentTab === 'replies') {
-      return <ReplyPostsContent userId={currentUser.id} currentPage={currentPage} t={t} tab={currentTab} />;
+      return <ReplyPostsContent userSlug={currentUser.slug} currentPage={currentPage} t={t} tab={currentTab} />;
     }
 
     // 默认渲染根帖列表（无论是 'root' 还是其他未匹配的值，都兜底显示根帖）
-     return <RootPostsContent userId={currentUser.id} currentPage={currentPage} t={t} tab={currentTab} />;
+     return <RootPostsContent userSlug={currentUser.slug} currentPage={currentPage} t={t} tab={currentTab} />;
   };
 
   return (
@@ -73,8 +73,8 @@ export default async function MyPostsPage({ searchParams }: Props) {
 }
 
 // 主帖内容组件
-async function RootPostsContent({ userId, currentPage, t, tab }: { userId: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
-  const { posts, paging, error } = await getUserRootPostsPageData(userId, currentPage);
+async function RootPostsContent({ userSlug, currentPage, t, tab }: { userSlug: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
+  const { posts, paging, error } = await getUserRootPostsPageData(userSlug, currentPage);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
@@ -100,8 +100,8 @@ async function RootPostsContent({ userId, currentPage, t, tab }: { userId: strin
 }
 
 // 回帖内容组件
-async function ReplyPostsContent({ userId, currentPage, t, tab }: { userId: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
-  const { posts, paging, error } = await getUserReplyPostsPageData(userId, currentPage);
+async function ReplyPostsContent({ userSlug, currentPage, t, tab }: { userSlug: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
+  const { posts, paging, error } = await getUserReplyPostsPageData(userSlug, currentPage);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;

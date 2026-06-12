@@ -20,7 +20,7 @@ func PostViewedHandler(sub core.SafeSubscriber) {
 
 // PostViewCountHandler 负责增加帖子浏览量
 func PostViewCountHandler(payload event.PostViewed) {
-    id, _ := hashid.Decode[model.Post](payload.PostSlug)
+    id := hashid.Slug2Id[model.Post](payload.PostSlug)
     if id > 0 {
         post := dao.PostDao.Get(id)
         if post != nil && post.ThreadId > 0 {
@@ -33,7 +33,7 @@ func PostViewCountHandler(payload event.PostViewed) {
 
 // PostViewUserReadStateHandler 负责更新阅读状态并清理缓存
 func PostViewUserReadStateHandler(payload event.PostViewed) {
-    id, _ := hashid.Decode[model.Post](payload.PostSlug)
+    id := hashid.Slug2Id[model.Post](payload.PostSlug)
     if id > 0 {
         if err := dao.UserReadStateDao.Upsert(payload.UserID, id, payload.ViewedTime); err != nil {
             log.Error("upsert user read state failed: %v", err)

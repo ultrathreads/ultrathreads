@@ -74,14 +74,14 @@ export default function PostFlatItem({
   );
 
   const handleLike = () =>
-    handleAction(() => likePost(post.id), setLikeCount, '点赞', 'like');
+    handleAction(() => likePost(post.slug), setLikeCount, '点赞', 'like');
   const handleFavorite = () =>
-    handleAction(() => favoritePost(post.id), setFavCount, '收藏', 'favorite');
+    handleAction(() => favoritePost(post.slug), setFavCount, '收藏', 'favorite');
 
   return (
     // 注入原生 id + scrollMarginTop 防顶部导航遮挡
     <div
-      id={`post-${post.id}`}
+      id={`post-${post.slug}`}
       className="post-detail-card"
       style={{ marginBottom: '12px', scrollMarginTop: '100px' }}
     >
@@ -96,7 +96,7 @@ export default function PostFlatItem({
         />
         <AuthorLink 
           author={post.user.nickname} 
-          authorId={post.user.id} 
+          authorSlug={post.user.slug} 
           className="author-name" 
         />
         <RelativeTime timestamp={post.createTime} />
@@ -105,7 +105,7 @@ export default function PostFlatItem({
         {isRoot && (
           <>
             {post.node && (
-              <Link href={`/?nodeId=${post.node.nodeId}`} className="detail-node">
+              <Link href={`/nodes/${post.node.nodeSlug}`} className="detail-node">
                 {post.node.name}
               </Link>
             )}
@@ -114,8 +114,8 @@ export default function PostFlatItem({
               <>
                 {post.tags.map((tag) => (
                   <Link 
-                    key={tag.tagId} 
-                    href={`/tags/${tag.tagId}`} 
+                    key={tag.slug} 
+                    href={`/tags/${tag.slug}`} 
                     className="detail-tag"
                   >
                     #{tag.tagName}

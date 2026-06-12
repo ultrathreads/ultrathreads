@@ -10,18 +10,18 @@ import AuthorLink from '@/components/ui/AuthorLink';
 interface Props {
   item: ThreadViewItem;
   isRoot?: boolean;
-  currentPostId?: string | number;
+  currentPostSlug?: string;
   globalCollapsed?: boolean;
   backState?: BackState;
 }
 
 function buildPostUrl(postSlug: string | string, backState?: BackState): string {
-  if (!backState || (!backState.nodeId && !backState.tagId && !backState.page)) {
+  if (!backState || (!backState.nodeSlug && !backState.tagSlug && !backState.page)) {
     return `/post/${postSlug}`;
   }
   const params = new URLSearchParams();
-  if (backState.nodeId) params.set('nodeId', backState.nodeId);
-  if (backState.tagId) params.set('tagId', backState.tagId);
+  if (backState.nodeSlug) params.set('nodeSlug', backState.nodeSlug);
+  if (backState.tagSlug) params.set('tagSlug', backState.tagSlug);
   if (backState.page) params.set('page', backState.page);
   return `/post/${postSlug}?${params.toString()}`;
 }
@@ -29,7 +29,7 @@ function buildPostUrl(postSlug: string | string, backState?: BackState): string 
 export default function ThreadItem({
   item,
   isRoot,
-  currentPostId,
+  currentPostSlug,
   globalCollapsed,
   backState,
 }: Props) {
@@ -37,7 +37,7 @@ export default function ThreadItem({
   const folded = userOverride ?? globalCollapsed ?? false;
 
   const hasReplies = item.replies && item.replies.length > 0;
-  const isActive = currentPostId !== undefined && String(item.id) === String(currentPostId);
+  const isActive = currentPostSlug !== undefined && String(item.slug) === String(currentPostSlug);
 
   useEffect(() => {
     setUserOverride(null);
@@ -107,7 +107,7 @@ export default function ThreadItem({
         <span className="metadata">
           <AuthorLink 
             author={item.author} 
-            authorId={item.authorId} 
+            authorSlug={item.authorSlug} 
             className="author-name" 
           />
           <span className="tail">
@@ -117,7 +117,7 @@ export default function ThreadItem({
         </span>
         <button
           className="icon-btn preview-btn"
-          data-post-id={String(item.id)}
+          data-post-slug={String(item.slug)}
           title={`回复 ${item.author}`}
           aria-label={`回复 ${item.author}`}
           type="button"
@@ -129,7 +129,7 @@ export default function ThreadItem({
         {isRoot && (
           <Link
             className="icon-btn flat-view-btn"
-            href={`/post/${item.id}?view=flat`}
+            href={`/post/${item.slug}?view=flat`}
             title={`平铺模式浏览 ${item.author} 的帖子`}
             aria-label={`平铺模式浏览 ${item.author} 的帖子`}
           >
@@ -144,9 +144,9 @@ export default function ThreadItem({
         <ul className={`reply ${folded ? 'collapsed' : ''}`}>
           {item.replies.map((r) => (
             <ThreadItem
-              key={r.id}
+              key={r.slug}
               item={r}
-              currentPostId={currentPostId}
+              currentPostSlug={currentPostSlug}
               globalCollapsed={globalCollapsed}
               backState={backState}
             />

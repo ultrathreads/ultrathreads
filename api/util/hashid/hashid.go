@@ -52,37 +52,44 @@ func getModelName[T any]() (string, error) {
 	return strings.ToLower(t.Name()), nil
 }
 
-// Encode 泛型编码：自动提取 T 的名称作为模型标识
-func Encode[T any](realID int64) (string, error) {
+// Id2Slug 泛型编码：将数字ID转换为Slug
+func Id2Slug[T any](realID int64) string {
 	modelName, err := getModelName[T]()
 	if err != nil {
-		return "", err
+		// 在无法返回错误的情况下，记录日志或返回空字符串是常见做法
+		// 这里为了简化，直接返回空字符串
+		return ""
 	}
 	
 	h, err := getHashInstance(modelName)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	
-	return h.EncodeInt64([]int64{realID})
+	slug, err := h.EncodeInt64([]int64{realID})
+	if err != nil {
+		return ""
+	}
+	
+	return slug
 }
 
-// Decode 泛型解码：自动提取 T 的名称作为模型标识
-func Decode[T any](hashStr string) (int64, error) {
+// Slug2Id 泛型解码：将Slug转换回数字ID
+func Slug2Id[T any](slug string) int64 {
 	modelName, err := getModelName[T]()
 	if err != nil {
-		return 0, err
+		return 0
 	}
 	
 	h, err := getHashInstance(modelName)
 	if err != nil {
-		return 0, err
+		return 0
 	}
 	
-	numbers, err := h.DecodeInt64WithError(hashStr)
+	numbers, err := h.DecodeInt64WithError(slug)
 	if err != nil || len(numbers) == 0 {
-		return 0, fmt.Errorf("解码失败或结果为空")
+		return 0
 	}
 	
-	return numbers[0], nil
+	return numbers[0]
 }

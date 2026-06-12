@@ -22,12 +22,12 @@ func (c *SiteController) Stat(ctx *gin.Context) {
 
 // Ping 健康检查 - 通过事件总线异步输出 pong
 func (c *SiteController) Ping(ctx *gin.Context) {
-	userHashID, _ := hashid.Encode[model.Node](123)
+	slug := hashid.Id2Slug[model.Node](123)
 
-	decodeStr,_ := hashid.Decode[model.Node]("Xrv1ZBEV")
+	id := hashid.Slug2Id[model.Node]("Xrv1ZBEV")
 	c.Success(ctx, gin.H{
 		"message": "pong",
-		"userHashID": userHashID,
-		"decodeStr": decodeStr,
+		"slug": slug,
+		"id": id,
 	})
 }

@@ -34,7 +34,7 @@ export default function UserMenu() {
         <div className="dropdown-header">
           <AuthorLink 
             author={user.username} 
-            authorId={user.id} 
+            authorSlug={user.slug} 
             className="user-username" 
             onClick={close}
           />

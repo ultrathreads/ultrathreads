@@ -74,8 +74,7 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 
 func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 	rsp := &model.FavoriteResponse{}
-	slug, _ := hashid.Encode[model.Favorite](favorite.ID)
-	rsp.FavoriteId = favorite.ID
+	slug := hashid.Id2Slug[model.Favorite](favorite.ID)
 	rsp.Slug = slug
 	rsp.EntityType = favorite.EntityType
 	rsp.EntityId = favorite.EntityId

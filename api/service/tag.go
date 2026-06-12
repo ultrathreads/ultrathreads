@@ -26,7 +26,7 @@ func (s *tagService) Get(id int64) *model.Tag {
 }
 
 func (s *tagService) GetBySlug(slug string) *model.Tag {
-	id, _ := hashid.Decode[model.Tag](slug)
+	id := hashid.Slug2Id[model.Tag](slug)
 	return cache.TagCache.Get(id)
 }
 
@@ -81,7 +81,7 @@ func (s *tagService) GetTags() []model.TagResponse {
 
 	var tags []model.TagResponse
 	for _, tag := range list {
-		tags = append(tags, model.TagResponse{TagId: tag.ID, TagName: tag.Name})
+		tags = append(tags, model.TagResponse{TagName: tag.Name})
 	}
 	return tags
 }

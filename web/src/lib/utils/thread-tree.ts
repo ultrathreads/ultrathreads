@@ -27,23 +27,23 @@ export function buildThreadTree(
   const roots: PostTreeItem[] = [];
 
   for (const post of posts) {
-    postIndex.set(post.id, { ...post, children: [] });
+    postIndex.set(post.slug, { ...post, children: [] });
   }
 
   // 2. 挂载子节点（保持原始相对顺序，后续统一排序）
   for (const post of posts) {
-    const currentPost = postIndex.get(post.id)!;
-    const isRoot = !post.parentId || post.parentId <= 0;
+    const currentPost = postIndex.get(post.slug)!;
+    const isRoot = post.isRoot;
 
     if (isRoot) {
       roots.push(currentPost);
     } else {
-      const parentPost = postIndex.get(post.parentId);
+      const parentPost = postIndex.get(post.parentSlug);
       if (parentPost) {
         parentPost.children.push(currentPost);
       } else {
         console.warn(
-          `[buildThreadTree] Parent ${post.parentId} not found for post ${post.id}`,
+          `[buildThreadTree] Parent ${post.parentSlug} not found for post ${post.slug}`,
         );
         // 父节点缺失时降级为根节点，避免丢失数据
         roots.push(currentPost);
@@ -58,7 +58,7 @@ export function buildThreadTree(
         new Date(a.createTime).getTime() - new Date(b.createTime).getTime(),
     );
 
-    const lookupKey = String(treeItem.node.nodeId);
+    const lookupKey = String(treeItem.node.slug);
 
     const lastReadAt =
       lookupKey !== undefined && lastReadAtMap

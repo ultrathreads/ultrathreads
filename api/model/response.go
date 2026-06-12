@@ -6,7 +6,6 @@ import (
 
 // UserInfo 用户信息响应
 type UserInfo struct {
-	Id           int64  `json:"id"`
 	Slug 		 string `json:"slug"`
 	Username     string `json:"username"`
 	Nickname     string `json:"nickname"`
@@ -24,13 +23,11 @@ type UserInfo struct {
 }
 
 type TagResponse struct {
-	TagId   int64  `json:"tagId"`
 	Slug 	string `json:"slug"`
 	TagName string `json:"tagName"`
 }
 
 type ArticleSimpleResponse struct {
-	ArticleId  int64          `json:"articleId"`
 	Slug 	   string 		  `json:"slug"`
 	User       *UserInfo      `json:"user"`
 	Tags       []TagResponse  `json:"tags"`
@@ -49,7 +46,6 @@ type ArticleResponse struct {
 }
 
 type NodeResponse struct {
-	NodeId      int64  `json:"nodeId"`
 	Slug        string `json:"slug"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -59,10 +55,10 @@ type NodeResponse struct {
 
 // PostSimpleResponse 帖子列表返回实体
 type PostSimpleResponse struct {
-	Id              int64          `json:"id"`
 	Slug 			string		   `json:"slug"`
-	ThreadId        int64          `json:"threadId"`
-	ParentId        int64          `json:"parentId"`
+	ThreadSlug      string         `json:"threadSlug"`
+	ParentSlug      string         `json:"parentSlug"`
+	IsRoot          bool  		   `json:"isRoot"`
 	Type            int            `json:"type"`
 	Title           string         `json:"title"`
 	IsPinned        bool           `json:"isPinned"`
@@ -85,7 +81,6 @@ type PostResponse struct {
 }
 
 type FavoriteResponse struct {
-	FavoriteId int64     `json:"favoriteId"`
 	Slug 	   string    `json:"slug"`
 	EntityType string    `json:"entityType"`
 	EntityId   int64     `json:"entityId"`

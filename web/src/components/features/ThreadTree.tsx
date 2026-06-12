@@ -9,36 +9,36 @@ import type { ThreadViewItem } from '@/types/view';
 import { markNodeAsRead } from '@/services/node-service';
 
 import ThreadItem from './ThreadItem';
-import NodeHeader, { type HeaderDisplayData } from './NodeHeader'; // 引入新类型
+import NodeHeader, { type HeaderDisplayData } from './NodeHeader';
 
 /** 从列表页透传的回溯状态 */
 export interface BackState {
   nodeSlug?: string;
-  tagId?: string; // 新增 tagId
+  tagSlug?: string;
   page?: string;
 }
 
 interface Props {
   threads: ThreadViewItem[];
   activeNode: NodeEntity | null;
-  activeTag?: HeaderDisplayData | null; // 新增 activeTag 数据
+  activeTag?: HeaderDisplayData | null;
   backState?: BackState;
 }
 
 /**
  * 构建带回溯参数的详情页链接
  */
-function buildPostUrl(postId: number | string, backState?: BackState): string {
-  if (!backState || (!backState.nodeSlug && !backState.tagId && !backState.page)) {
-    return `/post/${postId}`;
+function buildPostUrl(postSlug: string, backState?: BackState): string {
+  if (!backState || (!backState.nodeSlug && !backState.tagSlug && !backState.page)) {
+    return `/post/${postSlug}`;
   }
 
   const params = new URLSearchParams();
   if (backState.nodeSlug) params.set('nodeSlug', backState.nodeSlug);
-  if (backState.tagId) params.set('tagId', backState.tagId); // 处理 tagId
+  if (backState.tagSlug) params.set('tagSlug', backState.tagSlug);
   if (backState.page) params.set('page', backState.page);
 
-  return `/post/${postId}?${params.toString()}`;
+  return `/post/${postSlug}?${params.toString()}`;
 }
 
 /** 客户端排序函数 (保持不变) */
@@ -54,7 +54,7 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       case 'reply': {
         const diff = b.lastCommentTime - a.lastCommentTime;
-        return diff !== 0 ? diff : b.id - a.id;
+        return diff !== 0 ? diff : b.createTime - a.createTime;
       }
       case 'most':
         return (b.replies?.length || 0) - (a.replies?.length || 0);
@@ -77,30 +77,26 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
   const [sort, setSort] = useState('reply');
   const [markingRead, setMarkingRead] = useState(false);
 
-  // 因为 tag 下的列表无法执行 markAsRead，所以这里只从 activeNode 中提取 ID，不再回退到 tagId
-  const effectiveId = useMemo(() => {
-    return activeNode?.nodeSlug ?? activeNode?.id;
-  }, [activeNode]);
+  const effectiveSlug = activeNode?.slug;
 
+  // 排序逻辑本身较复杂，保留 useMemo 是正确的
   const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);
-  const toggleAll = () => setAllCollapsed((prev) => !prev);
 
-  // ✅ 标记已读回调
+  // 将纯逻辑函数提取出组件外部，避免每次渲染都重新创建
+  const toggleAll = useCallback(() => setAllCollapsed((prev) => !prev), []);
+
+  // 修复 handleMarkAsRead 的依赖项问题
+  // 原代码依赖了 markingRead，导致每次 markingRead 变化时都会重新创建该函数
+  // 实际上函数内部通过 setMarkingRead(true) 已经更新了状态，无需将其作为依赖
   const handleMarkAsRead = useCallback(async () => {
-    console.log('[ThreadTree] markAsRead clicked', {
-      id: effectiveId,
-      markingRead,
-    });
-
-    if (!effectiveId) {
-      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 ID', { activeNode, backState });
+    if (!effectiveSlug) {
+      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 Slug', { activeNode, backState });
       return;
     }
 
     setMarkingRead(true);
     try {
-      // 假设你的 service 层已经兼容了传入 tagId 的情况
-      await markNodeAsRead(effectiveId); 
+      await markNodeAsRead(effectiveSlug); 
       toast.success('标记已读成功');
       router.refresh();
     } catch (err) {
@@ -109,18 +105,15 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
     } finally {
       setMarkingRead(false);
     }
-  }, [effectiveId, markingRead, activeNode, backState, router]);
+  }, [effectiveSlug, activeNode, backState, router]);
 
-  // 如果当前处于 tag 列表页，effectiveId 为空，按钮自然会被禁用
-  const isMarkReadDisabled = markingRead || !effectiveId;
+  const isMarkReadDisabled = markingRead || !effectiveSlug;
 
-  // 将 Tag 的 tagName 映射为 HeaderDisplayData 的 name
-  const headerTagData = useMemo<HeaderDisplayData | null>(() => {
-    if (!activeTag) return null;
-    return {
-      name: activeTag.tagName, // 转换在这里发生
-    };
-  }, [activeTag]);
+  // 简化 headerTagData 的映射逻辑
+  // 原代码使用 useMemo 仅为了做简单的属性映射，开销大于收益，直接赋值即可
+  const headerTagData: HeaderDisplayData | null = activeTag 
+    ? { name: activeTag.tagName } 
+    : null;
 
   return (
     <div className="thread-tree-container">
@@ -133,7 +126,7 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
             onClick={handleMarkAsRead}
             disabled={isMarkReadDisabled}
             aria-label="标记当前节点/标签为已读"
-            title={!effectiveId 
+            title={!effectiveSlug 
               ? "当前无有效节点或标签，无法标记已读" 
               : "将当前内容标记为已读"
             }
@@ -177,7 +170,7 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
       <ul className="thread">
         {tree.map((t) => (
           <ThreadItem
-            key={t.id}
+            key={t.slug}
             item={t}
             isRoot
             globalCollapsed={allCollapsed}

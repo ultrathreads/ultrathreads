@@ -61,7 +61,7 @@ export default function PreviewPopover() {
 
     async function open(btn: HTMLElement) {
       const pop = ensurePopover();
-      const postId = btn.dataset.postId;
+      const postSlug = btn.dataset.postSlug;
       const fallbackTitle = btn.dataset.title || '无标题';
 
       // UI 重置
@@ -84,16 +84,16 @@ export default function PreviewPopover() {
       abortController?.abort();
       abortController = new AbortController();
 
-      if (!postId) {
+      if (!postSlug) {
         loadingEl.style.display = 'none';
-        errorEl.textContent = '缺少帖子 ID';
+        errorEl.textContent = '缺少帖子 Slug';
         errorEl.style.display = '';
         return;
       }
 
       try {
-        // 👇 复用 apiFetch + PostEntity 类型，路径 /post/{id}
-        const data = await apiFetch<PostEntity>(`/post/${postId}`, {
+        // 👇 复用 apiFetch + PostEntity 类型，路径 /post/{slug}
+        const data = await apiFetch<PostEntity>(`/post/${postSlug}`, {
           signal: abortController.signal,
           cacheStrategy: { cache: 'no-store' },
         });

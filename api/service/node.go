@@ -26,7 +26,7 @@ func (s *nodeService) Get(id int64) *model.Node {
 }
 
 func (s *nodeService) GetBySlug(slug string) *model.Node {
-	id,_ := hashid.Decode[model.Node](slug)
+	id := hashid.Slug2Id[model.Node](slug)
 	return dao.NodeDao.Get(id)
 }
 
