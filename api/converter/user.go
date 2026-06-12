@@ -7,6 +7,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/avatar"
+	"ultrathreads/util/hashid"
 )
 
 func ToUserDefaultIfNull(id int64) *model.UserInfo {
@@ -38,8 +39,10 @@ func ToUser(user *model.User) *model.UserInfo {
 	if user.Level == model.UserLevelAdmin {
 		levelName = "管理员"
 	}
+	slug, _ := hashid.Encode[model.User](user.ID)
 	ret := &model.UserInfo{
 		Id:           user.ID,
+		Slug: 		  slug,
 		Username:     user.Username.String,
 		Nickname:     user.Nickname,
 		Avatar:       a,

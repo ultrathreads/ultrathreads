@@ -7,13 +7,16 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 	"ultrathreads/util/markdown"
 )
 
 // basePostFields 提取两个响应共有的字段赋值逻辑
 func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
+	slug, _ := hashid.Encode[model.Post](post.ID)
 	rsp.Id = post.ID
+	rsp.Slug = slug
 	rsp.Type = post.Type
 	rsp.ThreadId = post.ThreadId
 	rsp.ParentId = post.ParentId

@@ -10,6 +10,7 @@ import (
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/avatar"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/strtrim"
 	"ultrathreads/util/urls"
 )
@@ -73,7 +74,9 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 
 func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 	rsp := &model.FavoriteResponse{}
+	slug, _ := hashid.Encode[model.Favorite](favorite.ID)
 	rsp.FavoriteId = favorite.ID
+	rsp.Slug = slug
 	rsp.EntityType = favorite.EntityType
 	rsp.EntityId = favorite.EntityId
 	rsp.CreateTime = favorite.CreateTime

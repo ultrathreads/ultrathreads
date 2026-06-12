@@ -7,15 +7,17 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util/markdown"
 	"ultrathreads/util/strtrim"
+	"ultrathreads/util/hashid"
 )
 
 func ToArticle(article *model.Article) *model.ArticleResponse {
 	if article == nil {
 		return nil
 	}
-
+	slug, _ := hashid.Encode[model.Article](article.ID)
 	rsp := &model.ArticleResponse{}
 	rsp.ArticleId = article.ID
+	rsp.Slug = slug
 	rsp.Title = article.Title
 	rsp.Summary = article.Summary
 	rsp.Share = article.Share

@@ -2,14 +2,17 @@ package converter
 
 import (
 	"ultrathreads/model"
+	"ultrathreads/util/hashid"
 )
 
 func ToNode(node *model.Node) *model.NodeResponse {
 	if node == nil {
 		return nil
 	}
+	slug, _ := hashid.Encode[model.Node](node.ID)
 	return &model.NodeResponse{
 		NodeId:      node.ID,
+		Slug:		 slug,
 		Name:        node.Name,
 		Description: node.Description,
 		Icon:        node.Icon,

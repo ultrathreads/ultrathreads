@@ -4,9 +4,10 @@ import (
 	"html/template"
 )
 
-// UserInfo 用户信息响应（✅ 安全修复：移除敏感字段）
+// UserInfo 用户信息响应
 type UserInfo struct {
 	Id           int64  `json:"id"`
+	Slug 		 string `json:"slug"`
 	Username     string `json:"username"`
 	Nickname     string `json:"nickname"`
 	Avatar       string `json:"avatar"`
@@ -15,8 +16,8 @@ type UserInfo struct {
 	Website      string `json:"website"`
 	Description  string `json:"description"`
 	Score        int    `json:"score"`
-	TopicCount   int64  `json:"topicCount"`   // ✅ int → int64，与 User Model 对齐
-	CommentCount int64  `json:"commentCount"` // ✅ int → int64，与 User Model 对齐
+	TopicCount   int64  `json:"topicCount"`
+	CommentCount int64  `json:"commentCount"`
 	PasswordSet  bool   `json:"passwordSet"`
 	Status       int    `json:"status"`
 	CreateTime   int64  `json:"createTime"`
@@ -24,13 +25,15 @@ type UserInfo struct {
 
 type TagResponse struct {
 	TagId   int64  `json:"tagId"`
+	Slug 	string `json:"slug"`
 	TagName string `json:"tagName"`
 }
 
 type ArticleSimpleResponse struct {
 	ArticleId  int64          `json:"articleId"`
+	Slug 	   string 		  `json:"slug"`
 	User       *UserInfo      `json:"user"`
-	Tags       []TagResponse  `json:"tags"` // ✅ *[]T → []T
+	Tags       []TagResponse  `json:"tags"`
 	Title      string         `json:"title"`
 	Summary    string         `json:"summary"`
 	Share      bool           `json:"share"`
@@ -47,6 +50,7 @@ type ArticleResponse struct {
 
 type NodeResponse struct {
 	NodeId      int64  `json:"nodeId"`
+	Slug        string `json:"slug"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Icon        string `json:"icon"`
@@ -56,6 +60,7 @@ type NodeResponse struct {
 // PostSimpleResponse 帖子列表返回实体
 type PostSimpleResponse struct {
 	Id              int64          `json:"id"`
+	Slug 			string		   `json:"slug"`
 	ThreadId        int64          `json:"threadId"`
 	ParentId        int64          `json:"parentId"`
 	Type            int            `json:"type"`
@@ -65,9 +70,9 @@ type PostSimpleResponse struct {
 	ViewCount       int64          `json:"viewCount"`
 	LikeCount       int64          `json:"likeCount"`
 	CreateTime      int64          `json:"createTime"`
-	ImageList       []string       `json:"imageList"`      // ✅ *[]string → []string
+	ImageList       []string       `json:"imageList"`
 	Node            *NodeResponse  `json:"node"`
-	Tags            []TagResponse  `json:"tags"`           // ✅ *[]TagResponse → []TagResponse
+	Tags            []TagResponse  `json:"tags"`
 	User            *UserInfo      `json:"user"`
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 }
@@ -79,22 +84,9 @@ type PostResponse struct {
 	Toc     template.HTML `json:"toc"`
 }
 
-// CommentResponse 回帖详情返回实体
-type CommentResponse struct {
-	CommentId    int64            `json:"commentId"`
-	User         *UserInfo        `json:"user"`
-	EntityType   string           `json:"entityType"`
-	EntityId     int64            `json:"entityId"`
-	Content      template.HTML    `json:"content"`
-	QuoteId      int64            `json:"quoteId"`
-	Quote        *CommentResponse `json:"quote"`
-	QuoteContent template.HTML    `json:"quoteContent"`
-	Status       int              `json:"status"`
-	CreateTime   int64            `json:"createTime"`
-}
-
 type FavoriteResponse struct {
 	FavoriteId int64     `json:"favoriteId"`
+	Slug 	   string    `json:"slug"`
 	EntityType string    `json:"entityType"`
 	EntityId   int64     `json:"entityId"`
 	Deleted    bool      `json:"deleted"`
@@ -108,6 +100,7 @@ type FavoriteResponse struct {
 // NotificationResponse 消息通知响应
 type NotificationResponse struct {
 	MessageId    int64     `json:"messageId"`
+	Slug 		 string     `json:"slug"`
 	From         *UserInfo `json:"from"`
 	UserId       int64     `json:"userId"`
 	Content      string    `json:"content"`

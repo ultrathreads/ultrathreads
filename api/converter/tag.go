@@ -2,13 +2,15 @@ package converter
 
 import (
 	"ultrathreads/model"
+	"ultrathreads/util/hashid"
 )
 
 func ToTag(tag *model.Tag) *model.TagResponse {
 	if tag == nil {
 		return nil
 	}
-	return &model.TagResponse{TagId: tag.ID, TagName: tag.Name}
+	slug, _ := hashid.Encode[model.Tag](tag.ID)
+	return &model.TagResponse{TagId: tag.ID, Slug: slug, TagName: tag.Name}
 }
 
 func ToTags(tags []model.Tag) []model.TagResponse {
