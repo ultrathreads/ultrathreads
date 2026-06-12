@@ -15,7 +15,7 @@ export default function Sidebar() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const params = useParams<{ slug?: string; tagId?: string }>(); 
+  const params = useParams<{ slug?: string }>(); 
   const pathname = usePathname(); 
 
   const [collapsed, setCollapsed] = useState(true);
@@ -23,8 +23,7 @@ export default function Sidebar() {
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const activeNodeSlug = params?.slug || null;
-  const activeTagId = params?.tagId ? Number(params.tagId) : null;
+  const activeSlug = params?.slug || null;
 
   useEffect(() => {
     let cancelled = false;
@@ -57,8 +56,8 @@ export default function Sidebar() {
     router.push(`/nodes/${nodeSlug}?page=1`);
   };
 
-  const handleTagClick = (tagId: number) => {
-     router.push(`/tags/${tagId}?page=1`);
+  const handleTagClick = (tagSlug: string) => {
+     router.push(`/tags/${tagSlug}?page=1`);
   };
 
   return (
@@ -78,7 +77,7 @@ export default function Sidebar() {
           ) : (
             <ul className="forum-list">
               {nodes.map((node) => {
-                const isActive = node.slug === activeNodeSlug;
+                const isActive = node.slug === activeSlug;
                 
                 return (
                   <li
@@ -104,13 +103,13 @@ export default function Sidebar() {
           ) : (
             <div className="tag-cloud">
               {tags.map((tag) => {
-                const isActive = tag.tagId === activeTagId;
+                const isActive = tag.slug === activeSlug;
 
                 return (
                   <span
-                    key={tag.tagId}
+                    key={tag.slug}
                     className={clsx('tag-item', { active: isActive })}
-                    onClick={() => handleTagClick(tag.tagId)}
+                    onClick={() => handleTagClick(tag.slug)}
                   >
                     {tag.tagName}
                   </span>

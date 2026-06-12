@@ -36,6 +36,11 @@ func (s *postService) Get(id int64) *model.Post {
 	return dao.PostDao.Get(id)
 }
 
+func (s *postService) GetBySlug(slug string) *model.Post {
+	id, _ := hashid.Decode[model.Post](slug)
+	return dao.PostDao.Get(id)
+}
+
 func (s *postService) Find(cnd *querybuilder.QueryBuilder) []model.Post {
 	return dao.PostDao.Find(cnd)
 }
@@ -98,9 +103,10 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]mo
 }
 
 // GetTagThreadsFull 获取指定标签下的主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
-func (s *postService) GetTagThreadsFull(tagId int64, page int) (posts []model.Post, paging *querybuilder.Paging) {
-	// 1. 获取当前页的根帖（通过 IN 子查询过滤标签，保证排序和分页正确）
+func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model.Post, paging *querybuilder.Paging) {
+	tagId, _ := hashid.Decode[model.Tag](tagSlug)
 
+	// 1. 获取当前页的根帖（通过 IN 子查询过滤标签，保证排序和分页正确）
 	subQuery := dao.DB().Model(&model.PostTag{}).
         Select("post_id").
         Where("tag_id = ? AND status = ?", tagId, model.StatusOk)
@@ -176,7 +182,8 @@ func (s *postService) GetPostWithThread(postSlug string) (*model.Post, []model.P
 	return post, replies, nil
 }
 
-func (s *postService) GetPostsByThreadId(threadId int64) ([]model.Post, error) {
+func (s *postService) GetPostsByThreadId(slug string) ([]model.Post, error) {
+	threadId, _ := hashid.Decode[model.Post](slug)
 	if threadId <= 0 {
 		return nil, errors.New("invalid thread_id")
 	}

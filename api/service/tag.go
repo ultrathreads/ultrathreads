@@ -7,6 +7,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util/querybuilder"
+	"ultrathreads/util/hashid"
 )
 
 type ScanTagCallback func(tags []model.Tag) bool
@@ -22,6 +23,11 @@ type tagService struct {
 
 func (s *tagService) Get(id int64) *model.Tag {
 	return dao.TagDao.Get(id)
+}
+
+func (s *tagService) GetBySlug(slug string) *model.Tag {
+	id, _ := hashid.Decode[model.Tag](slug)
+	return cache.TagCache.Get(id)
 }
 
 func (s *tagService) Take(where ...interface{}) *model.Tag {

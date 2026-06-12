@@ -91,24 +91,23 @@ export async function getThreadPageData(
 
 /**
  * 获取指定标签下的帖子列表页数据
- * @param tagId 标签ID
+ * @param tagSlug 标签ID
  * @param page 当前页码
  */
 export async function getTagPageData(
-  tagId: number,
+  tagSlug: string,
   page: number,
 ): Promise<ThreadPageData> {
   const safePage = Math.max(1, Number.isNaN(page) ? 1 : page);
-  const safeTagId = tagId;
 
   const params = new URLSearchParams({
     page: String(safePage),
     limit: String(DEFAULT_LIMIT),
-    tagId: String(safeTagId),
+    tagSlug: String(tagSlug),
   });
 
   // ✅ 缓存标签按标签ID隔离，避免切换标签时命中旧缓存
-  const cacheTags = ['threads', `tag-${safeTagId}`];
+  const cacheTags = ['threads', `tag-${tagSlug}`];
 
   try {
     const data = await apiFetch<ThreadsApiResponse>(

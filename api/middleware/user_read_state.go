@@ -15,18 +15,18 @@ func CurrentUserReadState() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		// 优先从路径参数获取，其次从查询参数获取
-		nodeID := util.ParamStringDefault(c, "nodeId", "")
-		if nodeID == "" {
-			nodeID = util.QueryStringDefault(c, "nodeId", "")
+		nodeSlug := util.ParamStringDefault(c, "nodeSlug", "")
+		if nodeSlug == "" {
+			nodeSlug = util.QueryStringDefault(c, "nodeSlug", "")
 		}
 
-		tagID := util.ParamStringDefault(c, "tagId", "")
-		if tagID == "" {
-			tagID = util.QueryStringDefault(c, "tagId", "")
+		tagSlug := util.ParamStringDefault(c, "tagSlug", "")
+		if tagSlug == "" {
+			tagSlug = util.QueryStringDefault(c, "tagSlug", "")
 		}
 
 		// 两者都缺失时直接跳过，不执行任何 DB 查询
-		if nodeID == "" && tagID == "" {
+		if nodeSlug == "" && tagSlug == "" {
 			c.Next()
 			return
 		}

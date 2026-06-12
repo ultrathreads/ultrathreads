@@ -13,9 +13,10 @@ type PostCreateForm struct {
 
 // PostUpdateForm post update form
 type PostUpdateForm struct {
-	ID      int64  //非表单赋值
-	Title   string `form:"title" json:"title" binding:"required"`
-	Content string `form:"content" json:"content" binding:"required"`
-	NodeID  int64  `form:"nodeId" json:"nodeId" binding: "required"`
-	Tags    string `form:"tags" json:"tags"`
+	ID       int64  //非表单赋值
+	PostSlug string `form:"post_slug" json:"post_slug" binding:"required"`
+	Title    string `form:"title" json:"title" binding:"required"`
+	Content  string `form:"content" json:"content" binding:"required"`
+	NodeID   int64  `form:"nodeId" json:"nodeId" binding: "required"`
+	Tags     string `form:"tags" json:"tags"`
 }

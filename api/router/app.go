@@ -65,7 +65,7 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/post/:slug/recentlikes", postController.GetRecentLikes)
 
 		// Tags
-		optional.GET("/tag/:id", tagController.Show)
+		optional.GET("/tag/:slug", tagController.Show)
 		optional.GET("/tags", tagController.List)
 		optional.GET("/tags/hot", tagController.HotTags)
 
@@ -73,7 +73,7 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/articles", articleController.List)
 		optional.GET("/article/:id", articleController.Show)
 		optional.GET("/articles/related/:id", articleController.GetRelatedBy)
-		optional.GET("/articles/tag/:id", articleController.GetTagArticles)
+		optional.GET("/articles/tag/:slug", articleController.GetTagArticles)
 		optional.GET("/articles/user/newest/:id", articleController.GetUserNewestBy)
 		optional.GET("/articles/recent", articleController.GetRecent)
 		optional.GET("/articles/user/recent/:id", articleController.GetUserRecent)
@@ -103,12 +103,12 @@ func setupApp(e *gin.Engine) {
 
 		// Nodes
 		jwtApi.POST("/nodes/:id/read", nodeController.MarkAsRead)
-		jwtApi.Any("/nodes/:id/view-post", nodeController.ViewPost)
 
 		// Posts（写操作）
 		jwtApi.POST("/posts", postController.Store)
 		jwtApi.GET("/post/:slug/edit", postController.Edit)
 		jwtApi.PUT("/post/:slug", postController.Update)
+		jwtApi.Any("/post/:slug/view-post", postController.ViewPost)
 		jwtApi.POST("/post/:slug/like", postController.Like)
 		jwtApi.POST("/post/:slug/favorite", postController.Favorite)
 

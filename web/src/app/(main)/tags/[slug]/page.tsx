@@ -1,4 +1,4 @@
-// app/(main)/tags/[tagId]/page.tsx
+// app/(main)/tags/[slug]/page.tsx
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getServerTranslation } from '@/lib/i18n/i18n-server';
@@ -10,13 +10,13 @@ import { buildThreadTree } from '@/lib/utils/thread-tree';
 import { getTagDetail } from '@/services/tag-service';
 
 interface Props {
-  params: Promise<{ tagId: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
 }
 
 /** 定义需要透传给子组件的回溯状态类型 */
 interface BackState {
-  tagId: string;
+  tagSlug: string;
   page?: string;
 }
 
@@ -27,11 +27,11 @@ async function parseSearchParams(searchParams: Props['searchParams']) {
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { currentPage, tagId } = await parseSearchParams(searchParams);
+  const { currentPage, slug } = await parseSearchParams(searchParams);
   let title = currentPage > 1 ? `帖子列表 - 第 ${currentPage} 页` : '帖子列表';
 
-  if (tagId) {
-    const { tag } = await getTagDetail(tagId);
+  if (slug) {
+    const { tag } = await getTagDetail(slug);
     if (tag) title = `${tag.tagName} - ${title}`;
   }
   return { title };
@@ -39,17 +39,16 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function TagPage({ params, searchParams }: Props) {
   const t = await getServerTranslation(['common', 'home']);
-  const { tagId } = await params;
+  const { slug } = await params;
   const { currentPage } = await parseSearchParams(searchParams);
 
-  const numericTagId = Number(tagId);
-  if (!Number.isFinite(numericTagId) || numericTagId <= 0) {
+  if (!slug || typeof slug !== 'string' || slug.trim() === '') {
     notFound();
   }
 
   const [threadResult, tagResult] = await Promise.all([
-    getTagPageData(numericTagId, currentPage),
-    getTagDetail(numericTagId),
+    getTagPageData(slug, currentPage),
+    getTagDetail(slug),
   ]);
 
   const { posts, paging, lastReadAtMap, error } = threadResult;
@@ -61,7 +60,7 @@ export default async function TagPage({ params, searchParams }: Props) {
 
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
 
-  const backState: BackState = { tagId: String(numericTagId) };
+  const backState: BackState = { tagSlug: String(slug) };
   if (currentPage > 1) {
     backState.page = String(currentPage);
   }

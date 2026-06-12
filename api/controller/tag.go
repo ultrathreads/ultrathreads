@@ -18,9 +18,9 @@ type TagController struct {
 
 // Show 标签详情
 func (c *TagController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto form.IdentifierDto
 	if c.BindAndValidate(ctx, &gDto) {
-		tag := cache.TagCache.Get(gDto.ID)
+		tag := service.TagService.GetBySlug(gDto.Slug)
 		if tag == nil {
 			c.Fail(ctx, util.ErrorTagNotFound)
 			return

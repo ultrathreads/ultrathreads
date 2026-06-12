@@ -19,8 +19,10 @@ func ToTags(tags []model.Tag) []model.TagResponse {
 	}
 	responses := make([]model.TagResponse, 0, len(tags))
 	for i := range tags {
+		slug, _ := hashid.Encode[model.Tag](tags[i].ID)
 		responses = append(responses, model.TagResponse{
 			TagId:   tags[i].ID,
+			Slug:    slug,
 			TagName: tags[i].Name,
 		})
 	}

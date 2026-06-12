@@ -19,9 +19,9 @@ type PostController struct {
 
 // Show 话题详情
 func (c *PostController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto form.IdentifierDto
 	if c.BindAndValidate(ctx, &gDto) {
-		post := service.PostService.Get(gDto.ID)
+		post := service.PostService.GetBySlug(gDto.Slug)
 		if post == nil || post.Status != model.StatusOk {
 			c.Fail(ctx, util.ErrorPostNotFound)
 			return
@@ -72,12 +72,9 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 // ListTagThreads 标签帖子列表
 func (c *PostController) ListTagThreads(ctx *gin.Context) {
 	page := util.FormValueIntDefault(ctx, "page", 1)
-	tagId, err := util.FormValueInt64(ctx, "tagId")
-	if err != nil {
-		c.Fail(ctx, util.ErrorTagNotFound)
-		return
-	}
-	posts, paging := service.PostService.GetTagThreadsFull(tagId, page)
+	tagSlug := util.FormValueStringDefault(ctx, "tagSlug", "")
+
+	posts, paging := service.PostService.GetTagThreadsFull(tagSlug, page)
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
@@ -114,13 +111,13 @@ func (c *PostController) GetPostWithThread(ctx *gin.Context) {
 
 // GetPostWithFlat 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostsFlat(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 
-	posts, err := service.PostService.GetPostsByThreadId(gDto.ID)
+	posts, err := service.PostService.GetPostsByThreadId(gDto.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -383,4 +380,21 @@ func (c *PostController) Favorite(ctx *gin.Context) {
     }
 
     c.Success(ctx, nil)
+}
+
+func (c *PostController) ViewPost(ctx *gin.Context) {
+	user := c.GetCurrentUser(ctx)
+	var gDto form.IdentifierDto
+	if !c.BindAndValidate(ctx, &gDto) {
+		c.Fail(ctx, util.ErrorPostNotFound)
+		return
+	}
+
+    c.PublishEvent(ctx, event.PostViewed{
+        UserID:     user.ID,
+        PostSlug:   gDto.Slug,
+        ViewedTime: util.NowTimestamp(),
+    })
+
+	c.Success(ctx, nil)
 }

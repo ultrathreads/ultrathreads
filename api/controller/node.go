@@ -6,7 +6,6 @@ import (
 
 	"ultrathreads/converter"
 	"ultrathreads/cache"
-	"ultrathreads/bus/event"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -48,21 +47,6 @@ func (c *NodeController) MarkAsRead(ctx *gin.Context) {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
-
-	c.Success(ctx, nil)
-}
-
-func (c *NodeController) ViewPost(ctx *gin.Context) {
-	nodeId := util.ParamInt64Default(ctx, "id", 0)
-	postId := util.QueryInt64Default(ctx, "postId", 0)
-	user := c.GetCurrentUser(ctx)
-
-    c.PublishEvent(ctx, event.PostViewed{
-        UserID:     user.ID,
-        NodeID:     nodeId,
-        PostID:     postId,
-        ViewedTime: util.NowTimestamp(),
-    })
 
 	c.Success(ctx, nil)
 }

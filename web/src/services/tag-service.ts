@@ -11,11 +11,11 @@ export interface TagPageData {
  * 获取单个板块详情
  * - 用于点击板块时获取名称和简介，供右侧面板展示
  */
-export async function getTagDetail(tagId: number): Promise<TagDetailData> {
+export async function getTagDetail(tagSlug: string): Promise<TagDetailData> {
   try {
-    const data = await apiFetch<tagEntity>(`/tag/${tagId}`, {
+    const data = await apiFetch<tagEntity>(`/tag/${tagSlug}`, {
       auth: false,
-      cacheStrategy: { next: { tags: [`tag-${tagId}`], revalidate: 30 } },
+      cacheStrategy: { next: { tags: [`tag-${tagSlug}`], revalidate: 30 } },
     });
 
     return {
@@ -23,7 +23,7 @@ export async function getTagDetail(tagId: number): Promise<TagDetailData> {
       error: null,
     };
   } catch (err) {
-    console.error(`[NodeService] Fetch tag ${tagId} failed:`, err);
+    console.error(`[NodeService] Fetch tag ${tagSlug} failed:`, err);
     return {
       tag: null,
       error: err instanceof Error ? err.message : 'Unknown error',

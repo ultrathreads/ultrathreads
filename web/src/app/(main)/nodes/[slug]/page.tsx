@@ -4,6 +4,7 @@ import { getThreadPageData } from '@/services/thread-service';
 import { getNodeDetail } from '@/services/node-service';
 import ThreadListView from '@/components/features/ThreadListView';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 // 定义路由参数接口
 interface Props {
@@ -24,7 +25,10 @@ export default async function NodePage({ params, searchParams }: Props) {
   const { page: pageStr } = await searchParams;
   
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
-
+  
+  if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+    notFound();
+  }
   // 并发获取数据
   const [threadResult, nodeResult] = await Promise.all([
     getThreadPageData(currentPage, slug),
