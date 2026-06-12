@@ -39,7 +39,7 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
                 replyCount={isRoot ? (post.commentCount ?? totalReplyCount) : 0}
                 isRoot={isRoot}
                 // ✅ 仅根帖注入回复交互能力
-                {...(isRoot && {
+                {...(true && {
                   onReplyClick: () => toggleEditor(post.slug),
                   isEditorOpen,
                 })}

@@ -664,30 +664,47 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 
 .mode-btn {
-    height: 28px;
-    padding: 0 14px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    line-height: 28px;
-    border: none;
-    border-radius: 14px;
-    cursor: pointer;
-    background: transparent;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    text-decoration: none;
+  /* ✅ 布局重构：用 flex 替代 line-height 居中 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  /* ✅ 保留原有尺寸规格，移除 line-height */
+  height: 28px;
+  padding: 0 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  /* line-height: 28px;  ← 删除此行，flex 已接管垂直居中 */
+
+  /* ✅ 保留原有外观与交互 */
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+/* ✅ 确保图标不被压缩且脱离基线排版 */
+.mode-btn svg {
+  display: block;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .mode-btn:hover:not(.active) {
-    color: var(--text-primary);
-    background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .mode-btn.active {
-    background: var(--bg-card);
-    color: var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: var(--bg-card);
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* 详情卡片主体 */
