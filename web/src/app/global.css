@@ -1392,3 +1392,84 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
   font-size: 12px;
   margin-top: 4px;
 }
+
+/* =============================================
+   15. 固定底部回复编辑器 Fixed Reply Editor
+   ============================================= */
+
+/* 外层：视口级固定定位，宽度由 JS 动态注入 */
+.fixed-reply-editor {
+  position: fixed;
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  border-top: 1px solid var(--border-base);
+  background-color: var(--bg-card);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  /* width 由 inline style 动态注入，此处不设固定值 */
+  /* 安全回退：JS 未注入宽度时保持合理默认表现 */
+  max-width: 48rem;
+}
+
+/* 内层：内边距与帖子列表保持一致 */
+.fixed-reply-editor__inner {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 顶部信息栏 */
+.fixed-reply-editor__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.fixed-reply-editor__label {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixed-reply-editor__author {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 关闭按钮：复用已有 icon-btn 基础样式 */
+.fixed-reply-editor__close {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.fixed-reply-editor__close:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-danger);
+}
+
+/* 编辑器主体区域 */
+.fixed-reply-editor__body {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}

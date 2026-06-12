@@ -7,11 +7,15 @@ import { toast } from 'sonner';
 // ✅ 1. 替换导入：createPost → createReply
 import { createReply } from '@/services/post-service';
 
+// ReplyEditor 接口定义补充
 interface ReplyEditorProps {
   parentSlug: string;
+  nodeSlug: number;
   replyToTitle?: string;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;
+  onClose?: () => void;   // 手动关闭（备用）
+  onSuccess?: () => void; // ✅ 提交成功后自动收起面板
 }
 
 export default function ReplyEditor({
