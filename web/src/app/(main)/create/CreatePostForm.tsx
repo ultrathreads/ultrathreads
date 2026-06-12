@@ -1,11 +1,11 @@
-// src/app/create/CreatePostForm.tsx
 'use client';
 
 import { useState, useRef, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import MDEditor from '@uiw/react-md-editor';
 import { toast } from 'sonner';
-import { createPost } from '@/services/post-service';
+// ✅ 1. 替换导入：createPost → createRootPost
+import { createRootPost } from '@/services/post-service';
 import { TagInput } from '@/components/ui/TagInput';
 import type { NodeEntity } from '@/types/domain';
 
@@ -19,7 +19,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
 
   const initialNodeSlug = (() => {
     const slug = searchParams.get('nodeSlug');
-    if (slug && nodes.some((n) => String(n.nodeSlug) === slug)) return slug;
+    if (slug && nodes.some((n) => String(n.slug) === slug)) return slug;
     return '';
   })();
 
@@ -39,17 +39,19 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
     e.preventDefault();
     setAttempted(true);
 
-    // ✅ 纯前端校验失败 → 仅激活行内错误，不弹 Toast
-    if (!nodeSlug || !title.trim() || !content.trim()) return;
+    if (!nodeSlug || !title.trim() || !content.trim()) {
+      return;
+    }
 
     if (submittingRef.current) return;
     submittingRef.current = true;
 
     try {
       await toast.promise(
-        createPost({
+        // ✅ 2. 调用 createRootPost，参数结构与 RootPostCreateForm 对齐
+        createRootPost({
           title: title.trim(),
-          nodeSlug: Number(nodeSlug),
+          nodeSlug,
           content,
           tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         }),
@@ -63,7 +65,6 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
             }, 600);
             return '主题发布成功 🎉';
           },
-          // ✅ Toast 仅处理异步结果：网络异常 / 服务端业务校验拒绝
           error: (err) => {
             submittingRef.current = false;
             return err instanceof Error ? err.message : '发布失败，请稍后重试';
@@ -83,6 +84,7 @@ export function CreatePostForm({ nodes }: CreatePostFormProps) {
 
   const isFormValid = Boolean(nodeSlug && title.trim() && content.trim());
 
+  // ✅ JSX 部分完全不变，无需任何调整
   return (
     <form id="createPostForm" onSubmit={handleSubmit} noValidate>
       <div className="form-row">

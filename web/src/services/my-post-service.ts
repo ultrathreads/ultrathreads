@@ -75,7 +75,7 @@ async function fetchUserPostsByType<T>(
 
   try {
     const data = await apiFetch<UserPostsApiResponse<T>>(
-      `/user/posts/${userSlug}?${params.toString()}`,
+      `/users/${userSlug}/posts?${params.toString()}`,
       {
         auth: true,
         cacheStrategy: { next: { revalidate: 0 } },

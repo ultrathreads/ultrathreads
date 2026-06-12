@@ -9,6 +9,8 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/service"
 	"ultrathreads/util"
+	"ultrathreads/model"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/markdown"
 	"ultrathreads/util/querybuilder"
 )
@@ -33,13 +35,14 @@ func (c *PostController) Show(ctx *gin.Context) {
 
 // Update update a post
 func (c *PostController) Update(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	post := service.PostService.Get(gDto.ID)
+	postID := hashid.Slug2Id[model.Post](gDto.Slug)
+	post := service.PostService.Get(postID)
 	if post == nil {
-		c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(gDto.ID, 10)))
+		c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(postID, 10)))
 		return
 	}
 
@@ -47,7 +50,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &postForm) {
 		return
 	}
-	postForm.ID = gDto.ID
+	postForm.Slug = gDto.Slug
 	err := service.PostService.Update(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))

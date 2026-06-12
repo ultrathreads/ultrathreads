@@ -81,6 +81,12 @@ func setupApp(e *gin.Engine) {
 			 tagGroup.GET("/threads", postController.ListTagThreads)
 		}
 
+
+		userGroup := optional.Group("/users/:slug")
+		{
+			userGroup.GET("/posts", postController.GetUserPosts)
+		}
+
 		// Articles
 		optional.GET("/articles", articleController.List)
 		optional.GET("/article/:id", articleController.Show)
@@ -94,7 +100,7 @@ func setupApp(e *gin.Engine) {
 		// Users（公开资料）
 		optional.GET("/profile/:slug", userController.Show)
 		optional.GET("/user/score/rank", userController.GetScoreRank)
-		optional.GET("/users/:id/recentwatchers", userController.GetRecentWatchers)
+		optional.GET("/users/:slug/recentwatchers", userController.GetRecentWatchers)
 
 		// Links
 		optional.GET("/links/top", linkController.GetToplinks)
@@ -117,7 +123,12 @@ func setupApp(e *gin.Engine) {
 		jwtApi.POST("/nodes/:slug/mark-as-read", nodeController.MarkAsRead)
 
 		// Posts（写操作）
-		jwtApi.POST("/posts", postController.Store)
+		postGroup := jwtApi.Group("/posts")
+		{
+			postGroup.POST("", postController.StoreRootPost)
+			postGroup.POST("/:parentSlug/replies", postController.StoreReply)
+		}
+
 		jwtApi.GET("/post/:slug/edit", postController.Edit)
 		jwtApi.PUT("/post/:slug", postController.Update)
 		jwtApi.Any("/post/:slug/view-post", postController.ViewPost)

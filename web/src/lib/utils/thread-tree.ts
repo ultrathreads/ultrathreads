@@ -23,7 +23,7 @@ export function buildThreadTree(
   const { lastReadAtMap } = options ?? {};
 
   // 1. O(n) 建立帖子索引
-  const postIndex = new Map<number, PostTreeItem>();
+  const postIndex = new Map<string, PostTreeItem>();
   const roots: PostTreeItem[] = [];
 
   for (const post of posts) {
@@ -53,17 +53,12 @@ export function buildThreadTree(
 
   // 3. 递归转换为视图模型，每层子节点固定按时间正序
   function toThreadView(treeItem: PostTreeItem): ThreadViewItem {
-    treeItem.children.sort(
-      (a, b) =>
-        new Date(a.createTime).getTime() - new Date(b.createTime).getTime(),
-    );
+    treeItem.children.sort((a, b) => a.createTime - b.createTime);
 
     const lookupKey = String(treeItem.node.slug);
 
     const lastReadAt =
-      lookupKey !== undefined && lastReadAtMap
-        ? lastReadAtMap[lookupKey]
-        : undefined;
+    lastReadAtMap !== undefined ? lastReadAtMap[lookupKey] : undefined;
 
     const base = adaptToThreadView(treeItem, { lastReadAt });
 

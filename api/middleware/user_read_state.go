@@ -5,8 +5,21 @@ import (
 
 	"ultrathreads/model"
 	"ultrathreads/service"
-	"ultrathreads/util"
 )
+
+// 将 Gin 的路由模式作为白名单 Key
+var lastReadWhiteList = map[string]struct{}{
+	"/api/threads":             {},
+	"/api/nodes/:slug/threads": {},
+	"/api/tags/:slug/threads":  {},
+	//"/api/users/:slug/posts":   {},
+}
+
+// ShouldReturnLastRead 判断当前接口是否需要返回已读状态
+func ShouldReturnLastRead(c *gin.Context) bool {
+	_, exists := lastReadWhiteList[c.FullPath()]
+	return exists
+}
 
 // CurrentUserReadState 仅当请求包含 nodeId 或 tagId（路径参数或查询参数）时，
 // 才注入当前用户该节点的已读时间戳，避免无关接口产生无效 DB 查询
@@ -15,13 +28,7 @@ func CurrentUserReadState() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		// 优先从路径参数获取，其次从查询参数获取
-		slug := util.ParamStringDefault(c, "slug", "")
-		if slug == "" {
-			slug = util.QueryStringDefault(c, "slug", "")
-		}
-
-		// 两者都缺失时直接跳过，不执行任何 DB 查询
-		if slug == "" {
+		if !ShouldReturnLastRead(c) {
 			c.Next()
 			return
 		}

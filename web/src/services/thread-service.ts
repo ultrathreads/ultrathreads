@@ -10,16 +10,16 @@ import type { PaginationMeta } from '@/types/api';
  * 从 PostEntity 派生，仅保留列表页渲染必需字段
  */
 export interface ThreadListItem {
-  id: number;
-  threadId: number;
-  parentId: number;
+  slug: string;
+  threadSlug: string;
+  parentSlug: string;
   title: string;
   createTime: number;
   lastCommentTime: number;
   viewCount: number;
   commentCount: number;
-  user: Pick<UserEntity, 'id' | 'username' | 'nickname' | 'avatar'>;
-  node: Pick<NodeEntity, 'nodeSlug' | 'name'>;
+  user: Pick<UserEntity, 'slug' | 'username' | 'nickname' | 'avatar'>;
+  node: Pick<NodeEntity, 'slug' | 'name'>;
 }
 
 /** API 原始响应结构（不导出，仅内部使用） */

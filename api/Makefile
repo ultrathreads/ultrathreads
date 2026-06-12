@@ -28,7 +28,7 @@ BUILD_FLAGS = "-v"
 all: build
 
 build:
-	go build $(BUILD_FLAGS) -ldflags '$(LDFLAGS)' -tags '$(TAGS)' -trimpath -o ultrathreads
+	go build $(BUILD_FLAGS) -ldflags '$(LDFLAGS)' -tags '$(TAGS)' -trimpath -o ut
 
 run:
-	./ultrathreads web
+	./ut web

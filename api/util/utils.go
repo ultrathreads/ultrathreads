@@ -152,3 +152,36 @@ func ParseTagsToArray(tags string) []string {
 	}
 	return ret
 }
+
+// ExtractReplyTitle 从回复内容中提取纯文本标题
+// 取第一行非空文本，去除 Markdown 标记后截取前 maxLen 个字符
+// 注意：maxLen 为 rune 字符数，非字节数，避免中文截断乱码
+func ExtractReplyTitle(content string, maxLen int) string {
+	lines := strings.Split(content, "\n")
+	var firstLine string
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "" {
+			firstLine = trimmed
+			break
+		}
+	}
+
+	if firstLine == "" {
+		return "无标题回复"
+	}
+
+	// 按长度降序排列，确保 ### 先于 # 被匹配，避免残留标记
+	prefixes := []string{"###", "##", "#", ">", "-", "*", "1.", "2.", "3."}
+	for _, p := range prefixes {
+		firstLine = strings.TrimPrefix(firstLine, p)
+	}
+	firstLine = strings.TrimSpace(firstLine)
+
+	runes := []rune(firstLine)
+	if len(runes) > maxLen {
+		return string(runes[:maxLen]) + "..."
+	}
+
+	return firstLine
+}

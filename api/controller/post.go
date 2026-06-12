@@ -10,6 +10,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -49,11 +50,16 @@ func (c *PostController) List(ctx *gin.Context) {
 func (c *PostController) ListThreads(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	limit := util.FormIntDefault(ctx, "limit", 20)
-	nodeSlug := util.FormStringDefault(ctx, "nodeSlug", "")
+	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
 
 	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeSlug)
 
-	lastReadAtMap := c.GetLastReadStates(ctx, nodeSlug)
+	var lastReadAtMap map[string]int64
+	if nodeSlug != "" {
+		lastReadAtMap = c.GetLastReadStates(ctx, nodeSlug)
+	} else {
+		lastReadAtMap = c.GetLastReadStates(ctx)
+	}
 
 	data := map[string]interface{}{
 		"results": 		 converter.ToSimplePosts(posts),
@@ -123,25 +129,74 @@ func (c *PostController) GetPostsFlat(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
-// Store 发表帖子
-func (c *PostController) Store(ctx *gin.Context) {
+// StoreRootPost 发表根帖
+func (c *PostController) StoreRootPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var postForm form.PostCreateForm
-	if c.BindAndValidate(ctx, &postForm) {
-		postForm.UserID = user.ID
-		post, err := service.PostService.Create(postForm)
-		if err != nil {
-			c.Fail(ctx, util.FromError(err))
-			return
-		}
-		//PostCreated
-		c.PublishEvent(ctx, event.PostCreated{
-	        UserID: user.ID,
-	        PostID: post.ID,
-	        IsRoot: post.ParentId == 0,
-	    })
-		c.Success(ctx, converter.ToSimplePost(post))
+	var postForm form.RootPostCreateForm
+
+	if !c.BindAndValidate(ctx, &postForm) {
+		return // BindAndValidate 内部已写回错误响应
 	}
+
+	postForm.UserSlug = hashid.Id2Slug[model.User](user.ID)
+
+	post, err := service.PostService.CreateRootPost(postForm)
+	if err != nil {
+		c.Fail(ctx, util.FromError(err))
+		return
+	}
+
+	// ✅ IsRoot 恒为 true，无需运行时判断
+	c.PublishEvent(ctx, event.PostCreated{
+		UserID: user.ID,
+		PostID: post.ID,
+		IsRoot: true,
+	})
+
+	c.Success(ctx, converter.ToSimplePost(post))
+}
+
+// StoreReply 发表回复
+func (c *PostController) StoreReply(ctx *gin.Context) {
+	user := c.GetCurrentUser(ctx)
+	parentSlug := ctx.Param("parentSlug")
+
+	var replyForm form.ReplyCreateForm
+	if !c.BindAndValidate(ctx, &replyForm) {
+		return
+	}
+
+	replyForm.UserSlug = hashid.Id2Slug[model.User](user.ID)
+	replyForm.ParentSlug = parentSlug
+	replyForm.Title = util.ExtractReplyTitle(replyForm.Content, 20) // 从内容提取前20字符
+
+	post, err := service.PostService.CreateReply(replyForm)
+	if err != nil {
+		c.Fail(ctx, util.FromError(err))
+		return
+	}
+
+	// ✅ IsRoot 恒为 false
+	c.PublishEvent(ctx, event.PostCreated{
+		UserID: user.ID,
+		PostID: post.ID,
+		IsRoot: false,
+	})
+
+	c.Success(ctx, converter.ToSimplePost(post))
+}
+
+// Deprecated: 兼容旧前端，迁移完成后删除
+func (c *PostController) Store(ctx *gin.Context) {
+    var postForm form.PostCreateForm
+    if !c.BindAndValidate(ctx, &postForm) {
+        return
+    }
+    if postForm.ParentSlug != "" {
+        c.StoreReply(ctx) // 注意：需要从 body 重新提取 parentSlug 注入到 path
+    } else {
+        c.StoreRootPost(ctx)
+    }
 }
 
 // Edit 为编辑话题准备数据
@@ -199,7 +254,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 
 	var postForm form.PostUpdateForm
 	if c.BindAndValidate(ctx, &postForm) {
-		postForm.ID = post.ID
+		postForm.Slug = hashid.Id2Slug[model.Post](post.ID)
 		err := service.PostService.Update(postForm)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
@@ -313,11 +368,12 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 	// 3. 调用 Service 层获取数据
 	posts, paging := service.PostService.GetUserPosts(gDto.Slug, postType, page, 20)
 
+	data := map[string]interface{}{}
+	data["results"] = converter.ToSimplePosts(posts)
+	data["page"] = paging
+	//data["lastReadAtMap"] = c.GetLastReadStates(ctx)
 	// 4. 格式化并返回结果
-	c.Success(ctx, gin.H{
-		"results": converter.ToSimplePosts(posts),
-		"page":    paging,
-	})
+	c.Success(ctx, data)
 }
 
 // Like 点赞
@@ -339,12 +395,12 @@ func (c *PostController) Like(ctx *gin.Context) {
 // Favorite 收藏话题
 func (c *PostController) Favorite(ctx *gin.Context) {
     user := c.GetCurrentUser(ctx)
-    var gDto form.GeneralGetDto
+    var gDto form.IdentifierDto
     if !c.BindAndValidateUri(ctx, &gDto) {
         return
     }
 
-    if err := service.FavoriteService.AddPostFavorite(user.ID, gDto.ID); err != nil {
+    if err := service.FavoriteService.AddPostFavorite(user.ID, gDto.Slug); err != nil {
         c.Fail(ctx, util.FromError(err))
         return
     }

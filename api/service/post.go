@@ -236,15 +236,17 @@ func (s *postService) Delete(id int64) error {
 
 // Update 编辑帖子
 func (s *postService) Update(dto form.PostUpdateForm) error {
-	node := dao.NodeDao.Get(dto.NodeID)
+	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
+	postID := hashid.Slug2Id[model.Post](dto.Slug)
+	node := dao.NodeDao.Get(nodeID)
 	if node == nil || node.Status != model.StatusOk {
 		return util.NewErrorMsg("节点不存在")
 	}
 
 	// ✅ v2 事务：Transaction + 闭包，全部使用 tx 操作
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Post{}).Where("id = ?", dto.ID).Updates(map[string]interface{}{
-			"node_id":     dto.NodeID,
+		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
+			"node_id":     node.ID,
 			"title":       dto.Title,
 			"content":     dto.Content,
 			"update_time": util.NowTimestamp(),
@@ -253,8 +255,8 @@ func (s *postService) Update(dto form.PostUpdateForm) error {
 		}
 
 		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags))
-		dao.PostTagDao.DeletePostTags(dto.ID)
-		dao.PostTagDao.AddPostTags(dto.ID, tagIds)
+		dao.PostTagDao.DeletePostTags(postID)
+		dao.PostTagDao.AddPostTags(postID, tagIds)
 		return nil
 	})
 
@@ -270,9 +272,123 @@ func (s *postService) Undelete(id int64) error {
 	return err
 }
 
+// CreateRootPost 创建根帖（主帖）
+func (s *postService) CreateRootPost(dto form.RootPostCreateForm) (*model.Post, error) {
+	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
+	userID := hashid.Slug2Id[model.User](dto.UserSlug)
+
+	// ✅ 节点校验（仅根帖需要）
+	if nodeID <= 0 {
+		nodeID = SettingService.GetSetting().DefaultNodeId
+	}
+	if nodeID <= 0 {
+		return nil, errors.New("请配置默认节点")
+	}
+	node := dao.NodeDao.Get(nodeID)
+	if node == nil || node.Status != model.StatusOk {
+		return nil, errors.New("节点不存在或已禁用")
+	}
+
+	now := util.NowTimestamp()
+	post := &model.Post{
+		Type:            model.PostTypeNormal,
+		UserId:          userID,
+		NodeId:          nodeID,
+		Title:           dto.Title,
+		Content:         dto.Content,
+		ImageList:       dto.ImageList,
+		Status:          model.StatusOk,
+		LastCommentTime: now,
+		CreateTime:      now,
+	}
+
+	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+		// 1. 创建帖子
+		if err := tx.Create(post).Error; err != nil {
+			return fmt.Errorf("创建帖子失败: %w", err)
+		}
+
+		// 2. 回填 threadId = 自身ID
+		if err := tx.Model(post).UpdateColumn("thread_id", post.ID).Error; err != nil {
+			return fmt.Errorf("更新ThreadId失败: %w", err)
+		}
+		post.ThreadId = post.ID
+
+		// 3. 处理标签（仅根帖有标签）
+		if len(dto.Tags) > 0 {
+			tagIds := dao.TagDao.GetOrCreates(dto.Tags)
+			for _, tagId := range tagIds {
+				if err := tx.Create(&model.PostTag{PostId: post.ID, TagId: tagId}).Error; err != nil {
+					return fmt.Errorf("关联标签失败: %w", err)
+				}
+			}
+		}
+
+		return nil
+	})
+
+	return post, err
+}
+
+// CreateReply 创建回复
+func (s *postService) CreateReply(dto form.ReplyCreateForm) (*model.Post, error) {
+	parentID := hashid.Slug2Id[model.Post](dto.ParentSlug)
+	userID := hashid.Slug2Id[model.User](dto.UserSlug)
+
+	if parentID <= 0 {
+		return nil, errors.New("无效的父级帖子")
+	}
+
+	now := util.NowTimestamp()
+	post := &model.Post{
+		Type:       model.PostTypeNormal,
+		UserId:     userID,
+		Title:		dto.Title,
+		Content:    dto.Content,
+		ImageList:  dto.ImageList,
+		Status:     model.StatusOk,
+		CreateTime: now,
+	}
+
+	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+		// 1. 查询并校验父级帖子
+		var parentPost model.Post
+		if err := tx.Where("id = ? AND status = ?", parentID, model.StatusOk).First(&parentPost).Error; err != nil {
+			return fmt.Errorf("父级帖子不存在或已删除: %w", err)
+		}
+
+		// 2. 确定 threadId 和 nodeId（继承自父级）
+		threadId := parentPost.ThreadId
+		if threadId == 0 {
+			threadId = parentPost.ID
+		}
+		post.ParentId = parentID
+		post.ThreadId = threadId
+		post.NodeId = parentPost.NodeId
+
+		// 3. 创建回复
+		if err := tx.Create(post).Error; err != nil {
+			return fmt.Errorf("创建回复失败: %w", err)
+		}
+
+		// 4. 更新根帖最后评论时间
+		if err := tx.Model(&model.Post{}).
+			Where("id = ?", threadId).
+			UpdateColumn("last_comment_time", now).Error; err != nil {
+			return fmt.Errorf("更新根帖最后评论时间失败: %w", err)
+		}
+
+		return nil
+	})
+
+	return post, err
+}
+
 // Create 发表话题/回帖
 func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
-	nodeID := dto.NodeID
+	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
+	userID := hashid.Slug2Id[model.User](dto.UserSlug)
+	parentID := hashid.Slug2Id[model.Post](dto.ParentSlug)
 	if nodeID <= 0 {
 		nodeID = SettingService.GetSetting().DefaultNodeId
 		if nodeID <= 0 {
@@ -287,7 +403,7 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 	now := util.NowTimestamp()
 	post := &model.Post{
 		Type:            model.PostTypeNormal,
-		UserId:          dto.UserID,
+		UserId:          userID,
 		NodeId:          nodeID,
 		Title:           dto.Title,
 		Content:         dto.Content,
@@ -300,9 +416,9 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
 		// 步骤1：确定 threadId
 		var threadId int64
-		if dto.ParentId > 0 {
+		if parentID > 0 {
 			var parentPost model.Post
-			if err := tx.Where("id = ? AND status = ?", dto.ParentId, model.StatusOk).First(&parentPost).Error; err != nil {
+			if err := tx.Where("id = ? AND status = ?", parentID, model.StatusOk).First(&parentPost).Error; err != nil {
 				return fmt.Errorf("父级帖子不存在或已删除: %w", err)
 			}
 			if parentPost.NodeId != nodeID {
@@ -313,12 +429,12 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 			} else {
 				threadId = parentPost.ID
 			}
-			post.ParentId = dto.ParentId
+			post.ParentId = parentID
 			post.ThreadId = threadId
 		}
 
 		var tagIds []int64
-		if dto.ParentId == 0 {
+		if parentID == 0 {
 			tagIds = dao.TagDao.GetOrCreates(dto.Tags)
 		}
 
@@ -328,7 +444,7 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 		}
 
 		// 步骤3：主帖回填 threadId
-		if dto.ParentId == 0 {
+		if parentID == 0 {
 			if err := tx.Model(&model.Post{}).
 				Where("id = ?", post.ID).
 				UpdateColumn("thread_id", post.ID).Error; err != nil {
@@ -338,7 +454,7 @@ func (s *postService) Create(dto form.PostCreateForm) (*model.Post, error) {
 		}
 
 		// 回帖更新根帖最后评论时间
-		if dto.ParentId > 0 {
+		if parentID > 0 {
 			if err := tx.Model(&model.Post{}).
 				Where("id = ?", threadId).
 				UpdateColumn("last_comment_time", now).Error; err != nil {

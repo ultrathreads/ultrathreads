@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	gormlog "gorm.io/gorm/logger"
-	"github.com/spf13/viper"
+	"gorm.io/gorm/schema"
 
 	"ultrathreads/model"
 	"ultrathreads/util/log"
@@ -58,6 +59,10 @@ func Setup() {
 	// 2. GORM 初始化
 	db, err = gorm.Open(dialector, &gorm.Config{
 		Logger: gormlog.Default.LogMode(logLevel),
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   "ut_", // 👈 所有表自动加 ut_ 前缀
+			SingularTable: false, // 保持复数形式，如 ut_posts、ut_users
+		},
 	})
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Failed to connect database: %v", err))

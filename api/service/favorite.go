@@ -6,6 +6,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -73,7 +74,8 @@ func (s *favoriteService) AddArticleFavorite(userId, articleId int64) error {
 }
 
 // 收藏主题
-func (s *favoriteService) AddPostFavorite(userId, postId int64) error {
+func (s *favoriteService) AddPostFavorite(userId int64, postSlug string) error {
+	postId := hashid.Slug2Id[model.Post](postSlug)
 	post := dao.PostDao.Get(postId)
 	if post == nil || post.Status != model.StatusOk {
 		return errors.New("收藏的话题不存在")

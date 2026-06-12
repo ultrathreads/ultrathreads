@@ -4,12 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createPost } from '@/services/post-service';
-import { extractPostTitle } from '@/lib/utils/post';
+// ✅ 1. 替换导入：createPost → createReply
+import { createReply } from '@/services/post-service';
 
 interface ReplyEditorProps {
   parentSlug: string;
-  nodeSlug: string;
   replyToTitle?: string;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;
@@ -17,7 +16,6 @@ interface ReplyEditorProps {
 
 export default function ReplyEditor({
   parentSlug,
-  nodeSlug,
   replyToTitle,
   autoFocus = false,
   onAutoFocusConsumed,
@@ -26,32 +24,27 @@ export default function ReplyEditor({
   const router = useRouter();
   const editorWrapperRef = useRef<HTMLDivElement>(null);
 
-  // ✅ 仅负责滚动定位，聚焦交给 MDEditor 自身处理
   useEffect(() => {
     if (!autoFocus) return;
-
     requestAnimationFrame(() => {
       editorWrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
-
-    // ✅ MDEditor 通过 textareaProps.autoFocus 自行处理聚焦后，通知父组件重置
-    // 延迟一帧确保 onAutoFocusConsumed 不会在当前渲染周期内触发状态变更警告
-    const timer = setTimeout(() => {
-      onAutoFocusConsumed?.();
-    }, 0);
-
+    const timer = setTimeout(() => onAutoFocusConsumed?.(), 0);
     return () => clearTimeout(timer);
   }, [autoFocus, onAutoFocusConsumed]);
 
   const handleSubmit = async () => {
     const trimmed = content.trim();
-    if (!trimmed) { toast.warning('回复内容不能为空'); return; }
+    if (!trimmed) {
+      toast.warning('回复内容不能为空');
+      return;
+    }
 
-    const title = extractPostTitle(trimmed, { maxLength: 30 });
-    if (!title) { toast.warning('无法从内容中提取标题，请输入有效文本'); return; }
+    // ✅ 2. 移除 extractPostTitle 相关逻辑（回复不需要 title）
 
     toast.promise(
-      createPost({ title, nodeSlug, parentSlug, content }),
+      // ✅ 3. 调用新 API：parentSlug 作为第一个参数，body 只传 content
+      createReply(parentSlug, { content: trimmed }),
       {
         loading: '发布中...',
         success: (result) => {
@@ -62,7 +55,8 @@ export default function ReplyEditor({
           }, 600);
           return '回复发布成功 🎉';
         },
-        error: (err) => err instanceof Error ? err.message : '提交失败，请重试',
+        error: (err) =>
+          err instanceof Error ? err.message : '提交失败，请重试',
       }
     );
   };
@@ -74,11 +68,9 @@ export default function ReplyEditor({
         {replyToTitle && <span className="reply-to-tag">→ {replyToTitle}</span>}
       </h3>
 
-      <input type="hidden" name="parentSlug" value={parentSlug} />
-      <input type="hidden" name="nodeSlug" value={nodeSlug} />
+      {/* ✅ 4. 移除隐藏的 parentSlug input（已由组件 props + API 路径承载） */}
 
       <div data-color-mode="light">
-        {/* ✅ 核心修复：通过 textareaProps 透传 autoFocus，由 MDEditor 内部在正确时机执行 */}
         <MDEditor
           value={content}
           onChange={(val) => setContent(val || '')}
@@ -87,7 +79,9 @@ export default function ReplyEditor({
           visibleDragbar={false}
           textareaProps={{
             autoFocus,
-            placeholder: replyToTitle ? `回复 @${replyToTitle}...` : '支持 Markdown 语法...',
+            placeholder: replyToTitle
+              ? `回复 @${replyToTitle}...`
+              : '支持 Markdown 语法...',
           }}
         />
       </div>

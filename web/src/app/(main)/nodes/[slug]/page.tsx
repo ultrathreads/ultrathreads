@@ -35,6 +35,7 @@ export default async function NodePage({ params, searchParams }: Props) {
     getNodeDetail(slug),
   ]);
 
+
   return (
     <ThreadListView 
       t={t} 

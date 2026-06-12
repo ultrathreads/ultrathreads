@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { useAuth } from '@/hooks/use-auth';
 import UserMenu from '@/components/features/UserMenu';
@@ -15,7 +15,7 @@ interface HeaderProps {
 export default function Header({ siteTitle }: HeaderProps) {
   const { t } = useTranslation(['common']);
   const { isLoggedIn, isLoading } = useAuth();
-  const searchParams = useSearchParams();
+  const params = useParams<{ slug?: string }>(); 
   const { theme, toggleTheme } = useTheme();
 
   // 2. 添加挂载状态，用于解决 SSR 水合不匹配问题
@@ -25,8 +25,10 @@ export default function Header({ siteTitle }: HeaderProps) {
     setIsMounted(true);
   }, []);
 
-  const nodeId = searchParams.get('nodeId');
-  const createHref = nodeId ? `/create?nodeId=${encodeURIComponent(nodeId)}` : '/create';
+  const nodeSlug = params.slug;
+  const createHref = nodeSlug 
+    ? `/create?nodeSlug=${encodeURIComponent(nodeSlug)}` 
+    : '/create';
 
   // 3. 如果正在加载，显示骨架屏（保持你原有的逻辑）
   if (isLoading) {

@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import { apiFetch, ApiBusinessError } from '@/lib/api/client';
 import type { PostEntity, PostWithThread } from '@/types/domain';
+import type { CreateRootPostPayload, CreateReplyPayload } from '@/types/post'
 
 // ✅ 修复：返回类型从 PostDetail 改为 PostEntity
 export async function getPostDetail(postSlug: string): Promise<PostEntity> {
@@ -43,23 +44,33 @@ export async function getPostFlat(postSlug: string): Promise<PostWithFlat> {
   }
 }
 
-export interface CreatePostPayload {
-  title: string;
-  nodeId: number;
-  parentId?: number;
-  content: string;
-  tags?: string[];
-}
-
 export interface CreatePostResponse {
-  id: number;
+  slug: string;
 }
 
 /**
- * 创建新帖子
+ * 创建根帖（主帖）
+ * POST /api/posts
  */
-export async function createPost(payload: CreatePostPayload): Promise<CreatePostResponse> {
+export async function createRootPost(
+  payload: CreateRootPostPayload
+): Promise<CreatePostResponse> {
   return apiFetch<CreatePostResponse>('/posts', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * 创建回复
+ * POST /api/posts/:parentSlug/replies
+ */
+export async function createReply(
+  parentSlug: string,
+  payload: CreateReplyPayload
+): Promise<CreatePostResponse> {
+  return apiFetch<CreatePostResponse>(`/posts/${parentSlug}/replies`, {
     method: 'POST',
     auth: true,
     body: JSON.stringify(payload),
@@ -70,22 +81,22 @@ export async function createPost(payload: CreatePostPayload): Promise<CreatePost
 
 /**
  * 点赞帖子
- * POST /post/:id/like
+ * POST /post/:slug/like
  */
-export async function likePost(postId: string | number): Promise<void> {
-  await apiFetch<null>(`/post/${postId}/like`, {
+export async function likePost(postSlug: string | number): Promise<void> {
+  await apiFetch<null>(`/post/${postSlug}/like`, {
     method: 'POST',
     auth: true,
-    cacheStrategy: undefined, // ✅ POST 写操作禁用缓存
+    cacheStrategy: undefined,
   });
 }
 
 /**
  * 收藏帖子
- * POST /post/:id/favorite
+ * POST /post/:slug/favorite
  */
-export async function favoritePost(postId: string | number): Promise<void> {
-  await apiFetch<null>(`/post/${postId}/favorite`, {
+export async function favoritePost(postSlug: string | number): Promise<void> {
+  await apiFetch<null>(`/post/${postSlug}/favorite`, {
     method: 'POST',
     auth: true,
     cacheStrategy: undefined,

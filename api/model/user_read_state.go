@@ -7,7 +7,3 @@ type UserReadState struct {
 	NodeID     int64 `gorm:"not null;unique_index:uk_user_node" json:"nodeId"`
 	LastReadAt int64 `gorm:"not null;default:0" json:"lastReadAt"` // Unix 秒级时间戳
 }
-
-func (UserReadState) TableName() string {
-	return "user_read_states"
-}
