@@ -15,15 +15,15 @@ interface Props {
   backState?: BackState;
 }
 
-function buildPostUrl(postId: number | string, backState?: BackState): string {
+function buildPostUrl(postSlug: string | string, backState?: BackState): string {
   if (!backState || (!backState.nodeId && !backState.tagId && !backState.page)) {
-    return `/post/${postId}`;
+    return `/post/${postSlug}`;
   }
   const params = new URLSearchParams();
   if (backState.nodeId) params.set('nodeId', backState.nodeId);
   if (backState.tagId) params.set('tagId', backState.tagId);
   if (backState.page) params.set('page', backState.page);
-  return `/post/${postId}?${params.toString()}`;
+  return `/post/${postSlug}?${params.toString()}`;
 }
 
 export default function ThreadItem({
@@ -99,7 +99,7 @@ export default function ThreadItem({
         )}
         <Link
           className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`}
-          href={buildPostUrl(item.id, backState)}
+          href={buildPostUrl(item.slug, backState)}
         >
           {item.title} 
         </Link>

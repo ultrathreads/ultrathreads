@@ -2,6 +2,7 @@
 
 export interface ThreadViewItem {
   id: number;
+  slug: string;
   parentId: number;
   threadId: number;
   title: string;

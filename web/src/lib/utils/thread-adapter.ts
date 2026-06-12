@@ -58,6 +58,7 @@ export function adaptToThreadView(
 
   return {
     id: source.id,
+    slug: source.slug,
     threadId: source.threadId,
     parentId: isPostEntity
       ? (post.parentId ?? 0)

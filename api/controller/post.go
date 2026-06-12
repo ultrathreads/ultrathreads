@@ -49,10 +49,11 @@ func (c *PostController) List(ctx *gin.Context) {
 func (c *PostController) ListThreads(ctx *gin.Context) {
 	page := util.FormValueIntDefault(ctx, "page", 1)
 	limit := util.FormValueIntDefault(ctx, "limit", 20)
-	nodeId := util.FormValueIntDefault(ctx, "nodeId", 0)
+	nodeSlug := util.FormValueStringDefault(ctx, "nodeSlug", "")
 
-	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeId)
+	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeSlug)
 
+	nodeId := 0
 	var lastReadAtMap map[int64]int64
 	if nodeId > 0 {
 	    lastReadAtMap = c.GetLastReadStates(ctx, int64(nodeId))
@@ -90,13 +91,14 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 
 // GetPostWithThread 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostWithThread(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+
+	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 
-	post, replies, err := service.PostService.GetPostWithThread(gDto.ID)
+	post, replies, err := service.PostService.GetPostWithThread(gDto.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return

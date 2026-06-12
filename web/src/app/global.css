@@ -373,8 +373,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     background-color: var(--bg-tag); border-radius: 12px; cursor: pointer; white-space: nowrap;
     transition: all 0.2s;
 }
-.tag-item:hover { background-color: var(--color-primary); color: #fff; }
-
+.tag-item.active, .tag-item:hover { background-color: var(--color-primary); color: #fff; }
 /* =============================================
    5. 通用按钮/表单/控件 - 分页、下拉、基础按钮
    ============================================= */

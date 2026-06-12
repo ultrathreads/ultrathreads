@@ -17,6 +17,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
 )
@@ -49,7 +50,8 @@ func (s *postService) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ int �
 }
 
 // GetNodeThreadsFull 获取主帖列表（分页）+ 每个主帖下的所有回复（扁平化）
-func (s *postService) GetNodeThreadsFull(page, limit, nodeId int) ([]model.Post, *querybuilder.Paging) {
+func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]model.Post, *querybuilder.Paging) {
+	nodeId,_ := hashid.Decode[model.Node](nodeSlug)
 	rootCnd := querybuilder.NewQueryBuilder().
 		Eq("parent_id", 0).
 		Eq("status", model.StatusOk)
@@ -147,7 +149,8 @@ func (s *postService) GetTagThreadsFull(tagId int64, page int) (posts []model.Po
 }
 
 // GetPostWithThread 获取帖子详情及其所属主题的所有扁平回帖
-func (s *postService) GetPostWithThread(postId int64) (*model.Post, []model.Post, error) {
+func (s *postService) GetPostWithThread(postSlug string) (*model.Post, []model.Post, error) {
+	postId, _ := hashid.Decode[model.Post](postSlug)
 	if postId <= 0 {
 		return nil, nil, errors.New("invalid post_id")
 	}

@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"strconv"
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/converter"
 	"ultrathreads/cache"
 	"ultrathreads/bus/event"
 	"ultrathreads/form"
+	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
 )
@@ -24,9 +26,15 @@ func (c *NodeController) List(ctx *gin.Context) {
 
 // Show 显示单个节点
 func (c *NodeController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto form.IdentifierDto
 	if c.BindAndValidate(ctx, &gDto) {
-		node := service.NodeService.Get(gDto.ID)
+		var node *model.Node
+		if id, parseErr := strconv.ParseInt(gDto.Slug, 10, 64); parseErr == nil {
+			node = service.NodeService.Get(id)
+		} else {
+			node = service.NodeService.GetBySlug(gDto.Slug)
+		}
+
 		c.Success(ctx, converter.ToNode(node))
 	}
 }

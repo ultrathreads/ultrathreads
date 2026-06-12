@@ -2,6 +2,7 @@
 
 export interface NodeEntity {
   nodeId: number;
+  slug: string;
   name: string;
   description: string;
   topicCount: number;
@@ -9,6 +10,7 @@ export interface NodeEntity {
 
 export interface PostEntity {
   id: number;
+  slug: string;
   threadId: number;
   parentId: number;       // 0 = 主帖, >0 = 回帖
   type: number;
@@ -29,6 +31,7 @@ export interface PostEntity {
 
 export interface UserEntity {
   id: number;
+  slug: string;
   username: string;
   email: string;
   nickname: string;
@@ -47,6 +50,7 @@ export interface UserEntity {
 
 export interface TagEntity {
   tagId: number;
+  slug: string;
   tagName: string;
 }
 

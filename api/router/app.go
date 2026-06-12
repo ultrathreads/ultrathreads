@@ -46,23 +46,23 @@ func setupApp(e *gin.Engine) {
 
 		// Nodes
 		optional.GET("/nodes", nodeController.List)
-		optional.GET("/node/:id", nodeController.Show)
+		optional.GET("/node/:slug", nodeController.Show)
 
 		// Posts
 		optional.GET("/threads", postController.ListThreads)
 		optional.GET("/threads/tag", postController.ListTagThreads)
 
 		optional.GET("/posts", postController.List)
-		optional.GET("/post/:id", postController.Show)
-		optional.GET("/post/:id/with-thread", postController.GetPostWithThread)
-		optional.GET("/post/:id/flat", postController.GetPostsFlat)
+		optional.GET("/post/:slug", postController.Show)
+		optional.GET("/post/:slug/with-thread", postController.GetPostWithThread)
+		optional.GET("/post/:slug/flat", postController.GetPostsFlat)
 		optional.GET("/posts/excellent", postController.GetPostsExcellent)
 		optional.GET("/posts/recommend", postController.GetPostsRecommend)
 		optional.GET("/posts/noreply", postController.GetPostsNoreply)
 		optional.GET("/posts/last", postController.GetPostsLast)
 		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
 		optional.GET("/user/posts/:id", postController.GetUserPosts)
-		optional.GET("/post/:id/recentlikes", postController.GetRecentLikes)
+		optional.GET("/post/:slug/recentlikes", postController.GetRecentLikes)
 
 		// Tags
 		optional.GET("/tag/:id", tagController.Show)
@@ -107,10 +107,10 @@ func setupApp(e *gin.Engine) {
 
 		// Posts（写操作）
 		jwtApi.POST("/posts", postController.Store)
-		jwtApi.GET("/post/:id/edit", postController.Edit)
-		jwtApi.PUT("/post/:id", postController.Update)
-		jwtApi.POST("/post/:id/like", postController.Like)
-		jwtApi.POST("/post/:id/favorite", postController.Favorite)
+		jwtApi.GET("/post/:slug/edit", postController.Edit)
+		jwtApi.PUT("/post/:slug", postController.Update)
+		jwtApi.POST("/post/:slug/like", postController.Like)
+		jwtApi.POST("/post/:slug/favorite", postController.Favorite)
 
 		// Favorites
 		jwtApi.GET("/favorites/favorited", favoriteController.GetFavorited)

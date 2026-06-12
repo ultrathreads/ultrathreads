@@ -13,7 +13,7 @@ import NodeHeader, { type HeaderDisplayData } from './NodeHeader'; // 引入新�
 
 /** 从列表页透传的回溯状态 */
 export interface BackState {
-  nodeId?: string;
+  nodeSlug?: string;
   tagId?: string; // 新增 tagId
   page?: string;
 }
@@ -29,12 +29,12 @@ interface Props {
  * 构建带回溯参数的详情页链接
  */
 function buildPostUrl(postId: number | string, backState?: BackState): string {
-  if (!backState || (!backState.nodeId && !backState.tagId && !backState.page)) {
+  if (!backState || (!backState.nodeSlug && !backState.tagId && !backState.page)) {
     return `/post/${postId}`;
   }
 
   const params = new URLSearchParams();
-  if (backState.nodeId) params.set('nodeId', backState.nodeId);
+  if (backState.nodeSlug) params.set('nodeSlug', backState.nodeSlug);
   if (backState.tagId) params.set('tagId', backState.tagId); // 处理 tagId
   if (backState.page) params.set('page', backState.page);
 
@@ -79,7 +79,7 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
 
   // 因为 tag 下的列表无法执行 markAsRead，所以这里只从 activeNode 中提取 ID，不再回退到 tagId
   const effectiveId = useMemo(() => {
-    return activeNode?.nodeId ?? activeNode?.id;
+    return activeNode?.nodeSlug ?? activeNode?.id;
   }, [activeNode]);
 
   const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);

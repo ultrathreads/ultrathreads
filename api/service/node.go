@@ -8,6 +8,7 @@ import (
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 )
@@ -21,6 +22,11 @@ func newNodeService() *nodeService {
 type nodeService struct{}
 
 func (s *nodeService) Get(id int64) *model.Node {
+	return dao.NodeDao.Get(id)
+}
+
+func (s *nodeService) GetBySlug(slug string) *model.Node {
+	id,_ := hashid.Decode[model.Node](slug)
 	return dao.NodeDao.Get(id)
 }
 

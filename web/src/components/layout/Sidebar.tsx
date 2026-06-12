@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams, usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes } from '@/services/node-service';
@@ -15,13 +15,16 @@ export default function Sidebar() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const activeNodeId = searchParams.get('nodeId') ? Number(searchParams.get('nodeId')) : null;
-  const activeTag = searchParams.get('tag') || null;
+  const params = useParams<{ slug?: string; tagId?: string }>(); 
+  const pathname = usePathname(); 
 
   const [collapsed, setCollapsed] = useState(true);
   const [nodes, setNodes] = useState<NodeEntity[]>([]);
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const activeNodeSlug = params?.slug || null;
+  const activeTagId = params?.tagId ? Number(params.tagId) : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -50,17 +53,8 @@ export default function Sidebar() {
     return () => { cancelled = true; };
   }, []);
 
-  const handleNodeClick = (nodeId: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (activeNodeId === nodeId) {
-      params.delete('nodeId');
-    } else {
-      params.set('nodeId', String(nodeId));
-      params.set('page', '1');
-    }
-
-    router.push(`/?${params.toString()}`);
+  const handleNodeClick = (nodeSlug: string) => {
+    router.push(`/nodes/${nodeSlug}?page=1`);
   };
 
   const handleTagClick = (tagId: number) => {
@@ -84,13 +78,13 @@ export default function Sidebar() {
           ) : (
             <ul className="forum-list">
               {nodes.map((node) => {
-                const isActive = node.nodeId === activeNodeId;
+                const isActive = node.slug === activeNodeSlug;
                 
                 return (
                   <li
-                    key={node.nodeId}
+                    key={node.slug}
                     className={clsx('forum-item', { active: isActive })}
-                    onClick={() => handleNodeClick(node.nodeId)}
+                    onClick={() => handleNodeClick(node.slug)}
                   >
                     <NodeIcon icon={node.icon} />
                     <span className="truncate">{node.name}</span>
@@ -110,8 +104,7 @@ export default function Sidebar() {
           ) : (
             <div className="tag-cloud">
               {tags.map((tag) => {
-
-                const isActive = window.location.pathname === `/tags/${tag.tagId}`;
+                const isActive = tag.tagId === activeTagId;
 
                 return (
                   <span
