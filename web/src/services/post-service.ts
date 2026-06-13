@@ -4,10 +4,18 @@ import { apiFetch, ApiBusinessError } from '@/lib/api/client';
 import type { PostEntity, PostWithThread } from '@/types/domain';
 import type { CreateRootPostPayload, UpdateRootPostPayload, CreateReplyPayload, CreatePostResponse } from '@/types/post'
 
-// ✅ 修复：返回类型从 PostDetail 改为 PostEntity
-export async function getPostDetail(postSlug: string): Promise<PostEntity> {
+interface PostServiceOptions {
+  noCache?: boolean;
+}
+
+export async function getPostDetail(
+  postSlug: string,
+  options?: PostServiceOptions
+  ): Promise<PostEntity> {
   try {
-    return await apiFetch<PostEntity>(`/post/${postSlug}`);
+    return await apiFetch<PostEntity>(`/post/${postSlug}`, {
+      noCache: options?.noCache
+    });
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
@@ -19,9 +27,14 @@ export async function getPostDetail(postSlug: string): Promise<PostEntity> {
 /**
  * ✅ 获取帖子详情及其所有回帖
  */
-export async function getPostWithThread(postSlug: string): Promise<PostWithThread> {
+export async function getPostWithThread(
+  postSlug: string,
+  options?: PostServiceOptions
+  ): Promise<PostWithThread> {
   try {
-    return await apiFetch<PostWithThread>(`/post/${postSlug}/with-thread`);
+    return await apiFetch<PostWithThread>(`/post/${postSlug}/with-thread`, {
+      noCache: options?.noCache
+    });
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);

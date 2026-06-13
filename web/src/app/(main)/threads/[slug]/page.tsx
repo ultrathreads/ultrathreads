@@ -18,11 +18,22 @@ interface Props {
 }
 
 // 动态生成 SEO 元数据
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-    // 使用轻量级接口获取基础信息，避免为 SEO 加载完整回复树
-    const detail = await getPostDetail(slug);
+    // 解析 searchParams 并提取刷新信号
+    let forceRefresh = false;
+    try {
+      const resolvedSp = await searchParams;
+      forceRefresh = resolvedSp?.refresh === '1';
+    } catch {
+      // ignore
+    }
+    
+    const serviceOpts = { noCache: forceRefresh };
+
+    // 将 serviceOpts 透传给 getPostDetail
+    const detail = await getPostDetail(slug, serviceOpts);
 
     if (!detail) return {};
 
@@ -138,6 +149,9 @@ export default async function ReadPage({ params, searchParams }: Props) {
   const view = resolvedSp.view === 'flat' ? 'flat' : 'tree';
   const { backUrl, backState } = extractBackContext(resolvedSp);
 
+  const forceRefresh = resolvedSp.refresh === '1';
+  const serviceOpts = { noCache: forceRefresh };
+
   let post = null;
   let viewData: any = null;
   let totalReplyCount = 0;
@@ -150,7 +164,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
       const isNonRootFlat = posts.length === 0 || (posts[0] && !posts[0].isRoot);
 
       if (isNonRootFlat) {
-        const detail = await getPostDetail(slug);
+        const detail = await getPostDetail(slug, serviceOpts);
         if (!detail.threadSlug) {
           throw new Error(`Post ${slug} is missing threadSlug, cannot resolve flat view`);
         }
@@ -163,7 +177,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
       totalReplyCount = posts.length > 0 ? posts.length - 1 : 0;
       post = posts[0];
     } else {
-      const result = await getPostWithThread(slug);
+      const result = await getPostWithThread(slug, serviceOpts);
       post = result.post;
       const replies = result.replies ?? [];
       viewData = buildThreadTree(replies);

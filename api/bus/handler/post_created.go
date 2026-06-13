@@ -6,6 +6,7 @@ import (
 	"ultrathreads/bus/event"
 	"ultrathreads/util/log"
 	"ultrathreads/dao"
+	"ultrathreads/cache"
 )
 
 func PostCreatedHandler(sub core.SafeSubscriber) {
@@ -17,6 +18,9 @@ func PostCreatedHandler(sub core.SafeSubscriber) {
 			tagIds := dao.TagDao.GetOrCreates(payload.Tags)
 			//dao.PostTagDao.DeletePostTags(payload.PostID)
 			dao.PostTagDao.AddPostTags(payload.PostID, tagIds)
+
+			//清除Tag缓存
+			cache.TagCache.InvalidatePostTags(payload.PostID)
 		}
 	})
 }

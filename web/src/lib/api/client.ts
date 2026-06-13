@@ -7,6 +7,7 @@ export interface ApiRequestOptions extends RequestInit {
   auth?: boolean;
   cacheStrategy?: NextFetchRequestConfig;
   skipDataUnwrap?: boolean;
+  noCache?: boolean; 
 }
 
 /** 自定义业务异常，方便上层区分 HTTP 错误与业务错误 */
@@ -69,10 +70,27 @@ export async function apiFetch<T>(
     }
   }
 
-  // 涉及用户状态的接口禁止共享缓存，避免脏数据
-  const finalCacheStrategy = auth
-    ? { cache: 'no-store' as RequestCache }
-    : cacheStrategy;
+  let finalCacheStrategy: RequestInit & NextFetchRequestConfig = {};
+  
+  if (options.noCache) {
+    if (typeof window === 'undefined') {
+      // 服务端：使用 Next.js 专属的 no-store
+      finalCacheStrategy = { cache: 'no-store' };
+    } else {
+      // 客户端：拼接时间戳击穿浏览器/CDN缓存
+      const separator = path.includes('?') ? '&' : '?';
+      path = `${path}${separator}_t=${Date.now()}`;
+      // 同时设置请求头，尝试击穿中间件
+      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      headers.set('Pragma', 'no-cache');
+    }
+  } else if (auth) {
+    // 保留你原有的 auth 缓存策略
+    finalCacheStrategy = { cache: 'no-store' as RequestCache };
+  } else {
+    // 保留你原有的默认缓存策略
+    finalCacheStrategy = cacheStrategy;
+  }
 
   const res = await fetch(`${GO_API_BASE}${path}`, {
     ...fetchOptions,

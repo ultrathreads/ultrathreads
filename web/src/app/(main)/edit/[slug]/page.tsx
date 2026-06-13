@@ -21,7 +21,7 @@ export default async function EditPostPage({ params }: Props) {
 
   const [nodesResult, postDetail] = await Promise.all([
     getAllNodes(),
-    getPostDetail(slug).catch(() => null),
+    getPostDetail(slug,  { noCache: true }).catch(() => null),
   ]);
 
   if (!postDetail) notFound();

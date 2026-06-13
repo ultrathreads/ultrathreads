@@ -72,7 +72,7 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
             submittingRef.current = false;
             setTimeout(() => {
               const targetSlug = isEditMode ? initialData!.slug : result?.slug;
-              router.push(targetSlug ? `/threads/${targetSlug}` : '/');
+              router.push(targetSlug ? `/threads/${targetSlug}?refresh=1` : '/');
               router.refresh();
             }, 600);
             return isEditMode ? '主题已更新 ✅' : '主题发布成功 🎉';
