@@ -14,6 +14,7 @@ type RootPostCreateForm struct {
 
 // ReplyCreateForm 回复专用
 type ReplyCreateForm struct {
+	Slug 	   string   `uri:"slug" json:"slug" binding:"required"`
 	Content    string   `json:"content" binding:"required"`
 	ImageList  string   `json:"imageList"`
 

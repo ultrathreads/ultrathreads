@@ -11,8 +11,11 @@ func setupApp(e *gin.Engine) {
 	api := e.Group("/api")
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
-	api.Any("/stat", new(controller.SiteController).Stat)
-	api.Any("/ping", new(controller.SiteController).Ping)
+	siteController := &controller.SiteController{}
+	api.Any("/stat", siteController.Stat)
+	api.Any("/ping", siteController.Ping)
+	api.Any("/site/config", siteController.Config)
+	api.Any("/debug", siteController.Debug)
 
 	// Auth
 	api.POST("/auth/login", jwtAuth.LoginHandler)
@@ -23,9 +26,6 @@ func setupApp(e *gin.Engine) {
 	oauthController := &controller.OAuthController{}
 	api.GET("/oauth/:provider/authorize", oauthController.Authorize)
 	api.GET("/oauth/:provider/callback", jwtOAuth.LoginHandler)
-
-	// Configs
-	api.GET("/config/site-config", new(controller.ConfigController).List)
 
 	// Captcha
 	captchaController := &controller.CaptchaController{}

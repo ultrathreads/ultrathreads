@@ -35,11 +35,6 @@ type ConfigData struct {
 	SiteDescription  string      `json:"siteDescription"`
 	SiteKeywords     []string    `json:"siteKeywords"`
 	SiteNavs         []SiteNav   `json:"siteNavs"`
-	SiteTips         []SiteTip   `json:"siteTips"`
-	SiteNotification string      `json:"siteNotification"`
-	SiteIndexHtml    string      `json:"siteIndexHtml"`
-	RecommendTags    []string    `json:"recommendTags"`
-	ScoreConfig      ScoreConfig `json:"scoreConfig"`
 	DefaultNodeId    int64       `json:"defaultNodeId"`
 }
 

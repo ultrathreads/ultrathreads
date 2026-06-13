@@ -1,57 +1,6 @@
-// src/types/site.ts
+// src/lib/types/site.ts
 
-/** 应用信息 */
-export interface AppInfo {
-  name: string;
-  version: string;
-  user_level_admin: number;
-}
-
-/** 积分配置 */
-export interface ScoreConfig {
-  postTopicScore: number;
-  postCommentScore: number;
-}
-
-/** 站点设置 */
-export interface SiteSetting {
-  siteTitle: string;
-  siteDescription: string;
-  siteKeywords: string | null;
-  siteNavs: { label: string; href: string }[] | null;
-  siteTips: string | null;
-  siteNotification: string;
-  siteIndexHtml: string;
-  recommendTags: string[] | null;
-  scoreConfig: ScoreConfig;
-  defaultNodeId: number;
-}
-
-/** data 字段完整结构 */
-export interface SiteConfigData {
-  appinfo: AppInfo;
-  setting: SiteSetting;
-}
-
-/** 前端使用的扁平化配置（从原始数据映射而来） */
-export interface SiteConfig {
-  // 来自 appinfo
-  appName: string;
-  appVersion: string;
-  adminLevel: number;
-  // 来自 setting
-  siteTitle: string;
-  siteDescription: string;
-  siteKeywords: string | null;
-  navLinks: { label: string; href: string }[];
-  siteNotification: string;
-  siteTips: string | null;
-  recommendTags: string[];
-  scoreConfig: ScoreConfig;
-  defaultNodeId: number;
-}
-
-/** ⚠️ 仅描述后端 envelope.data 内部的原始结构 */
+/** 后端原始返回结构（严格对应最新 API Response） */
 export interface SiteConfigRaw {
   appinfo: {
     name: string;
@@ -62,12 +11,19 @@ export interface SiteConfigRaw {
     siteTitle: string;
     siteDescription: string;
     siteKeywords: string | null;
-    siteNavs: { label: string; href: string }[] | null;
-    siteTips: string | null;
-    siteNotification: string;
-    siteIndexHtml: string;
-    recommendTags: string[] | null;
-    scoreConfig: { postTopicScore: number; postCommentScore: number };
+    siteNavs: Array<{ label: string; href: string }> | null;
     defaultNodeId: number;
   };
+}
+
+/** 前端标准消费结构（保证非空、字段命名统一） */
+export interface SiteConfig {
+  appName: string;
+  appVersion: string;
+  adminLevel: number;
+  siteTitle: string;
+  siteDescription: string;
+  siteKeywords: string | null;
+  navLinks: Array<{ label: string; href: string }>; // ✅ 前端保证为数组
+  defaultNodeId: number;
 }

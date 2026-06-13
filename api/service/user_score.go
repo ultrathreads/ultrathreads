@@ -2,13 +2,11 @@ package service
 
 import (
 	"errors"
-	"strconv"
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
-	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -70,20 +68,6 @@ func (s *userScoreService) CreateOrUpdate(t *model.UserScore) error {
 		return s.Update(t)
 	} else {
 		return s.Create(t)
-	}
-}
-
-// IncrementCreatePostScore 发帖获积分
-func (s *userScoreService) IncrementPostPostScore(post *model.Post) {
-	config := SettingService.GetSetting()
-	if config.ScoreConfig.PostPostScore <= 0 {
-		log.Info("请配置发帖积分")
-		return
-	}
-	err := s.addScore(post.UserId, config.ScoreConfig.PostPostScore, model.EntityTypePost,
-		strconv.FormatInt(post.ID, 10), "发表话题")
-	if err != nil {
-		log.Error(err.Error())
 	}
 }
 

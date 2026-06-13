@@ -159,10 +159,6 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 
 // StoreReply 发表回复
 func (c *PostController) StoreReply(ctx *gin.Context) {
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
-		return
-	}
 	user := c.GetCurrentUser(ctx)
 
 	var replyForm form.ReplyCreateForm
@@ -171,7 +167,7 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 	}
 
 	replyForm.UserSlug = hashid.Id2Slug[model.User](user.ID)
-	replyForm.ParentSlug = gDto.Slug
+	replyForm.ParentSlug = replyForm.Slug
 	replyForm.Title = util.ExtractReplyTitle(replyForm.Content, 20) // 从内容提取前20字符
 
 	post, err := service.PostService.CreateReply(replyForm)
