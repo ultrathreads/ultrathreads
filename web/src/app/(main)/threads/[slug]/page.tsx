@@ -7,7 +7,7 @@ import { ViewModeSwitcher } from '@/components/ViewModeSwitcher';
 import { PostTree } from './PostTree';
 import { PostFlat } from './PostFlat';
 import type { BackState } from '@/components/features/ThreadTree';
-import { ReadTracker } from './ReadTracker';
+import { ReadTracker } from '@/components/features/ReadTracker';
 
 export const dynamic = 'force-dynamic';
 

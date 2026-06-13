@@ -4,13 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-// ✅ 1. 替换导入：createPost → createReply
 import { createReply } from '@/services/post-service';
 
 // ReplyEditor 接口定义补充
 interface ReplyEditorProps {
   parentSlug: string;
-  nodeSlug: number;
   replyToTitle?: string;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;

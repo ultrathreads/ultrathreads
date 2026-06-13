@@ -119,7 +119,6 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
             <div className="fixed-reply-editor__body">
               <ReplyEditor
                 parentSlug={activePost.slug}
-                nodeSlug={activePost.node?.nodeSlug ?? 0}
                 replyToTitle={activePost.title}
                 autoFocus
                 onSuccess={closeEditor}

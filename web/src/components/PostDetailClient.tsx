@@ -162,7 +162,6 @@ export default function PostDetailClient({
               <ReplyEditor
                 key={replyToSlug}
                 parentSlug={replyToSlug}
-                nodeSlug={post.node?.nodeSlug ?? 0}
                 replyToTitle={replyToTitle}
                 autoFocus={shouldAutoFocus}
                 onSuccess={closeEditor}
