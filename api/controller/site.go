@@ -24,7 +24,7 @@ func (c *SiteController) Stat(ctx *gin.Context) {
 func (c *SiteController) Ping(ctx *gin.Context) {
 	slug := hashid.Id2Slug[model.Node](123)
 
-	id := hashid.Slug2Id[model.Node]("Xrv1ZBEV")
+	id := hashid.Slug2Id[model.Node]("4q7ZxEa5")
 	c.Success(ctx, gin.H{
 		"message": "pong",
 		"slug": slug,

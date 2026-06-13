@@ -25,6 +25,7 @@ export interface PostEntity {
   likeCount: number;
   createTime: number;
   content?: string;
+  rawContent?: string;
   toc?: string;
 }
 

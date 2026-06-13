@@ -243,20 +243,16 @@ func (s *postService) Update(dto form.PostUpdateForm) error {
 		return util.NewErrorMsg("节点不存在")
 	}
 
-	// ✅ v2 事务：Transaction + 闭包，全部使用 tx 操作
+	// 事务：Transaction + 闭包，全部使用 tx 操作
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
-			"node_id":     node.ID,
-			"title":       dto.Title,
-			"content":     dto.Content,
-			"update_time": util.NowTimestamp(),
+			"node_id":    node.ID,
+			"title":      dto.Title,
+			"content":    dto.Content,
+			"updated_at": util.NowTimestamp(),
 		}).Error; err != nil {
 			return err
 		}
-
-		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags))
-		dao.PostTagDao.DeletePostTags(postID)
-		dao.PostTagDao.AddPostTags(postID, tagIds)
 		return nil
 	})
 
@@ -313,16 +309,6 @@ func (s *postService) CreateRootPost(dto form.RootPostCreateForm) (*model.Post, 
 			return fmt.Errorf("更新ThreadId失败: %w", err)
 		}
 		post.ThreadId = post.ID
-
-		// 3. 处理标签（仅根帖有标签）
-		if len(dto.Tags) > 0 {
-			tagIds := dao.TagDao.GetOrCreates(dto.Tags)
-			for _, tagId := range tagIds {
-				if err := tx.Create(&model.PostTag{PostId: post.ID, TagId: tagId}).Error; err != nil {
-					return fmt.Errorf("关联标签失败: %w", err)
-				}
-			}
-		}
 
 		return nil
 	})

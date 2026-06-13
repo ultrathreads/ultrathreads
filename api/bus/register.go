@@ -9,4 +9,5 @@ func RegisterHandlers(mgr *Manager) {
 	// post viewed handler
 	handler.PostViewedHandler(mgr)
 	handler.PostCreatedHandler(mgr) 
+	handler.PostUpdatedHandler(mgr)
 }

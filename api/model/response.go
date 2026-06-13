@@ -71,7 +71,7 @@ type PostSimpleResponse struct {
 	ViewCount       int64          `json:"viewCount"`
 	LikeCount       int64          `json:"likeCount"`
 	CreateTime      int64          `json:"createTime"`
-	ImageList       []string       `json:"imageList"`
+	
 	Node            *NodeResponse  `json:"node"`
 	Tags            []TagResponse  `json:"tags"`
 	User            *UserInfo      `json:"user"`
@@ -81,8 +81,10 @@ type PostSimpleResponse struct {
 // PostResponse 帖子详情返回实体
 type PostResponse struct {
 	PostSimpleResponse
-	Content template.HTML `json:"content"`
-	Toc     template.HTML `json:"toc"`
+	ImageList  []string      `json:"imageList"`
+	RawContent string        `json:"rawContent"`
+	Content    template.HTML `json:"content"`
+	Toc        template.HTML `json:"toc"`
 }
 
 type FavoriteResponse struct {

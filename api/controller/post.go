@@ -10,6 +10,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
+	//"ultrathreads/util/log"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
@@ -27,7 +28,6 @@ func (c *PostController) Show(ctx *gin.Context) {
 			c.Fail(ctx, util.ErrorPostNotFound)
 			return
 		}
-		service.PostService.IncrViewCount(post.ID) // 增加浏览量
 		c.Success(ctx, converter.ToPost(post))
 	}
 }
@@ -151,6 +151,7 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 		UserID: user.ID,
 		PostID: post.ID,
 		IsRoot: true,
+		Tags:   postForm.Tags,
 	})
 
 	c.Success(ctx, converter.ToSimplePost(post))
@@ -158,8 +159,11 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 
 // StoreReply 发表回复
 func (c *PostController) StoreReply(ctx *gin.Context) {
+	var gDto form.IdentifierDto
+	if !c.BindAndValidate(ctx, &gDto) {
+		return
+	}
 	user := c.GetCurrentUser(ctx)
-	parentSlug := ctx.Param("parentSlug")
 
 	var replyForm form.ReplyCreateForm
 	if !c.BindAndValidate(ctx, &replyForm) {
@@ -167,7 +171,7 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 	}
 
 	replyForm.UserSlug = hashid.Id2Slug[model.User](user.ID)
-	replyForm.ParentSlug = parentSlug
+	replyForm.ParentSlug = gDto.Slug
 	replyForm.Title = util.ExtractReplyTitle(replyForm.Content, 20) // 从内容提取前20字符
 
 	post, err := service.PostService.CreateReply(replyForm)
@@ -186,62 +190,15 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 	c.Success(ctx, converter.ToSimplePost(post))
 }
 
-// Deprecated: 兼容旧前端，迁移完成后删除
-func (c *PostController) Store(ctx *gin.Context) {
-    var postForm form.PostCreateForm
-    if !c.BindAndValidate(ctx, &postForm) {
-        return
-    }
-    if postForm.ParentSlug != "" {
-        c.StoreReply(ctx) // 注意：需要从 body 重新提取 parentSlug 注入到 path
-    } else {
-        c.StoreRootPost(ctx)
-    }
-}
-
-// Edit 为编辑话题准备数据
-func (c *PostController) Edit(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		post := service.PostService.Get(gDto.ID)
-		if post == nil || post.Status != model.StatusOk {
-			c.Fail(ctx, util.NewErrorMsg("话题不存在或已被删除"))
-			return
-		}
-		if post.UserId != user.ID {
-			c.Fail(ctx, util.NewErrorMsg("无权限"))
-			return
-		}
-
-		tags := service.PostService.GetPostTags(post.ID)
-		var tagNames []string
-		if len(tags) > 0 {
-			for _, tag := range tags {
-				tagNames = append(tagNames, tag.Name)
-			}
-		}
-
-		c.Success(ctx, gin.H{
-			"postId": post.ID,
-			"nodeId":  post.NodeId,
-			"title":   post.Title,
-			"content": post.Content,
-			"tags":    tagNames,
-		})
-	}
-}
-
 // Update 更新话题
 func (c *PostController) Update(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var gDto form.GeneralGetDto
-	if !c.BindAndValidate(ctx, &gDto) {
-		c.Fail(ctx, util.ErrorPostNotFound)
+	var postForm form.PostUpdateForm
+	if !c.BindAndValidate(ctx, &postForm) {
 		return
 	}
 
-	post := service.PostService.Get(gDto.ID)
+	post := service.PostService.GetBySlug(postForm.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -252,16 +209,20 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var postForm form.PostUpdateForm
-	if c.BindAndValidate(ctx, &postForm) {
-		postForm.Slug = hashid.Id2Slug[model.Post](post.ID)
-		err := service.PostService.Update(postForm)
-		if err != nil {
-			c.Fail(ctx, util.FromError(err))
-			return
-		}
-		c.Success(ctx, converter.ToSimplePost(post))
+	err := service.PostService.Update(postForm)
+	if err != nil {
+		c.Fail(ctx, util.FromError(err))
+		return
 	}
+	
+	c.PublishEvent(ctx, event.PostUpdated{
+		UserID: user.ID,
+		PostID: post.ID,
+		Tags:   postForm.Tags,
+		IsRoot: post.IsRoot(),
+	})
+
+	c.Success(ctx, converter.ToSimplePost(post))
 }
 
 // GetRecentLikes 点赞用户

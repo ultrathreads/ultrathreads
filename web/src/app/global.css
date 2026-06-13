@@ -771,7 +771,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 /* =============================================
    8. 发帖页面 Create Post
    ============================================= */
-.create-post-container {
+.post-form-container {
     background: var(--bg-card);
     border-radius: 8px;
     padding: 32px;
@@ -779,7 +779,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     max-width: 900px;
     margin: 0 auto;
 }
-.create-post-header {
+.post-form-header {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
@@ -874,7 +874,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 
 /* 发帖页底部操作 */
-.create-post-actions {
+.post-form-actions {
     display: flex;
     align-items: center;
     justify-content: flex-end;

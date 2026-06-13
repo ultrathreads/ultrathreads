@@ -9,6 +9,7 @@ import Avatar from '@/components/ui/Avatar';
 import { likePost, favoritePost } from '@/services/post-service';
 import { ApiBusinessError } from '@/lib/api/client';
 import AuthorLink from '@/components/ui/AuthorLink';
+import { useAuth } from '@/hooks/use-auth';
 
 interface PostFlatItemProps {
   post: PostEntity;
@@ -30,6 +31,9 @@ export default function PostFlatItem({
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [favCount, setFavCount] = useState(post.favoriteCount ?? 0);
   const [actionLoading, setActionLoading] = useState<'like' | 'favorite' | null>(null);
+
+  const { user } = useAuth();
+  const canEdit = isRoot && user?.slug === post.user.slug;
 
   useEffect(() => setLikeCount(post.likeCount), [post.likeCount]);
   useEffect(() => setFavCount(post.favoriteCount ?? 0), [post.favoriteCount]);
@@ -79,14 +83,26 @@ export default function PostFlatItem({
     handleAction(() => favoritePost(post.slug), setFavCount, '收藏', 'favorite');
 
   return (
-    // 注入原生 id + scrollMarginTop 防顶部导航遮挡
     <div
       id={`post-${post.slug}`}
       className="post-detail-card"
       style={{ marginBottom: '12px', scrollMarginTop: '100px' }}
     >
-      {/* ✅ 仅根帖显示标题 */}
-      {isRoot && <h2 className="post-detail-title">{post.title}</h2>}
+      {/* ✅ 仅根帖显示标题 + 作者本人可见的编辑按钮 */}
+      {isRoot && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <h2 className="post-detail-title" style={{ margin: 0 }}>{post.title}</h2>
+          {canEdit && (
+            <Link
+              href={`/edit/${post.slug}`}
+              className="detail-action-btn"
+              style={{ height: '32px', fontSize: '0.8125rem', textDecoration: 'none' }}
+            >
+              ✏️ 编辑
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="post-detail-meta">
         <Avatar
@@ -94,14 +110,13 @@ export default function PostFlatItem({
           src={post.user.avatar}
           alt={post.user.nickname}
         />
-        <AuthorLink 
-          author={post.user.nickname} 
-          authorSlug={post.user.slug} 
-          className="author-name" 
+        <AuthorLink
+          author={post.user.nickname}
+          authorSlug={post.user.slug}
+          className="author-name"
         />
         <RelativeTime timestamp={post.createTime} />
 
-        {/* 仅根帖显示节点标签、阅读数和回复数 */}
         {isRoot && (
           <>
             {post.node && (
@@ -113,9 +128,9 @@ export default function PostFlatItem({
             {post.tags && post.tags.length > 0 && (
               <>
                 {post.tags.map((tag) => (
-                  <Link 
-                    key={tag.slug} 
-                    href={`/tags/${tag.slug}`} 
+                  <Link
+                    key={tag.slug}
+                    href={`/tags/${tag.slug}`}
                     className="detail-tag"
                   >
                     #{tag.tagName}

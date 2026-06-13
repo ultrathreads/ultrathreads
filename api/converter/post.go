@@ -30,11 +30,6 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.ViewCount = post.ViewCount
 	rsp.LikeCount = post.LikeCount
 
-	if len(post.ImageList) > 0 {
-		if err := util.ParseJson(post.ImageList, &rsp.ImageList); err != nil {
-			log.Error(err.Error())
-		}
-	}
 	if post.IsRoot() {
 		tags := service.PostService.GetPostTags(post.ID)
 		rsp.Tags = ToTags(tags)
@@ -49,13 +44,18 @@ func ToPost(post *model.Post) *model.PostResponse {
 	rsp := &model.PostResponse{}
 	basePostFields(&rsp.PostSimpleResponse, post)
 
-	// 详情页特有：Node 走 Service（可能需要实时数据）
+	if len(post.ImageList) > 0 {
+		if err := util.ParseJson(post.ImageList, &rsp.ImageList); err != nil {
+			log.Error(err.Error())
+		}
+	}
+
 	if post.NodeId > 0 {
 		node := service.NodeService.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
 
-	// 详情页特有：Markdown 渲染
+	rsp.RawContent = post.Content // 供编辑使用
 	mr := markdown.NewMd(markdown.MdWithTOC()).Run(post.Content)
 	rsp.Content = template.HTML(ToHtmlContent(mr.ContentHtml))
 	rsp.Toc = template.HTML(mr.TocHtml)

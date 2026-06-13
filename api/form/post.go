@@ -36,9 +36,9 @@ type PostCreateForm struct {
 
 // PostUpdateForm post update form
 type PostUpdateForm struct {
-	Slug     string   //非表单赋值
-	Title    string   `form:"title" json:"title" binding:"required"`
-	Content  string   `form:"content" json:"content" binding:"required"`
+	Slug 	 string   `uri:"slug" json:"slug" binding:"required"`
+	Title    string   `form:"title" json:"title"`
+	Content  string   `form:"content" json:"content"`
 	NodeSlug string   `form:"nodeSlug" json:"nodeSlug"`
-	Tags     string `form:"tags" json:"tags"`
+	Tags     []string `form:"tags" json:"tags"`
 }

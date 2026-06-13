@@ -16,11 +16,24 @@ func (p PostViewed) String() string {
 
 // PostCreated 帖子创建成功事件载荷
 type PostCreated struct {
-	UserID int64 `json:"user_id"`
-	PostID int64 `json:"post_id"`
-	IsRoot bool  `json:"is_root"`
+	UserID int64  `json:"user_id"`
+	PostID int64  `json:"post_id"`
+	IsRoot bool   `json:"is_root"`
+	Tags []string `json:"tags"`
 }
 
 func (p PostCreated) String() string {
-    return fmt.Sprintf("PostCreated(PostID=%d, UserID=%d, IsRoot)", p.PostID, p.UserID, p.IsRoot)
+    return fmt.Sprintf("PostCreated(PostID=%d, UserID=%d, , IsRoot=%t, Tags=%v)", p.PostID, p.UserID, p.IsRoot, p.Tags)
+}
+
+// PostUpdated 帖子更新成功事件载荷
+type PostUpdated struct {
+	UserID int64  `json:"user_id"`
+	PostID int64  `json:"post_id"`
+	IsRoot bool   `json:"is_root"`
+	Tags []string `json:"tags"`
+}
+
+func (p PostUpdated) String() string {
+	return fmt.Sprintf("PostUpdated(PostID=%d, UserID=%d, IsRoot=%t, Tags=%v)", p.PostID, p.UserID, p.IsRoot, p.Tags)
 }

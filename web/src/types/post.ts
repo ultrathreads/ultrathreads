@@ -2,11 +2,18 @@
 
 /** 创建根帖请求参数 */
 export interface CreateRootPostPayload {
-  nodeSlug: string;       // ✅ 根帖必填
+  nodeSlug: string;
   title: string;
   content: string;
   tags?: string[];
   imageList?: string[];
+}
+
+export interface UpdateRootPostPayload {
+  nodeSlug: string;
+  title: string;
+  content: string;
+  tags?: string[];
 }
 
 /** 创建回复请求参数（不再包含 parentSlug，由 URL 路径承载） */
@@ -15,5 +22,6 @@ export interface CreateReplyPayload {
   imageList?: string[];
 }
 
-// 响应类型保持不变，或按需拆分
-export type CreatePostResponse = SimplePost;
+export interface CreatePostResponse {
+  slug: string;
+}

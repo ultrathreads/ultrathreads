@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation';
 import { apiFetch, ApiBusinessError } from '@/lib/api/client';
 import type { PostEntity, PostWithThread } from '@/types/domain';
-import type { CreateRootPostPayload, CreateReplyPayload } from '@/types/post'
+import type { CreateRootPostPayload, UpdateRootPostPayload, CreateReplyPayload, CreatePostResponse } from '@/types/post'
 
 // ✅ 修复：返回类型从 PostDetail 改为 PostEntity
 export async function getPostDetail(postSlug: string): Promise<PostEntity> {
@@ -44,10 +44,6 @@ export async function getPostFlat(postSlug: string): Promise<PostWithFlat> {
   }
 }
 
-export interface CreatePostResponse {
-  slug: string;
-}
-
 /**
  * 创建根帖（主帖）
  * POST /api/posts
@@ -56,6 +52,18 @@ export async function createRootPost(
   payload: CreateRootPostPayload
 ): Promise<CreatePostResponse> {
   return apiFetch<CreatePostResponse>('/posts', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify(payload),
+  });
+}
+
+/** 更新根帖 */
+export async function updateRootPost(
+  slug: string,
+  payload: UpdateRootPostPayload
+): Promise<CreatePostResponse> {
+  return apiFetch<CreatePostResponse>(`/posts/${slug}`, {
     method: 'POST',
     auth: true,
     body: JSON.stringify(payload),
