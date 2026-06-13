@@ -13,7 +13,7 @@ export interface TagPageData {
  */
 export async function getTagDetail(tagSlug: string): Promise<TagDetailData> {
   try {
-    const data = await apiFetch<tagEntity>(`/tag/${tagSlug}`, {
+    const data = await apiFetch<tagEntity>(`/tags/${tagSlug}`, {
       auth: false,
       cacheStrategy: { next: { tags: [`tag-${tagSlug}`], revalidate: 30 } },
     });
@@ -66,7 +66,7 @@ export async function fetchTagSuggestions(input: string): Promise<TagEntity[]> {
   try {
     // ✅ 复用 apiFetch，自动解包 envelope.data
     // Go 后端使用 FormValue("input")，query string 即可满足
-    const data = await apiFetch<TagEntity[]>(`/tag/auto-complete?input=${encodeURIComponent(input.trim())}`, {
+    const data = await apiFetch<TagEntity[]>(`/tags/auto-complete?input=${encodeURIComponent(input.trim())}`, {
       method: 'POST',
       auth: true,
       cacheStrategy: undefined, // ⚠️ 关键：禁用 Next.js 缓存，确保每次输入都实时请求

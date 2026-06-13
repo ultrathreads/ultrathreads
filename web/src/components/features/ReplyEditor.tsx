@@ -158,13 +158,22 @@ export default function ReplyEditor({
               value={content}
               onChange={(val) => setContent(val || '')}
               preview="live"
-              height={200}
+              height={300}
               visibleDragbar={false}
               textareaProps={{ autoFocus, placeholder }}
             />
           </div>
 
           <div style={{ margin: '12px 0', textAlign: 'left', display: 'flex', gap: 8 }}>
+            {onClose && (
+              <button onClick={onClose} style={{
+                padding: '8px 24px', backgroundColor: 'transparent',
+                color: '#718096', border: '1px solid #e2e8f0', borderRadius: 6,
+                cursor: 'pointer', fontSize: 14,
+              }}>
+                取消
+              </button>
+            )}
             <button
               onClick={handleSubmit}
               disabled={!content.trim()}
@@ -177,15 +186,6 @@ export default function ReplyEditor({
             >
               {submitButtonText}
             </button>
-            {onClose && (
-              <button onClick={onClose} style={{
-                padding: '8px 24px', backgroundColor: 'transparent',
-                color: '#718096', border: '1px solid #e2e8f0', borderRadius: 6,
-                cursor: 'pointer', fontSize: 14,
-              }}>
-                取消
-              </button>
-            )}
           </div>
         </div>
       </div>

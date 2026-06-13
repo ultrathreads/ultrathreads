@@ -36,7 +36,7 @@ export async function getAllNodes(): Promise<NodePageData> {
  */
 export async function getNodeDetail(nodeId: number): Promise<NodeDetailData> {
   try {
-    const data = await apiFetch<NodeEntity>(`/node/${nodeId}`, {
+    const data = await apiFetch<NodeEntity>(`/nodes/${nodeId}`, {
       auth: false,
       cacheStrategy: { next: { tags: [`node-${nodeId}`], revalidate: 30 } },
     });

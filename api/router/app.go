@@ -44,25 +44,30 @@ func setupApp(e *gin.Engine) {
 		userController := &controller.UserController{}
 		linkController := &controller.LinkController{}
 
-		// Nodes
-		optional.GET("/nodes", nodeController.List)
-		optional.GET("/node/:slug", nodeController.Show)
-
+		// Home
 		optional.GET("/threads", postController.ListThreads)
-		nodeGroup := optional.Group("/nodes/:slug")
+
+		// Nodes
+		nodeGroup := optional.Group("/nodes")
 		{
-			nodeGroup.GET("/threads", postController.ListThreads)
+			nodeGroup.GET("", nodeController.List)
+			nodeGroup.GET("/:slug", nodeController.Show)
+			nodeGroup.GET("/:slug/threads", postController.ListThreads)
 		}
 
 		threadGroup := optional.Group("/threads/:slug")
 		{
-			threadGroup.GET("/with-thread", postController.GetPostWithThread)
+			threadGroup.GET("/", postController.GetPostWithThread)
 		}
 
-		optional.GET("/posts", postController.List)
-		optional.GET("/post/:slug", postController.Show)
-		optional.GET("/post/:slug/with-thread", postController.GetPostWithThread)
-		optional.GET("/post/:slug/flat", postController.GetPostsFlat)
+		postApi := optional.Group("/posts")
+		{
+			postApi.GET("", postController.List)
+			postApi.GET("/:slug", postController.Show)
+			postApi.GET("/:slug/tree", postController.GetPostWithThread)
+			postApi.GET("/:slug/flat", postController.GetPostsFlat)
+		}
+		
 		optional.GET("/posts/excellent", postController.GetPostsExcellent)
 		optional.GET("/posts/recommend", postController.GetPostsRecommend)
 		optional.GET("/posts/noreply", postController.GetPostsNoreply)
@@ -72,13 +77,12 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/post/:slug/recentlikes", postController.GetRecentLikes)
 
 		// Tags
-		optional.GET("/tag/:slug", tagController.Show)
-		optional.GET("/tags", tagController.List)
-		optional.GET("/tags/hot", tagController.HotTags)
-
-		tagGroup := optional.Group("/tags/:slug")
+		tagGroup := optional.Group("/tags")
 		{
-			 tagGroup.GET("/threads", postController.ListTagThreads)
+			tagGroup.GET("", tagController.List)
+			tagGroup.GET("/hot", tagController.HotTags)
+			tagGroup.GET("/:slug", tagController.Show)
+			tagGroup.GET("/:slug/threads", postController.ListTagThreads)
 		}
 
 
@@ -141,7 +145,7 @@ func setupApp(e *gin.Engine) {
 		jwtApi.DELETE("/favorite/delete", favoriteController.Delete)
 
 		// Tags
-		jwtApi.POST("/tag/auto-complete", tagController.AutoComplete)
+		jwtApi.POST("/tags/auto-complete", tagController.AutoComplete)
 
 		// Articles（写操作）
 		jwtApi.POST("/articles", articleController.Store)

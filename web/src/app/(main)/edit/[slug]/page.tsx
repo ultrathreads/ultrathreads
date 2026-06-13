@@ -12,7 +12,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   return {
-    title: '编辑主帖',
+    title: '修改主帖',
     robots: { index: false, follow: false },
   };
 }

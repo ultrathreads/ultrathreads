@@ -13,7 +13,7 @@ export async function getPostDetail(
   options?: PostServiceOptions
   ): Promise<PostEntity> {
   try {
-    return await apiFetch<PostEntity>(`/post/${postSlug}`, {
+    return await apiFetch<PostEntity>(`/posts/${postSlug}`, {
       noCache: options?.noCache
     });
   } catch (error) {
@@ -32,7 +32,7 @@ export async function getPostWithThread(
   options?: PostServiceOptions
   ): Promise<PostWithThread> {
   try {
-    return await apiFetch<PostWithThread>(`/post/${postSlug}/with-thread`, {
+    return await apiFetch<PostWithThread>(`/posts/${postSlug}/tree`, {
       noCache: options?.noCache
     });
   } catch (error) {
@@ -48,7 +48,7 @@ export async function getPostWithThread(
  */
 export async function getPostFlat(postSlug: string): Promise<PostWithFlat> {
   try {
-    return await apiFetch<PostWithFlat>(`/post/${postSlug}/flat`);
+    return await apiFetch<PostWithFlat>(`/posts/${postSlug}/flat`);
   } catch (error) {
     if (error instanceof ApiBusinessError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);

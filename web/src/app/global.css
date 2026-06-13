@@ -121,7 +121,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     margin-top: auto;
 }
 .footer-container {
-    max-width: 1200px;
+    max-width: 75rem;
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
@@ -775,7 +775,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     background: var(--bg-card);
     border-radius: 10px;
     padding: 30px;
-    max-width: 1200px;
+    max-width: 75rem;
     margin: 30px auto;
 }
 .post-form-header {
@@ -1016,7 +1016,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .profile-container {
     display: flex;
     gap: 30px;
-    max-width: 1200px;
+    max-width: 75rem;
     margin: 0 auto;
     padding: 30px 0;
 }
@@ -1417,9 +1417,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
   border-top: 1px solid var(--border-base);
   background-color: var(--bg-card);
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
-  /* width 由 inline style 动态注入，此处不设固定值 */
-  /* 安全回退：JS 未注入宽度时保持合理默认表现 */
-  max-width: 48rem;
+  max-width: 60rem;
 }
 
 /* 内层：内边距与帖子列表保持一致 */
