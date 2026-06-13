@@ -557,7 +557,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 ul.thread, ul.reply { list-style: none; padding: 0; margin: 0; }
 ul.reply { padding-left: 20px; margin-left: 8px; margin-top: 2px; }
 ul.reply.collapsed { display: none; }
-ul.reply ul.reply { border-left: round(0.2em, 1px) dotted var(--border-extra-light); }
+ul.reply ul.reply { border-left: round(0.2em, 1px) dotted var(--border-base); }
 ul.reply li:last-child > ul {border: none; }
 .thread > li, .reply > li { margin-bottom: 4px; }
 
@@ -773,11 +773,10 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
    ============================================= */
 .post-form-container {
     background: var(--bg-card);
-    border-radius: 8px;
-    padding: 32px;
-    border: 1px solid var(--border-base);
-    max-width: 900px;
-    margin: 0 auto;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 1200px;
+    margin: 30px auto;
 }
 .post-form-header {
     font-size: 1.5rem;
@@ -886,7 +885,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .post-form-actions {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 12px;
     margin-top: 32px;
     padding-top: 20px;
@@ -1060,7 +1059,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .profile-card {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 30px;
 }
 .profile-card-title {

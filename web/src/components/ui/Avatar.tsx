@@ -1,3 +1,4 @@
+// components/ui/Avatar.tsx
 import React, { useState } from 'react';
 
 interface AvatarProps extends React.ImgHTMLAttributes<HTMLImageElement> {

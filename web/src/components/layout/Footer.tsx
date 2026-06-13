@@ -1,20 +1,21 @@
 // src/components/Footer.tsx
+'use client'; 
+
 import Link from 'next/link';
+import { useSiteConfig } from '@/providers/SiteConfigProvider';
 
-interface FooterProps {
-  appVersion: string;
-}
+export default function Footer() {
+  const config = useSiteConfig();
 
-export default function Footer({ appVersion }: FooterProps) {
   return (
     <footer className="main-footer">
       <div className="footer-container">
         {/* 左侧：版权信息 */}
         <div className="footer-left">
           <p className="footer-copyright">
-            &copy; {new Date().getFullYear()} UltraThreads v{appVersion}. All rights reserved.
+            &copy; 2026-{new Date().getFullYear()} UltraThreads v{config.appVersion}. All rights reserved.
           </p>
-          <p className="footer-slogan">连接每一个有趣的灵魂。</p>
+          <p className="footer-slogan">{config.siteTitle} | {config.siteDescription}</p>
         </div>
 
         {/* 右侧：快捷链接 */}

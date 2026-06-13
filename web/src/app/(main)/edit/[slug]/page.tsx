@@ -3,15 +3,16 @@ import { notFound } from 'next/navigation';
 import { getAllNodes } from '@/services/node-service';
 import { getPostDetail } from '@/services/post-service';
 import { PostForm } from '@/components/features/PostForm';
+import type { Metadata } from 'next';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   return {
-    title: '编辑主题',
+    title: '编辑主帖',
     robots: { index: false, follow: false },
   };
 }
@@ -21,10 +22,15 @@ export default async function EditPostPage({ params }: Props) {
 
   const [nodesResult, postDetail] = await Promise.all([
     getAllNodes(),
-    getPostDetail(slug,  { noCache: true }).catch(() => null),
+    getPostDetail(slug, { noCache: true }).catch((err) => {
+      console.error(`获取帖子详情失败 [${slug}]:`, err);
+      return null;
+    }),
   ]);
 
-  if (!postDetail) notFound();
+  if (!postDetail || !nodesResult?.nodes) {
+    notFound();
+  }
 
   const initialData = {
     slug: postDetail.slug,
@@ -36,12 +42,5 @@ export default async function EditPostPage({ params }: Props) {
       : '',
   };
 
-  return (
-    <div className="main-body">
-      <div className="post-form-container">
-        <h1 className="post-form-header">✏️ 编辑主题</h1>
-        <PostForm nodes={nodesResult.nodes} initialData={initialData} />
-      </div>
-    </div>
-  );
+  return <PostForm nodes={nodesResult.nodes} initialData={initialData} />;
 }

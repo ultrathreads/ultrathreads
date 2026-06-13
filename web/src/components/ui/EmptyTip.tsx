@@ -1,3 +1,4 @@
+// components/ui/EmptyTip.tsx
 'use client';
 
 type TipVariant = 'empty' | 'error';

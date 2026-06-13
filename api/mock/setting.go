@@ -33,7 +33,7 @@ func SettingTableSeeder(needCleanTable bool) {
 	ns := []*model.Setting{
 		{Key: "defaultNodeId", Value: "1"},
 		{Key: "siteTitle", Value: "UltraThreads"},
-		{Key: "siteDescription", Value: "小而美的开发者社区"},
+		{Key: "siteDescription", Value: "UltraThreads，对话自有形状。"},
 		{Key: "recommendTags", Value: string(recommendTagsJSON)},
 	}
 
