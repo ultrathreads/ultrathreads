@@ -6,7 +6,6 @@ import { createPortal } from 'react-dom';
 import type { PostEntity } from '@/types/domain';
 import PostFlatItem from '@/components/PostFlatItem';
 import ReplyEditor from '@/components/features/ReplyEditor';
-// ✅ 已移除: import styles from './FixedReplyEditor.module.css';
 
 interface PostFlatProps {
   posts: PostEntity[];
@@ -70,11 +69,11 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
 
   return (
     <>
-      {/* ✅ 帖子列表：保持原始类名不变，ref 仅用于测量 */}
+      {/* 帖子列表：保持原始类名不变，ref 仅用于测量 */}
       <div ref={postListRef} className="your-original-post-list-class-name">
         {posts.length > 0 ? (
           posts.map((post, index) => {
-            const isRoot = index === 0;
+            const isRoot = post.isRoot;
             const isEditorOpen = activeEditorPostSlug === post.slug;
             return (
               <div key={post.slug}>
@@ -101,12 +100,12 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
           style={editorWidth ? { width: editorWidth } : undefined}
           role="dialog"
           aria-modal="true"
-          aria-label={`回复 ${activePost.author?.name ?? '匿名用户'}`}
+          aria-label={`回复 ${activePost.user?.username ?? '匿名用户'}`}
         >
           <div className="fixed-reply-editor__inner">
             <div className="fixed-reply-editor__header">
               <span className="fixed-reply-editor__label">
-                回复 <span className="fixed-reply-editor__author">{activePost.author?.name ?? '匿名用户'}</span>
+                回复 <span className="fixed-reply-editor__author">{activePost.user?.username ?? '匿名用户'}</span>
               </span>
               <button
                 onClick={closeEditor}
@@ -118,6 +117,7 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
             </div>
             <div className="fixed-reply-editor__body">
               <ReplyEditor
+                key={activePost.slug}
                 parentSlug={activePost.slug}
                 replyToTitle={activePost.title}
                 autoFocus

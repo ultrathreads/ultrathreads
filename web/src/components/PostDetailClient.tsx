@@ -29,7 +29,7 @@ export default function PostDetailClient({
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // ✅ 用于测量帖子内容区宽度，使吸底编辑器与内容区等宽
+  // 用于测量帖子内容区宽度，使吸底编辑器与内容区等宽
   const contentRef = useRef<HTMLDivElement>(null);
   const [editorWidth, setEditorWidth] = useState<number | undefined>(undefined);
 
@@ -38,7 +38,7 @@ export default function PostDetailClient({
     setMounted(true);
   }, []);
 
-  // ✅ ESC 键关闭编辑器
+  // ESC 键关闭编辑器
   useEffect(() => {
     if (!showEditor) return;
 
@@ -54,7 +54,7 @@ export default function PostDetailClient({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showEditor]);
 
-  // ✅ 宽度同步：监听内容区宽度变化
+  // 宽度同步：监听内容区宽度变化
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
@@ -86,7 +86,7 @@ export default function PostDetailClient({
 
   return (
     <>
-      {/* ✅ ref 绑定到包裹整个帖子内容的容器，用于宽度测量 */}
+      {/* ref 绑定到包裹整个帖子内容的容器，用于宽度测量 */}
       <div ref={contentRef}>
         <PostDetailCard
           post={post}
@@ -131,7 +131,7 @@ export default function PostDetailClient({
         </div>
       </div>
 
-      {/* ✅ 吸底编辑器：与 PostFlat 完全一致的 Portal + 固定定位 */}
+      {/* 吸底编辑器：与 PostFlat 完全一致的 Portal + 固定定位 */}
       {mounted && showEditor && createPortal(
         <div
           className="fixed-reply-editor"
@@ -146,7 +146,7 @@ export default function PostDetailClient({
                 回复{' '}
                 <span className="fixed-reply-editor__author">
                   {replyToSlug === post.slug
-                    ? post.author?.name ?? '楼主'
+                    ? post.user?.username ?? '楼主'
                     : replyToTitle}
                 </span>
               </span>
