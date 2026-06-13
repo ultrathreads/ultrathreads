@@ -6,8 +6,8 @@ interface ExtractTitleOptions {
 }
 
 /**
- * 从 Markdown 内容中提取纯文本标题
- * - 去除所有 Markdown 语法标记
+ * 从 Markdown / HTML 混合内容中提取纯文本标题
+ * - 去除 HTML 标签与所有 Markdown 语法标记
  * - 取第一行有效文本
  * - 按指定长度截取
  * - 兜底返回空字符串
@@ -22,6 +22,10 @@ export function extractPostTitle(
   if (!content || typeof content !== 'string') return '';
 
   let text = content;
+
+  // 0. 优先去除 HTML 标签（必须在 Markdown 清理之前执行）
+  // 避免 HTML 标签包裹 Markdown 语法时产生残留
+  text = text.replace(/<[^>]*>/g, '');
 
   // 1. 优先处理【行首语法】(必须最先执行，多行匹配)
   // 引用 >
@@ -61,7 +65,6 @@ export function extractPostTitle(
   const title = firstValidLine.slice(0, maxLength).trim();
 
   // 纯符号/空白则返回空，否则返回标题
-  // 正则：纯标点/特殊字符判定
   if (!title || /^[^\u4e00-\u9fa5a-zA-Z0-9]+$/.test(title)) {
     return '';
   }

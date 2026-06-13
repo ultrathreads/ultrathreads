@@ -7,8 +7,9 @@ import type { PostEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 import type { BackState } from '@/components/features/ThreadTree';
 import ReplyEditor from '@/components/features/ReplyEditor';
-import PostFlatItem from '@/components/PostFlatItem'; // ✨ 根帖直接复用平铺组件，保证视觉一致
+import PostFlatItem from '@/components/PostFlatItem';
 import ThreadItem from '@/components/features/ThreadItem';
+import { extractPostTitle } from '@/lib/utils/post';
 
 interface PostTreeProps {
   post: PostEntity;
@@ -18,7 +19,6 @@ interface PostTreeProps {
 }
 
 export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTreeProps) {
-  // ✅ 以下状态与 Hooks 与 PostFlat.tsx 完全同构
   const [activeEditorPostSlug, setActiveEditorPostSlug] = useState<string | null>(null);
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -37,39 +37,33 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!activeEditorPostSlug) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeEditor(); }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activeEditorPostSlug, closeEditor]);
-
-  useEffect(() => {
     const el = postListRef.current;
     if (!el) return;
-    const updateWidth = () => { const w = el.offsetWidth; if (w > 0) setEditorWidth(w); };
+    const updateWidth = () => {
+      const w = el.offsetWidth;
+      if (w > 0) setEditorWidth(w);
+    };
     updateWidth();
     const observer = new ResizeObserver(updateWidth);
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // ✅ 统一查找激活帖子 & 生成标签（兼容根帖与子回复）
   const activePost = activeEditorPostSlug === post.slug
     ? post
     : viewPosts.find((p) => p.slug === activeEditorPostSlug);
 
   const replyLabel = activePost?.slug === post.slug
-    ? `楼主 (${activePost.user?.nickname ?? '匿名用户'})`
-    : activePost?.user?.nickname ?? '匿名用户';
+    ? `楼主 (${activePost.user?.nickname ?? activePost.user?.username ?? '匿名用户'})`
+    : activePost?.user?.nickname ?? activePost?.user?.username ?? '匿名用户';
+
+  const replyToTitle = activePost
+    ? (extractPostTitle(activePost.content, { maxLength: 30 }) || '原帖内容')
+    : '';
 
   return (
     <>
-      {/* ✅ 容器 ref 与类名对齐 PostFlat */}
       <div ref={postListRef} className="tree-post-container">
-        
-        {/* ✨ 根帖：直接复用 PostFlatItem，确保两种视图下根帖像素级一致 */}
         <PostFlatItem
           post={post}
           detailHref={`/threads/${post.slug}`}
@@ -79,7 +73,6 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
           isEditorOpen={activeEditorPostSlug === post.slug}
         />
 
-        {/* ✅ 子回复：保留原有 ThreadItem 组件 */}
         {viewPosts.length > 0 && (
           <div className="thread-tree-container">
             <div className="thread-tree-header">
@@ -100,7 +93,6 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
                   isRoot
                   currentPostSlug={post.slug}
                   backState={backState}
-                  // ✅ 回调签名对齐：只传 slug，由容器统一管理状态
                   onReplyClick={(slug) => toggleEditor(slug)}
                 />
               ))}
@@ -109,7 +101,6 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
         )}
       </div>
 
-      {/* ✅ Portal 编辑器结构与 PostFlat 完全一致 */}
       {mounted && activePost && createPortal(
         <div
           className="fixed-reply-editor"
@@ -129,9 +120,10 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
               <ReplyEditor
                 key={activePost.slug}
                 parentSlug={activePost.slug}
-                replyToTitle={activePost.title || post.title}
+                replyToTitle={replyToTitle}
                 replyToAuthor={activePost.user?.nickname ?? activePost.user?.username}
                 autoFocus={shouldAutoFocus}
+                onClose={closeEditor}
                 onSuccess={closeEditor}
                 onAutoFocusConsumed={() => setShouldAutoFocus(false)}
               />

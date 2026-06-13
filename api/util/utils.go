@@ -154,34 +154,23 @@ func ParseTagsToArray(tags string) []string {
 }
 
 // ExtractReplyTitle 从回复内容中提取纯文本标题
-// 取第一行非空文本，去除 Markdown 标记后截取前 maxLen 个字符
-// 注意：maxLen 为 rune 字符数，非字节数，避免中文截断乱码
+// 复用项目已有的 markdown 解析管线（blackfriday + goquery），零额外依赖
+// maxLen 为 rune 字符数，非字节数，避免中文截断乱码
 func ExtractReplyTitle(content string, maxLen int) string {
-	lines := strings.Split(content, "\n")
-	var firstLine string
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed != "" {
-			firstLine = trimmed
-			break
-		}
-	}
-
-	if firstLine == "" {
+	if strings.TrimSpace(content) == "" {
 		return "无标题回复"
 	}
 
-	// 按长度降序排列，确保 ### 先于 # 被匹配，避免残留标记
-	prefixes := []string{"###", "##", "#", ">", "-", "*", "1.", "2.", "3."}
-	for _, p := range prefixes {
-		firstLine = strings.TrimPrefix(firstLine, p)
-	}
-	firstLine = strings.TrimSpace(firstLine)
+	// 复用现有 Markdown → 纯文本 管线
+	// SummaryText 已通过 goquery doc.Text() 去除所有标签，是干净的纯文本
+	result := markdown.NewMd(
+		markdown.MdWithSummaryLength(maxLen),
+	).Run(content)
 
-	runes := []rune(firstLine)
-	if len(runes) > maxLen {
-		return string(runes[:maxLen]) + "..."
+	title := strings.TrimSpace(result.SummaryText)
+	if title == "" {
+		return "无标题回复"
 	}
 
-	return firstLine
+	return title
 }

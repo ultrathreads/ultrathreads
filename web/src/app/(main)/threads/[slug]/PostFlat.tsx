@@ -6,31 +6,11 @@ import { createPortal } from 'react-dom';
 import type { PostEntity } from '@/types/domain';
 import PostFlatItem from '@/components/PostFlatItem';
 import ReplyEditor from '@/components/features/ReplyEditor';
+import { extractPostTitle } from '@/lib/utils/post';
 
 interface PostFlatProps {
   posts: PostEntity[];
   totalReplyCount: number;
-}
-
-/**
- * ✅ 新增：从正文内容中截取纯文本作为回复引用标题
- * 去除 HTML/Markdown 标签、多余空白，并限制最大长度
- */
-function getReplyLabelFromContent(content: string | undefined, maxLength = 30): string {
-  if (!content) return '原帖内容';
-
-  const plainText = content
-    .replace(/<[^>]*>/g, '')           // 去除 HTML 标签
-    .replace(/!\[.*?\]\(.*?\)/g, '[图片]') // 将 Markdown 图片替换为占位符
-    .replace(/\[([^\]]*)\]\(.*?\)/g, '$1') // 提取 Markdown 链接文本
-    .replace(/[#*_~`>]/g, '')          // 去除常见 Markdown 语法符号
-    .replace(/\s+/g, ' ')              // 合并连续空白
-    .trim();
-
-  if (!plainText) return '原帖内容';
-  return plainText.length > maxLength
-    ? `${plainText.slice(0, maxLength)}...`
-    : plainText;
 }
 
 export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
@@ -47,28 +27,9 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
     });
   }, []);
 
-  const closeEditor = useCallback(() => {
-    setActiveEditorPostSlug(null);
-  }, []);
+  const closeEditor = useCallback(() => setActiveEditorPostSlug(null), []);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!activeEditorPostSlug) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        closeEditor();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activeEditorPostSlug, closeEditor]);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const el = postListRef.current;
@@ -95,9 +56,8 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
     ? `楼主 (${activePost.user?.nickname ?? activePost.user?.username ?? '匿名用户'})`
     : activePost?.user?.nickname ?? activePost?.user?.username ?? '匿名用户';
 
-  // ✅ 修复：平铺模式下从内容截取，而非使用可能为空的 title
   const replyToTitle = activePost
-    ? getReplyLabelFromContent(activePost.content)
+    ? (extractPostTitle(activePost.content, { maxLength: 30 }) || '原帖内容')
     : '';
 
   return (
@@ -153,6 +113,7 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
                 replyToTitle={replyToTitle}
                 replyToAuthor={activePost.user?.nickname ?? activePost.user?.username}
                 autoFocus={shouldAutoFocus}
+                onClose={closeEditor}
                 onSuccess={closeEditor}
                 onAutoFocusConsumed={() => setShouldAutoFocus(false)}
               />
