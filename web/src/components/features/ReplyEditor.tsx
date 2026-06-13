@@ -6,25 +6,33 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createReply } from '@/services/post-service';
 
-// ReplyEditor 接口定义补充
 interface ReplyEditorProps {
   parentSlug: string;
   replyToTitle?: string;
+  replyToAuthor?: string;
   autoFocus?: boolean;
   onAutoFocusConsumed?: () => void;
-  onClose?: () => void;   // 手动关闭（备用）
-  onSuccess?: () => void; // ✅ 提交成功后自动收起面板
+  onClose?: () => void;
+  onSuccess?: () => void;
 }
 
 export default function ReplyEditor({
   parentSlug,
   replyToTitle,
+  replyToAuthor,
   autoFocus = false,
   onAutoFocusConsumed,
 }: ReplyEditorProps) {
   const [content, setContent] = useState('');
   const router = useRouter();
   const editorWrapperRef = useRef<HTMLDivElement>(null);
+
+  // ✅ 拼接 placeholder：@作者 + 内容摘要
+  const placeholder = replyToAuthor
+    ? `@${replyToAuthor}${replyToTitle ? `：${replyToTitle}` : ''}...`
+    : replyToTitle
+      ? `回复：${replyToTitle}...`
+      : '支持 Markdown 语法...';
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -42,10 +50,7 @@ export default function ReplyEditor({
       return;
     }
 
-    // ✅ 2. 移除 extractPostTitle 相关逻辑（回复不需要 title）
-
     toast.promise(
-      // ✅ 3. 调用新 API：parentSlug 作为第一个参数，body 只传 content
       createReply(parentSlug, { content: trimmed }),
       {
         loading: '发布中...',
@@ -67,10 +72,7 @@ export default function ReplyEditor({
     <div className="reply-editor-wrapper" style={{ marginTop: 24 }} ref={editorWrapperRef}>
       <h3 style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span>✏️ 发表回复</span>
-        {replyToTitle && <span className="reply-to-tag">→ {replyToTitle}</span>}
       </h3>
-
-      {/* ✅ 4. 移除隐藏的 parentSlug input（已由组件 props + API 路径承载） */}
 
       <div data-color-mode="light">
         <MDEditor
@@ -81,9 +83,7 @@ export default function ReplyEditor({
           visibleDragbar={false}
           textareaProps={{
             autoFocus,
-            placeholder: replyToTitle
-              ? `回复 @${replyToTitle}...`
-              : '支持 Markdown 语法...',
+            placeholder,
           }}
         />
       </div>

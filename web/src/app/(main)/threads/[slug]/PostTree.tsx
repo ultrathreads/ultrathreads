@@ -130,6 +130,7 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
                 key={activePost.slug}
                 parentSlug={activePost.slug}
                 replyToTitle={activePost.title || post.title}
+                replyToAuthor={activePost.user?.nickname ?? activePost.user?.username}
                 autoFocus={shouldAutoFocus}
                 onSuccess={closeEditor}
                 onAutoFocusConsumed={() => setShouldAutoFocus(false)}
