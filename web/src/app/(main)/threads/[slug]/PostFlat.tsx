@@ -1,8 +1,6 @@
-// src/app/threads/[slug]/PostFlat.tsx
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import type { PostEntity } from '@/types/domain';
 import PostFlatItem from '@/components/PostFlatItem';
 import ReplyEditor from '@/components/features/ReplyEditor';
@@ -16,7 +14,6 @@ interface PostFlatProps {
 export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
   const [activeEditorPostSlug, setActiveEditorPostSlug] = useState<string | null>(null);
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const postListRef = useRef<HTMLDivElement>(null);
   const [editorWidth, setEditorWidth] = useState<number | undefined>(undefined);
 
@@ -28,8 +25,6 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
   }, []);
 
   const closeEditor = useCallback(() => setActiveEditorPostSlug(null), []);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const el = postListRef.current;
@@ -47,81 +42,50 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
   }, []);
 
   const rootPost = posts.find((p) => p.isRoot) ?? posts[0];
+  const activePost =
+    activeEditorPostSlug === rootPost?.slug
+      ? rootPost
+      : posts.find((p) => p.slug === activeEditorPostSlug) ?? null;
 
-  const activePost = activeEditorPostSlug === rootPost?.slug
-    ? rootPost
-    : posts.find((p) => p.slug === activeEditorPostSlug) ?? null;
-
-  const replyLabel = activePost?.slug === rootPost?.slug
-    ? `楼主 (${activePost.user?.nickname ?? activePost.user?.username ?? '匿名用户'})`
-    : activePost?.user?.nickname ?? activePost?.user?.username ?? '匿名用户';
+  const replyToAuthor =
+    activePost?.user?.nickname ?? activePost?.user?.username ?? '匿名用户';
 
   const replyToTitle = activePost
-    ? (extractPostTitle(activePost.content, { maxLength: 30 }) || '原帖内容')
+    ? extractPostTitle(activePost.content, { maxLength: 30 }) || '原帖内容'
     : '';
 
   return (
-    <>
-      <div ref={postListRef} className="post-list-container">
-        {posts.length > 0 ? (
-          posts.map((post) => {
-            const isRoot = post.isRoot;
-            const isEditorOpen = activeEditorPostSlug === post.slug;
-            return (
-              <div key={post.slug}>
-                <PostFlatItem
-                  post={post}
-                  detailHref={`/threads/${post.slug}`}
-                  replyCount={isRoot ? (post.commentCount ?? totalReplyCount) : 0}
-                  isRoot={isRoot}
-                  onReplyClick={() => toggleEditor(post.slug)}
-                  isEditorOpen={isEditorOpen}
-                />
-              </div>
-            );
-          })
-        ) : (
-          <div className="empty-tip">暂无回复</div>
-        )}
-      </div>
-
-      {mounted && activePost && createPortal(
-        <div
-          className="fixed-reply-editor"
-          style={editorWidth ? { width: editorWidth } : undefined}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`回复 ${replyLabel}`}
-        >
-          <div className="fixed-reply-editor__inner">
-            <div className="fixed-reply-editor__header">
-              <span className="fixed-reply-editor__label">
-                回复 <span className="fixed-reply-editor__author">{replyLabel}</span>
-              </span>
-              <button
-                onClick={closeEditor}
-                className="fixed-reply-editor__close"
-                aria-label="关闭回复框"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="fixed-reply-editor__body">
-              <ReplyEditor
-                key={activePost.slug}
-                parentSlug={activePost.slug}
-                replyToTitle={replyToTitle}
-                replyToAuthor={activePost.user?.nickname ?? activePost.user?.username}
-                autoFocus={shouldAutoFocus}
-                onClose={closeEditor}
-                onSuccess={closeEditor}
-                onAutoFocusConsumed={() => setShouldAutoFocus(false)}
-              />
-            </div>
+    <div ref={postListRef} className="post-list-container">
+      {posts.length > 0 ? (
+        posts.map((post) => (
+          <div key={post.slug}>
+            <PostFlatItem
+              post={post}
+              detailHref={`/threads/${post.slug}`}
+              replyCount={post.isRoot ? (post.commentCount ?? totalReplyCount) : 0}
+              isRoot={post.isRoot}
+              onReplyClick={() => toggleEditor(post.slug)}
+              isEditorOpen={activeEditorPostSlug === post.slug}
+            />
           </div>
-        </div>,
-        document.body
+        ))
+      ) : (
+        <div className="empty-tip">暂无回复</div>
       )}
-    </>
+
+      {activePost && (
+        <ReplyEditor
+          key={activePost.slug}
+          parentSlug={activePost.slug}
+          replyToTitle={replyToTitle}
+          replyToAuthor={replyToAuthor}
+          containerWidth={editorWidth}
+          autoFocus={shouldAutoFocus}
+          onClose={closeEditor}
+          onSuccess={closeEditor}
+          onAutoFocusConsumed={() => setShouldAutoFocus(false)}
+        />
+      )}
+    </div>
   );
 }
