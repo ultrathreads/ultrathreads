@@ -803,6 +803,12 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     color: var(--text-danger);
     margin-left: 4px;
 }
+.form-label .form-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-secondary, #6b7280);
+  margin-left: 6px;
+}
 .form-input, .form-select, .form-textarea {
     width: 100%;
     padding: 10px 14px;
@@ -829,8 +835,11 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     display: flex;
     gap: 20px;
 }
-.form-row .form-group {
+.form-row .form-group:nth-child(1) {
     flex: 1;
+}
+.form-row .form-group:nth-child(2) {
+    flex: 2;
 }
 
 /* 编辑器工具栏 */
@@ -1472,4 +1481,220 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .fixed-reply-editor__body {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
+}
+
+/* =============================================
+   16. TagInput 标签输入组件
+   ============================================= */
+.tag-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.tag-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 6px 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-base);
+  border-radius: 6px;
+  cursor: text;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tag-input-container:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+.tag-input-container.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--bg-muted);
+}
+
+/* 已选标签 Badge */
+.tag-input-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  background-color: var(--bg-tag);
+  border-radius: 12px;
+  white-space: nowrap;
+  animation: tagFadeIn 0.15s ease;
+}
+
+@keyframes tagFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.tag-input-badge-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.tag-input-badge-remove:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+/* 内部输入框 */
+.tag-input-field {
+  flex: 1;
+  min-width: 100px;
+  height: 28px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.tag-input-field::placeholder {
+  color: var(--text-placeholder);
+}
+
+.tag-input-field:disabled {
+  cursor: not-allowed;
+}
+
+/* 下拉面板通用样式 */
+.tag-input-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+/* 自动补全选项 */
+.tag-input-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background-color 0.15s;
+}
+
+.tag-input-option:hover,
+.tag-input-option.is-active {
+  background-color: var(--bg-hover);
+  color: var(--color-primary);
+}
+
+/* 推荐标签面板 */
+.tag-input-recommend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 4px;
+}
+
+.tag-input-recommend-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.tag-input-recommend-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.tag-input-recommend-close:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-danger);
+}
+
+.tag-input-recommend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+.tag-input-recommend-item {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  background-color: var(--bg-tag);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.tag-input-recommend-item:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+/* 加载旋转指示器 */
+.tag-input-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-base);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: tagSpin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes tagSpin {
+  to { transform: rotate(360deg); }
 }

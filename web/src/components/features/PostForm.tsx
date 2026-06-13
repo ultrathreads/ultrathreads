@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { createRootPost, updateRootPost } from '@/services/post-service';
 import { TagInput } from '@/components/ui/TagInput';
 import type { NodeEntity } from '@/types/domain';
+import { useSiteConfig } from '@/providers/SiteConfigProvider';
 
 interface InitialData {
   slug: string;
@@ -17,21 +18,24 @@ interface InitialData {
   tags: string;
 }
 
-// ✅ 接口名同步更新
 interface PostFormProps {
   nodes: NodeEntity[];
   initialData?: InitialData | null;
 }
 
-// ✅ 组件名更新为 PostForm
 export function PostForm({ nodes, initialData }: PostFormProps) {
   const router = useRouter();
+  const { recommendTags } = useSiteConfig();
+
   const isEditMode = Boolean(initialData);
 
-  // ✅ 使用 initialData 初始化状态，避免客户端闪烁
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [nodeSlug, setNodeSlug] = useState(initialData?.nodeSlug ?? '');
-  const [tags, setTags] = useState(initialData?.tags ?? '');
+  const [tags, setTags] = useState<string[]>(
+    initialData?.tags
+      ? initialData.tags.split(',').map((t) => t.trim()).filter(Boolean)
+      : []
+  );
   const [content, setContent] = useState(initialData?.rawContent ?? '');
   const [attempted, setAttempted] = useState(false);
   const submittingRef = useRef(false);
@@ -58,7 +62,7 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
       title: title.trim(),
       nodeSlug,
       content,
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+      tags,
     };
 
     try {
@@ -97,8 +101,21 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
   const isFormValid = Boolean(nodeSlug && title.trim() && content.trim());
 
   return (
-    // ✅ form id 同步去除 create 前缀
     <form id="postForm" onSubmit={handleSubmit} noValidate>
+      <div className="form-group">
+        <label className="form-label">
+          帖子标题<span className="required">*</span>
+        </label>
+        <input
+          type="text"
+          className={`form-input ${errors.title ? 'form-error' : ''}`}
+          placeholder="请输入清晰明确的标题（5-100字）"
+          maxLength={100}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        {errors.title && <p className="form-error-text">请输入帖子标题</p>}
+      </div>
       <div className="form-row">
         <div className="form-group">
           <label className="form-label">
@@ -122,31 +139,18 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
           </select>
           {errors.nodeSlug && <p className="form-error-text">请选择所属板块</p>}
         </div>
-
         <div className="form-group">
-          <label className="form-label">标签</label>
+          <label className="form-label">
+            标签 <span className="form-hint">（选填，最多3个，帮助他人发现你的帖子）</span>
+          </label>
           <TagInput
-            className="form-input"
-            placeholder="输入标签名获取建议，多个用逗号分隔"
             value={tags}
             onChange={setTags}
+            placeholder="输入标签名获取建议，回车添加"
+            recommendTags={recommendTags}
+            maxTags={3}
           />
         </div>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">
-          帖子标题<span className="required">*</span>
-        </label>
-        <input
-          type="text"
-          className={`form-input ${errors.title ? 'form-error' : ''}`}
-          placeholder="请输入清晰明确的标题（5-100字）"
-          maxLength={100}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        {errors.title && <p className="form-error-text">请输入帖子标题</p>}
       </div>
 
       <div className="form-group">
@@ -171,7 +175,6 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
         {errors.content && <p className="form-error-text">正文内容不能为空</p>}
       </div>
 
-      {/* ✅ CSS 类名也建议后续同步改为 post-form-actions */}
       <div className="post-form-actions">
         <button
           type="button"

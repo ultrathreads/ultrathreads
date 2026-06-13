@@ -54,7 +54,6 @@ func (s *settingService) SetAll(configStr string) error {
 		return errors.New("配置数据格式错误")
 	}
 
-	// ✅ v2 标准事务 API
 	return dao.DB().Transaction(func(tx *gorm.DB) error {
 		for k := range configs {
 			v := json.Get(k).String()
@@ -68,14 +67,12 @@ func (s *settingService) SetAll(configStr string) error {
 
 // Set 设置单个配置，不存在则创建
 func (s *settingService) Set(key, value, name, description string) error {
-	// ✅ v2 标准事务 API
 	return dao.DB().Transaction(func(tx *gorm.DB) error {
 		return s.setSingle(tx, key, value, name, description)
 	})
 }
 
 // setSingle 内部设置单个配置项
-// 🔴 关键修复：原代码接收了 db *gorm.DB 参数但内部仍调用全局 dao.SettingDao，导致事务完全失效
 func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description string) error {
 	if len(key) == 0 {
 		return errors.New("sys config key is null")
@@ -134,7 +131,13 @@ func (s *settingService) GetSetting() *model.ConfigData {
 		siteTitle        = cache.SettingCache.GetValue(model.SettingSiteTitle)
 		siteDescription  = cache.SettingCache.GetValue(model.SettingSiteDescription)
 		defaultNodeIdStr = cache.SettingCache.GetValue(model.SettingDefaultNodeId)
+		recommendTags    = cache.SettingCache.GetValue(model.SettingRecommendTags)
 	)
+
+	var recommendTagsArr []string
+	if err := util.ParseJson(recommendTags, &recommendTagsArr); err != nil {
+		recommendTagsArr = []string{}
+	}
 
 	defaultNodeId, _ := strconv.ParseInt(defaultNodeIdStr, 10, 64)
 
@@ -142,5 +145,6 @@ func (s *settingService) GetSetting() *model.ConfigData {
 		SiteTitle:       siteTitle,
 		SiteDescription: siteDescription,
 		DefaultNodeId:   defaultNodeId,
+		RecommendTags:   recommendTagsArr,
 	}
 }

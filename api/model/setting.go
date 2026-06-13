@@ -36,6 +36,7 @@ type ConfigData struct {
 	SiteKeywords     []string    `json:"siteKeywords"`
 	SiteNavs         []SiteNav   `json:"siteNavs"`
 	DefaultNodeId    int64       `json:"defaultNodeId"`
+	RecommendTags    []string    `json:"recommendTags"`
 }
 
 type AppData struct {

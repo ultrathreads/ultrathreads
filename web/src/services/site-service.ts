@@ -18,6 +18,7 @@ export const FALLBACK_SITE_CONFIG: SiteConfig = {
     { label: '关于', href: '/about' },
   ],
   defaultNodeId: 1,
+  recommendTags: [], // ✅ 新增兜底空数组，防止下游 .map() 崩溃
 };
 
 /** 将后端原始数据转换为前端标准结构 */
@@ -31,6 +32,7 @@ function mapToSiteConfig(raw: SiteConfigRaw): SiteConfig {
     siteKeywords: raw.setting.siteKeywords,
     navLinks: raw.setting.siteNavs ?? [],
     defaultNodeId: raw.setting.defaultNodeId,
+    recommendTags: raw.setting.recommendTags ?? [], // ✅ 安全取值 + 空数组降级
   };
 }
 
