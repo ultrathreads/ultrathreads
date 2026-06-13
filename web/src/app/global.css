@@ -136,7 +136,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     gap: 4px;
 }
 .footer-copyright {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-extra-muted);
     font-weight: 500;
 }
@@ -150,7 +150,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     gap: 20px;
 }
 .footer-links a {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--text-muted);
     text-decoration: none;
     transition: color 0.2s;
@@ -187,11 +187,11 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .search-box { position: relative; display: flex; align-items: center; max-width: 320px; width: 100%; }
 .search-icon {
     position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-    font-size: 0.9rem; color: var(--text-muted); pointer-events: none; z-index: 1;
+    font-size: 0.875rem; color: var(--text-muted); pointer-events: none; z-index: 1;
 }
 .search-input {
     width: 100%; height: 36px; padding: 0 12px 0 36px;
-    font-size: 0.9rem; color: var(--text-primary); background-color: var(--bg-muted);
+    font-size: 0.875rem; color: var(--text-primary); background-color: var(--bg-muted);
     border: 1px solid transparent; border-radius: 18px; outline: none;
     transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
 }
@@ -204,7 +204,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 
 /* 登录 / 注册 链接按钮 */
 .header-actions .login-link {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
     text-decoration: none;
@@ -217,7 +217,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     color: var(--color-primary);
 }
 .header-actions .register-link {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: #fff;
     background-color: var(--color-primary);
@@ -233,7 +233,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 /* 发帖按钮 */
 .post-btn {
     display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px;
-    font-size: 0.9rem; font-weight: 600; color: #fff; background-color: var(--color-primary);
+    font-size: 0.875rem; font-weight: 600; color: #fff; background-color: var(--color-primary);
     border: none; border-radius: 20px; cursor: pointer; text-decoration: none; white-space: nowrap;
     transition: background-color 0.2s, transform 0.1s;
 }
@@ -248,7 +248,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 }
 .user-menu-wrapper:hover { background-color: var(--bg-hover-light); }
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-extra-light); }
-.user-name { font-size: 0.9rem; font-weight: 500; color: var(--text-primary); }
+.user-name { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); }
 .user-arrow { font-size: 0.625rem; color: var(--text-muted); transition: transform 0.2s; }
 .user-menu-wrapper.active .user-arrow { transform: rotate(180deg); }
 
@@ -267,7 +267,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 .user-level {
@@ -291,7 +291,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 /* 下拉菜单项、分割线 */
 .dropdown-item {
     display: flex; align-items: center; gap: 8px; padding: 10px 16px;
-    font-size: 0.9rem; color: var(--text-primary); cursor: pointer; white-space: nowrap;
+    font-size: 0.875rem; color: var(--text-primary); cursor: pointer; white-space: nowrap;
     transition: background-color 0.15s;text-decoration: none;
 }
 .dropdown-item:hover { background-color: var(--bg-muted); }
@@ -329,7 +329,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .sidebar-section { margin-bottom: 24px; }
 .sidebar-section:last-child { margin-bottom: 0; }
 .sidebar-title {
-    font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;
+    font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;
     letter-spacing: 0.5px; margin-bottom: 10px; white-space: nowrap;
 }
 
@@ -337,7 +337,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .forum-list { list-style: none; }
 .forum-item {
     display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px;
-    border-radius: 6px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;
+    border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap;
     text-decoration: none; transition: background-color 0.2s;
 }
 .forum-item:hover { background-color: var(--bg-hover-light); }
@@ -379,7 +379,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
    ============================================= */
 /* 排序下拉选择框 */
 .sort-select {
-    height: 30px; padding: 0 28px 0 10px; font-size: 0.8rem; color: var(--text-primary);
+    height: 30px; padding: 0 28px 0 10px; font-size: 0.875rem; color: var(--text-primary);
     background: var(--bg-muted) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237f8c8d'/%3E%3C/svg%3E") no-repeat right 10px center;
     border: 1px solid var(--border-base); border-radius: 6px; outline: none; cursor: pointer;
     appearance: none; -webkit-appearance: none;
@@ -391,7 +391,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 /* 全部折叠/展开按钮 */
 .collapse-all-btn {
     display: inline-flex; align-items: center; gap: 4px;
-    height: 30px; padding: 0 12px; font-size: 0.8rem; color: var(--text-primary);
+    height: 30px; padding: 0 12px; font-size: 0.875rem; color: var(--text-primary);
     background: var(--bg-muted); border: 1px solid var(--border-base); border-radius: 6px;
     cursor: pointer; white-space: nowrap; user-select: none; transition: all 0.2s;
 }
@@ -403,7 +403,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 /* 帖子详情页操作按钮 */
 .detail-action-btn {
     display: inline-flex; align-items: center; gap: 5px;
-    height: 32px; padding: 0 14px; font-size: 0.8rem; color: var(--text-regular);
+    height: 32px; padding: 0 14px; font-size: 0.875rem; color: var(--text-regular);
     background: var(--bg-muted); border: 1px solid var(--border-base); border-radius: 6px;
     cursor: pointer; transition: all 0.2s; white-space: nowrap;
 }
@@ -434,7 +434,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     justify-content: center;
     height: 40px;
     padding: 0 24px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     border-radius: 20px;
     cursor: pointer;
@@ -467,12 +467,12 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
     margin-bottom: 24px; padding: 12px 16px;
     background: var(--bg-card); border: 1px solid var(--border-base); border-radius: 8px;
 }
-.pagination-info { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
+.pagination-info { font-size: 0.875rem; color: var(--text-secondary); white-space: nowrap; }
 .pagination-controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .page-btn {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 32px; height: 32px; padding: 0 8px;
-    font-size: 0.8rem; color: var(--text-primary); background: var(--bg-card);
+    font-size: 0.875rem; color: var(--text-primary); background: var(--bg-card);
     border: 1px solid var(--border-base); border-radius: 6px;
     cursor: pointer; text-decoration: none; white-space: nowrap;
     transition: all 0.2s; user-select: none;
@@ -482,17 +482,17 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .page-btn.disabled { color: var(--text-muted); border-color: var(--border-extra-light); cursor: not-allowed; background: var(--bg-container); }
 .page-ellipsis {
     display: inline-flex; align-items: center; justify-content: center;
-    min-width: 32px; height: 32px; font-size: 0.8rem; color: var(--text-muted);
+    min-width: 32px; height: 32px; font-size: 0.875rem; color: var(--text-muted);
     cursor: default; user-select: none;
 }
-.pagination-jump { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
+.pagination-jump { display: flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--text-secondary); white-space: nowrap; }
 .jump-input {
-    width: 52px; height: 32px; padding: 0 8px; font-size: 0.8rem; color: var(--text-primary); text-align: center;
+    width: 52px; height: 32px; padding: 0 8px; font-size: 0.875rem; color: var(--text-primary); text-align: center;
     border: 1px solid var(--border-base); border-radius: 6px; outline: none; transition: border-color 0.2s;
 }
 .jump-input:focus { border-color: var(--color-primary); }
 .jump-btn {
-    height: 32px; padding: 0 12px; font-size: 0.8rem; color: #fff;
+    height: 32px; padding: 0 12px; font-size: 0.875rem; color: #fff;
     background: var(--color-primary); border: none; border-radius: 6px; cursor: pointer;
     transition: background-color 0.2s;
 }
@@ -502,14 +502,14 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .empty-tip {
   padding: 32px 20px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
 .error-tip {
   padding: 32px 20px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-danger);
 }
 
@@ -592,7 +592,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: normal;
   color: var(--text-secondary);
   background-color: var(--bg-muted);
@@ -602,7 +602,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 
 /* 元信息：作者、时间、分类 */
-.metadata { font-size: 0.9rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.metadata { font-size: 0.875rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .author-name { font-weight: 600; color: var(--text-muted); }
 .author-name.mod { color: var(--text-mod); }
 .tail { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -646,7 +646,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 
 .back-list-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    height: 34px; padding: 0 16px; font-size: 0.8rem; font-weight: 600;
+    height: 34px; padding: 0 16px; font-size: 0.875rem; font-weight: 600;
     color: var(--color-primary); background: var(--bg-card); border: 1px solid var(--color-primary); border-radius: 17px;
     cursor: pointer; text-decoration: none; white-space: nowrap;
     transition: all 0.2s;
@@ -673,7 +673,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
   /* ✅ 保留原有尺寸规格，移除 line-height */
   height: 28px;
   padding: 0 14px;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
   /* line-height: 28px;  ← 删除此行，flex 已接管垂直居中 */
 
@@ -713,14 +713,14 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     border: 1px solid var(--border-base); margin-bottom: 24px;
 }
 .post-detail-title {
-    font-size: 1.5rem; font-weight: 700; color: var(--text-primary); line-height: 1.4; margin-bottom: 12px;
+    font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1.4; margin-bottom: 12px;
 }
 .post-detail-meta {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px;
+    font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 20px;
     padding-bottom: 16px; border-bottom: 1px solid var(--border-light);
 }
-.post-detail-meta .author-name { font-size: 0.9rem; }
+.post-detail-meta .author-name { font-size: 0.875rem; }
 .post-detail-meta .detail-node {
     display: inline-block;
     padding: 2px 10px;
@@ -749,7 +749,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .post-detail-body p:last-child { margin-bottom: 0; }
 .post-detail-body code {
     background: var(--bg-muted); padding: 2px 6px; border-radius: 4px;
-    font-size: 0.8rem; color: var(--text-code); font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem; color: var(--text-code); font-family: 'Menlo', 'Consolas', monospace;
 }
 
 /* 详情页操作栏 */
@@ -794,7 +794,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 .form-label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 8px;
@@ -806,7 +806,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .form-input, .form-select, .form-textarea {
     width: 100%;
     padding: 10px 14px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-primary);
     background-color: var(--bg-card);
     border: 1px solid var(--border-base);
@@ -918,7 +918,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     margin-bottom: 8px;
 }
 .auth-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-extra-muted);
 }
 .auth-form .form-group {
@@ -926,7 +926,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 .auth-form .form-label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 8px;
@@ -934,7 +934,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .auth-form .form-input {
     width: 100%;
     padding: 10px 14px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-primary);
     background-color: var(--bg-card);
     border: 1px solid var(--border-base);
@@ -971,7 +971,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .auth-footer {
     text-align: center;
     margin-top: 20px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-extra-muted);
 }
 .auth-link {
@@ -987,7 +987,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     text-align: right;
     margin-top: -12px;
     margin-bottom: 16px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 
 /* 找回密码提示文案 */
@@ -996,7 +996,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     border: 1px solid var(--border-extra-light);
     border-radius: 6px;
     padding: 12px 16px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--text-extra-muted);
     line-height: 1.6;
     margin-bottom: 20px;
@@ -1030,7 +1030,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .profile-link {
     padding: 10px 16px;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-extra-muted);
     text-decoration: none;
     transition: all 0.2s;
@@ -1061,7 +1061,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     color: var(--text-primary);
 }
 .profile-card-desc {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-extra-muted);
     margin-bottom: 30px;
 }
@@ -1106,7 +1106,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 
 /* 用户昵称样式 */
 .profile-nickname {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
@@ -1121,7 +1121,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     text-align: center;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     margin-bottom: 1rem;
 }
 
@@ -1145,7 +1145,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 
 /* 注册日期和最后登录时间的容器 */
 .profile-meta-info {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
     text-align: left;
     margin: 0 auto;
@@ -1173,21 +1173,21 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 
 /* 联系信息中的标签文字（如：个人主页、个人签名） */
 .profile-label {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--text-muted);
     margin-bottom: 0.25rem;
 }
 
 /* 联系信息中的内容文字 */
 .profile-value {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
     line-height: 1.5;
 }
 
 /* 个人主页链接样式 */
 .profile-link {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--color-primary);
 }
 
@@ -1214,7 +1214,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 }
 .upload-btn {
     padding: 6px 14px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     border: 1px solid var(--border-base);
     border-radius: 6px;
     background: var(--bg-card);
@@ -1233,7 +1233,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     color: #fff;
     border: none;
     border-radius: 6px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -1277,7 +1277,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     flex-shrink: 0;
 }
 .preview-popover-title {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: var(--text-primary);
     overflow: hidden;
@@ -1298,7 +1298,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
     padding: 16px;
     max-height: 320px;
     overflow-y: auto;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     line-height: 1.8;
     color: var(--text-primary);
     flex: 1;
@@ -1429,7 +1429,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
   border-bottom: 1px solid var(--border-light);
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .fixed-reply-editor__label {
@@ -1458,7 +1458,7 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
   border-radius: 4px;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1;
   transition: background-color 0.15s, color 0.15s;
 }
