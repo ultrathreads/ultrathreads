@@ -46,12 +46,12 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var postForm form.PostUpdateForm
+	var postForm form.RootPostUpdateForm
 	if !c.BindAndValidate(ctx, &postForm) {
 		return
 	}
 	postForm.Slug = gDto.Slug
-	err := service.PostService.Update(postForm)
+	err := service.PostService.UpdateRootPost(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return

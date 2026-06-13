@@ -17,20 +17,30 @@ interface PostTreeProps {
   backState: BackState;
 }
 
+// ✨ 新增：编辑器状态类型，区分回复和编辑模式
+type EditorState = {
+  postSlug: string;
+  mode: 'reply' | 'edit';
+} | null;
+
 export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTreeProps) {
-  const [activeEditorPostSlug, setActiveEditorPostSlug] = useState<string | null>(null);
+  // ✨ 替换原有的 activeEditorPostSlug
+  const [editorState, setEditorState] = useState<EditorState>(null);
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   const postListRef = useRef<HTMLDivElement>(null);
   const [editorWidth, setEditorWidth] = useState<number | undefined>(undefined);
 
-  const toggleEditor = useCallback((postSlug: string) => {
-    setActiveEditorPostSlug((prev) => {
-      if (prev !== postSlug) setShouldAutoFocus(true);
-      return prev === postSlug ? null : postSlug;
+  // ✨ 统一的编辑器切换方法
+  const openEditor = useCallback((postSlug: string, mode: 'reply' | 'edit') => {
+    setEditorState((prev) => {
+      // 点击同一个按钮时关闭
+      if (prev?.postSlug === postSlug && prev?.mode === mode) return null;
+      setShouldAutoFocus(true);
+      return { postSlug, mode };
     });
   }, []);
 
-  const closeEditor = useCallback(() => setActiveEditorPostSlug(null), []);
+  const closeEditor = useCallback(() => setEditorState(null), []);
 
   useEffect(() => {
     const el = postListRef.current;
@@ -45,9 +55,9 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
     return () => observer.disconnect();
   }, []);
 
-  const activePost = activeEditorPostSlug === post.slug
+  const activePost = editorState?.postSlug === post.slug
     ? post
-    : viewPosts.find((p) => p.slug === activeEditorPostSlug);
+    : viewPosts.find((p) => p.slug === editorState?.postSlug);
 
   const replyToAuthor = activePost?.user?.nickname ?? activePost?.user?.username ?? '匿名用户';
 
@@ -55,15 +65,21 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
     ? (extractPostTitle(activePost.content, { maxLength: 30 }) || '原帖内容')
     : '';
 
+  // ✨ 判断当前某个帖子是否处于指定模式的编辑打开状态
+  const isEditorOpen = (slug: string, mode: 'reply' | 'edit') =>
+    editorState?.postSlug === slug && editorState?.mode === mode;
+
   return (
     <div ref={postListRef} className="tree-post-container">
       <PostFlatItem
         post={post}
         detailHref={`/threads/${post.slug}`}
         replyCount={totalReplyCount}
-        isRoot
-        onReplyClick={() => toggleEditor(post.slug)}
-        isEditorOpen={activeEditorPostSlug === post.slug}
+        isRoot={post.isRoot}
+        onEditClick={() => openEditor(post.slug, 'edit')}
+        onReplyClick={() => openEditor(post.slug, 'reply')}
+        isReplyEditorOpen={isEditorOpen(post.slug, 'reply')}
+        isEditEditorOpen={isEditorOpen(post.slug, 'edit')}
       />
 
       {viewPosts.length > 0 && (
@@ -83,20 +99,29 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
               <ThreadItem
                 key={reply.slug}
                 item={reply}
-                isRoot
+                isRoot={post.isRoot}
                 currentPostSlug={post.slug}
                 backState={backState}
-                onReplyClick={(slug) => toggleEditor(slug)}
+                onReplyClick={(slug) => openEditor(slug, 'reply')}
+                // ✨ 透传编辑回调
+                onEditClick={(slug) => openEditor(slug, 'edit')}
+                // ✨ 分别传递两种模式的打开状态
+                isReplyEditorOpen={isEditorOpen(reply.slug, 'reply')}
+                isEditEditorOpen={isEditorOpen(reply.slug, 'edit')}
               />
             ))}
           </ul>
         </div>
       )}
 
-      {activePost && (
+      {activePost && editorState && (
         <ReplyEditor
-          key={activePost.slug}
+          key={`${activePost.slug}-${editorState.mode}`}
           parentSlug={activePost.slug}
+          // ✨ 编辑模式下传入初始内容和模式标识
+          postSlug={editorState.mode === 'edit' ? activePost.slug : undefined}
+          mode={editorState.mode}
+          initialContent={editorState.mode === 'edit' ? activePost.rawContent : undefined}
           replyToTitle={replyToTitle}
           replyToAuthor={replyToAuthor}
           containerWidth={editorWidth}

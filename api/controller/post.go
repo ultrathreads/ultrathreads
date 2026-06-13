@@ -157,6 +157,41 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 	c.Success(ctx, converter.ToSimplePost(post))
 }
 
+// Update 更新主贴
+func (c *PostController) UpdateRootPost(ctx *gin.Context) {
+	user := c.GetCurrentUser(ctx)
+	var postForm form.RootPostUpdateForm
+	if !c.BindAndValidate(ctx, &postForm) {
+		return
+	}
+
+	post := service.PostService.GetBySlug(postForm.Slug)
+	if post == nil || post.Status == model.StatusDeleted {
+		c.Fail(ctx, util.ErrorPostNotFound)
+		return
+	}
+
+	if post.UserId != user.ID {
+		c.Fail(ctx, util.NewErrorMsg("无权限"))
+		return
+	}
+
+	err := service.PostService.UpdateRootPost(postForm)
+	if err != nil {
+		c.Fail(ctx, util.FromError(err))
+		return
+	}
+	
+	c.PublishEvent(ctx, event.PostUpdated{
+		UserID: user.ID,
+		PostID: post.ID,
+		Tags:   postForm.Tags,
+		IsRoot: post.IsRoot(),
+	})
+
+	c.Success(ctx, converter.ToSimplePost(post))
+}
+
 // StoreReply 发表回复
 func (c *PostController) StoreReply(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
@@ -186,10 +221,9 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 	c.Success(ctx, converter.ToSimplePost(post))
 }
 
-// Update 更新话题
-func (c *PostController) Update(ctx *gin.Context) {
+func (c *PostController) UpdateReply(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var postForm form.PostUpdateForm
+	var postForm form.ReplyUpdateForm
 	if !c.BindAndValidate(ctx, &postForm) {
 		return
 	}
@@ -205,7 +239,9 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 
-	err := service.PostService.Update(postForm)
+	postForm.Title = util.ExtractReplyTitle(postForm.Content, 20) // 从内容提取前20字符
+
+	err := service.PostService.UpdateReply(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -214,7 +250,6 @@ func (c *PostController) Update(ctx *gin.Context) {
 	c.PublishEvent(ctx, event.PostUpdated{
 		UserID: user.ID,
 		PostID: post.ID,
-		Tags:   postForm.Tags,
 		IsRoot: post.IsRoot(),
 	})
 

@@ -98,6 +98,18 @@ export async function createReply(
   });
 }
 
+/** 更新回帖 */
+export async function updateReply(
+  slug: string,
+  payload: UpdateReplyPayload
+): Promise<CreatePostResponse> {
+  return apiFetch<CreatePostResponse>(`/replies/${slug}`, {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify(payload),
+  });
+}
+
 // ==================== 👇 新增：点赞 & 收藏 ====================
 
 /**

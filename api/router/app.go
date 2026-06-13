@@ -127,10 +127,10 @@ func setupApp(e *gin.Engine) {
 		{
 			postGroup.POST("", postController.StoreRootPost)
 			postGroup.POST("/:slug/replies", postController.StoreReply)
-			postGroup.POST("/:slug", postController.Update)
+			postGroup.POST("/:slug", postController.UpdateRootPost)
 		}
+		jwtApi.POST("/replies/:slug", postController.UpdateReply)
 
-		jwtApi.PUT("/post/:slug", postController.Update)
 		jwtApi.Any("/post/:slug/view-post", postController.ViewPost)
 		jwtApi.POST("/post/:slug/like", postController.Like)
 		jwtApi.POST("/post/:slug/favorite", postController.Favorite)

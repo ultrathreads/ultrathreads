@@ -21,6 +21,9 @@ export interface CreateReplyPayload {
   content: string;
   imageList?: string[];
 }
+export interface UpdateReplyPayload {
+  content: string;
+}
 
 export interface CreatePostResponse {
   slug: string;

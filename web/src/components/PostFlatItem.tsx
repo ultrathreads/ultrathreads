@@ -16,7 +16,9 @@ interface PostFlatItemProps {
   detailHref: string;
   replyCount?: number;
   onReplyClick?: () => void;
-  isEditorOpen?: boolean;
+  onEditClick?: () => void;
+  isReplyEditorOpen?: boolean;
+  isEditEditorOpen?: boolean;
   isRoot?: boolean;
 }
 
@@ -25,7 +27,9 @@ export default function PostFlatItem({
   detailHref,
   replyCount = 0,
   onReplyClick,
-  isEditorOpen = false,
+  onEditClick,
+  isReplyEditorOpen  = false,
+  isEditEditorOpen = false,
   isRoot = false,
 }: PostFlatItemProps) {
   const [likeCount, setLikeCount] = useState(post.likeCount);
@@ -33,7 +37,7 @@ export default function PostFlatItem({
   const [actionLoading, setActionLoading] = useState<'like' | 'favorite' | null>(null);
 
   const { user } = useAuth();
-  const canEdit = isRoot && user?.slug === post.user.slug;
+  const canEdit = user?.slug === post.user.slug;
 
   useEffect(() => setLikeCount(post.likeCount), [post.likeCount]);
   useEffect(() => setFavCount(post.favoriteCount ?? 0), [post.favoriteCount]);
@@ -172,15 +176,28 @@ export default function PostFlatItem({
           ⭐ 收藏 ({favCount})
         </button>
 
-        {onReplyClick && (
+        {/* ✨ 非根帖：作者本人可见的编辑按钮，点击唤起 ReplyEditor */}
+        {!isRoot && canEdit && onEditClick && (
           <button
-            className={`detail-action-btn ${isEditorOpen ? 'detail-action-btn--active' : ''}`}
-            onClick={onReplyClick}
+            className={`detail-action-btn ${isEditEditorOpen ? 'detail-action-btn--active' : ''}`}
+            onClick={onEditClick}
             type="button"
-            aria-expanded={isEditorOpen}
+            aria-expanded={isEditEditorOpen}
             aria-controls="reply-editor"
           >
-            {isEditorOpen ? '✖ 不想说了' : '💬 我说两句'}
+            {isEditEditorOpen ? '✖ 取消编辑' : '✏️ 编辑'}
+          </button>
+        )}
+
+        {onReplyClick && (
+          <button
+            className={`detail-action-btn ${isReplyEditorOpen  ? 'detail-action-btn--active' : ''}`}
+            onClick={onReplyClick}
+            type="button"
+            aria-expanded={isReplyEditorOpen }
+            aria-controls="reply-editor"
+          >
+            {isReplyEditorOpen  ? '✖ 不想说了' : '💬 我说两句'}
           </button>
         )}
       </div>
