@@ -1,6 +1,7 @@
 // src/app/threads/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getPostWithThread, getPostFlat, getPostDetail } from '@/services/post-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
 import { ViewModeSwitcher } from '@/components/ViewModeSwitcher';
@@ -16,6 +17,45 @@ interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+// 动态生成 SEO 元数据
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    const { slug } = await params;
+    // 使用轻量级接口获取基础信息，避免为 SEO 加载完整回复树
+    const detail = await getPostDetail(slug);
+
+    if (!detail) return {};
+
+    const title = `${detail.title || '无标题'} - 讨论详情`;
+    const description =
+      detail.summary ||
+      detail.content?.replace(/[#*`>\-\[\]]/g, '').slice(0, 160) ||
+      '参与社区讨论，查看精彩回复。';
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: 'article',
+        url: `/threads/${slug}`,
+        // 如果有封面图可在此添加: images: [detail.coverUrl],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
+      alternates: {
+        canonical: `/threads/${slug}`,
+      },
+    };
+  } catch {
+    return {};
+  }
+}
+
 function extractBackContext(searchParams: Record<string, string | string[] | undefined>): {
   backUrl: string;
   backState: BackState;
@@ -29,36 +69,57 @@ function extractBackContext(searchParams: Record<string, string | string[] | und
   if (tagSlug) backState.tagSlug = String(tagSlug);
   if (page) backState.page = String(page);
 
-  // 如果没有任何有效状态，直接返回首页
   if (!backState.nodeSlug && !backState.tagSlug && !backState.page) {
     return { backUrl: '/', backState: {} };
   }
 
-  // 根据 tagSlug 或 nodeSlug 动态决定基础路径
   let basePath = '/';
   if (backState.tagSlug) {
     basePath = `/tags/${backState.tagSlug}`;
   } else if (backState.nodeSlug) {
-     basePath = `/nodes/${backState.nodeSlug}`;
+    basePath = `/nodes/${backState.nodeSlug}`;
   }
 
-  // 构建查询参数（仅保留 page 等需要拼接到 URL 上的参数）
-  const params = new URLSearchParams();
-  if (backState.page) {
-    params.set('page', backState.page);
-  }
+  const urlParams = new URLSearchParams();
+  if (backState.page) urlParams.set('page', backState.page);
 
-  const queryString = params.toString();
+  const queryString = urlParams.toString();
   const backUrl = queryString ? `${basePath}?${queryString}` : basePath;
 
-  return {
-    backUrl,
-    backState,
+  return { backUrl, backState };
+}
+
+// JSON-LD 结构化数据组件（帮助搜索引擎理解帖子内容）
+function JsonLd({ post, totalReplyCount }: { post: any; totalReplyCount: number }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'DiscussionForumPosting',
+    headline: post.title || '无标题',
+    articleBody: post.content?.slice(0, 5000),
+    datePublished: post.createdAt,
+    dateModified: post.updatedAt,
+    author: post.user
+      ? {
+          '@type': 'Person',
+          name: post.user.nickname || post.user.username,
+        }
+      : undefined,
+    interactionStatistic: {
+      '@type': 'InteractionCounter',
+      interactionType: 'https://schema.org/CommentAction',
+      userInteractionCount: totalReplyCount,
+    },
   };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
 }
 
 export default async function ReadPage({ params, searchParams }: Props) {
-  // 1. 解析路由参数与搜索参数
   let slug: string;
   try {
     const resolved = await params;
@@ -74,36 +135,25 @@ export default async function ReadPage({ params, searchParams }: Props) {
     // ignore
   }
 
-  // 2. 确定视图模式（默认树形）
   const view = resolvedSp.view === 'flat' ? 'flat' : 'tree';
-
-  // 3. 解析返回上下文
   const { backUrl, backState } = extractBackContext(resolvedSp);
 
-  // 4. 根据视图模式获取对应数据并转换
   let post = null;
   let viewData: any = null;
   let totalReplyCount = 0;
 
   try {
     if (view === 'flat') {
-      // 先尝试用当前 ID 获取平铺数据
       let result = await getPostFlat(slug);
       let posts = result.posts ?? [];
 
-      // 判断是否为非根帖（根据实际 API 行为调整此条件）
-      const isNonRootFlat =
-        posts.length === 0 ||
-        (posts[0] && !posts[0].isRoot);
+      const isNonRootFlat = posts.length === 0 || (posts[0] && !posts[0].isRoot);
 
       if (isNonRootFlat) {
         const detail = await getPostDetail(slug);
-
-        // threadSlug 缺失时直接抛出，让外层 catch 兜底或触发 notFound
         if (!detail.threadSlug) {
           throw new Error(`Post ${slug} is missing threadSlug, cannot resolve flat view`);
         }
-
         const threadSlug = String(detail.threadSlug);
         result = await getPostFlat(threadSlug);
         posts = result.posts ?? [];
@@ -113,7 +163,6 @@ export default async function ReadPage({ params, searchParams }: Props) {
       totalReplyCount = posts.length > 0 ? posts.length - 1 : 0;
       post = posts[0];
     } else {
-      // 树形模式保持原有逻辑不变
       const result = await getPostWithThread(slug);
       post = result.post;
       const replies = result.replies ?? [];
@@ -123,18 +172,13 @@ export default async function ReadPage({ params, searchParams }: Props) {
   } catch (error) {
     console.error(`[ReadPage] Failed to fetch post ${slug} (${view}):`, error);
 
-    // ✅ 兜底：flat 模式报错时，用轻量接口重试一次
     if (view === 'flat') {
       try {
         const detail = await getPostDetail(slug);
-
-        if (!detail.threadSlug) {
-          console.error(`[ReadPage] Post ${slug} missing threadSlug, skip flat retry`);
-        } else {
+        if (detail.threadSlug) {
           const threadSlug = String(detail.threadSlug);
           const result = await getPostFlat(threadSlug);
           const posts = result.posts ?? [];
-
           if (posts.length > 0) {
             viewData = posts;
             totalReplyCount = posts.length - 1;
@@ -151,19 +195,18 @@ export default async function ReadPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // 5. 组装页面布局，根据视图模式分发组件
   return (
     <>
+      {/* ✅ SEO 结构化数据 */}
+      <JsonLd post={post} totalReplyCount={totalReplyCount} />
+
       <div className="detail-top-bar">
         <Link className="back-list-btn" href={backUrl}>← 返回列表</Link>
         <ViewModeSwitcher currentView={view} />
       </div>
 
       {view === 'flat' ? (
-        <PostFlat
-          posts={viewData}
-          totalReplyCount={totalReplyCount}
-        />
+        <PostFlat posts={viewData} totalReplyCount={totalReplyCount} />
       ) : (
         <PostTree
           post={post}
