@@ -50,7 +50,7 @@ func (s *postService) List(cnd *querybuilder.QueryBuilder) (list []model.Post, p
 }
 
 // Count 统计数量
-func (s *postService) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ int → int64，与 DAO 层对齐
+func (s *postService) Count(cnd *querybuilder.QueryBuilder) int64 {
 	return dao.PostDao.Count(cnd)
 }
 

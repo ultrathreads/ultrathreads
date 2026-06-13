@@ -229,7 +229,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
           backState={backState}
         />
       )}
-      <ReadTracker postSlug={slug} />
+      <ReadTracker postSlug={slug} nodeSlug={post.node?.slug} />
     </>
   );
 }

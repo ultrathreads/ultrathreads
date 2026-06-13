@@ -369,13 +369,15 @@ func (c *PostController) ViewPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
-		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
+
+	nodeSlug := util.QueryStringDefault(ctx, "nodeSlug","")
 
     c.PublishEvent(ctx, event.PostViewed{
         UserID:     user.ID,
         PostSlug:   gDto.Slug,
+        NodeSlug:   nodeSlug,
         ViewedTime: util.NowTimestamp(),
     })
 

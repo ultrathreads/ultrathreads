@@ -5,13 +5,14 @@ import "fmt"
 
 // PostViewed 节点被浏览事件载荷
 type PostViewed struct {
-	UserID     int64 `json:"user_id"`
-	PostSlug   string `json:"post_string"`
-	ViewedTime int64 `json:"viewed_time"`
+	UserID     int64 `json:"userId"`
+	PostSlug   string `json:"postSlug"`
+	NodeSlug   string `json:"nodeSlug"`
+	ViewedTime int64  `json:"viewedTime"`
 }
 
 func (p PostViewed) String() string {
-    return fmt.Sprintf("PostViewed(PostSlug=%d, UserID=%d, ViewedTime=%d)", p.PostSlug, p.UserID, p.ViewedTime)
+    return fmt.Sprintf("PostViewed(PostSlug=%s, NodeSlug=%s, UserID=%d, ViewedTime=%d)", p.PostSlug, p.NodeSlug, p.UserID, p.ViewedTime)
 }
 
 // PostCreated 帖子创建成功事件载荷

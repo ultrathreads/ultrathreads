@@ -23,6 +23,7 @@ func TagTableSeeder(needCleanTable bool, totalTags int) {
 		{Name: "Next.js", Status: 0},
 		{Name: "TypeScript", Status: 0},
 		{Name: "TailwindCSS", Status: 0},
+		{Name: "UltraThreads", Status: 0},
 	}
 
 	// 如果要求生成的标签数大于预设，则自动补充通用标签

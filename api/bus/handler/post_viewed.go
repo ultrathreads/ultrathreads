@@ -39,15 +39,15 @@ func PostViewUserReadStateHandler(payload event.PostViewed) {
         return
     }
 
-    // ② 关键修复：通过 PostID 查询其所属的 NodeID
-    //    绝不能用 postID 直接当作 nodeID 写入
-    post := dao.PostDao.Get(postID)
-    if post.ID <= 0 {
-        log.Warn("get post id for post %d", post.ID)
+
+
+    nodeID := hashid.Slug2Id[model.Node](payload.NodeSlug)
+    if(nodeID <= 0) {
+        log.Warn("invalid node slug in PostViewed event: %s", payload.NodeSlug)
         return
     }
 
-    if err := dao.UserReadStateDao.Upsert(payload.UserID, post.NodeId, payload.ViewedTime); err != nil {
+    if err := dao.UserReadStateDao.Upsert(payload.UserID, nodeID, payload.ViewedTime); err != nil {
         log.Warn("upsert user read state failed: %v", err)
         return
     }

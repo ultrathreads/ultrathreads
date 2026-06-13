@@ -5,12 +5,14 @@ import { useEffect, useRef } from 'react';
 
 interface UseMarkAsReadOptions {
   postSlug: string;
+  nodeSlug?: string;
   minDuration?: number;   // 默认 3000ms
   scrollThreshold?: number; // 默认 0.3
 }
 
 export function useMarkAsRead({
   postSlug,
+  nodeSlug,
   minDuration = 3000,
   scrollThreshold = 0.3,
 }: UseMarkAsReadOptions) {
@@ -26,7 +28,7 @@ export function useMarkAsRead({
 
       // ✅ sendBeacon 保证页面跳转/关闭时请求不丢失
       // 与你后端 EventBus 异步 ViewPost 完美匹配
-      navigator.sendBeacon(`/api/post/${postSlug}/view-post`);
+      navigator.sendBeacon(`/api/post/${postSlug}/view-post?nodeSlug=${nodeSlug}`);
 
       if (timerRef.current) clearTimeout(timerRef.current);
     };
