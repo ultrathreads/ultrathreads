@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import EmptyTip from '@/components/ui/EmptyTip';
 import ThreadTree from '@/components/features/ThreadTree';
-import TopicPagination from '@/components/TopicPagination';
+import TopicPagination from '@/components/features/TopicPagination';
 import { getTagPageData } from '@/services/thread-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
 import { getTagDetail } from '@/services/tag-service';

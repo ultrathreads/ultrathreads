@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { PostEntity } from '@/types/domain';
-import PostFlatItem from '@/components/PostFlatItem';
+import PostCard from '@/components/features/PostCard';
 import ReplyEditor from '@/components/features/ReplyEditor';
 import { extractPostTitle } from '@/lib/utils/post';
 
@@ -72,7 +72,7 @@ export function PostFlat({ posts, totalReplyCount }: PostFlatProps) {
       {posts.length > 0 ? (
         posts.map((post) => (
           <div key={post.slug}>
-            <PostFlatItem
+            <PostCard
               post={post}
               detailHref={`/threads/${post.slug}`}
               replyCount={post.isRoot ? (post.commentCount ?? totalReplyCount) : 0}

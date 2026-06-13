@@ -4,7 +4,7 @@ import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import { getUserBySlug } from '@/services/user-service';
 import { getUserRootPostsPageData } from '@/services/my-post-service';
 import MyPostsList from '@/components/features/MyPostsList';
-import TopicPagination from '@/components/TopicPagination';
+import TopicPagination from '@/components/features/TopicPagination';
 import EmptyTip from '@/components/ui/EmptyTip';
 
 interface Props {

@@ -1,6 +1,6 @@
 // components/NodeHeader.tsx
 import type { NodeEntity } from '@/types/domain';
-import { NodeIcon } from '@/components/NodeIcon';
+import { NodeIcon } from '@/components/ui/NodeIcon';
 
 // 定义一个通用的头部展示接口
 export interface HeaderDisplayData {

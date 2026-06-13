@@ -7,7 +7,7 @@ import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes } from '@/services/node-service';
 import { getHotTags } from '@/services/tag-service';
 import type { NodeEntity, TagEntity } from '@/types/domain';
-import { NodeIcon } from '@/components/NodeIcon';
+import { NodeIcon } from '@/components/ui/NodeIcon';
 import { SidebarNav } from './SidebarNav';
 
 // ✅ 常量提取，避免魔法字符串散落在代码中

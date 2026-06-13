@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTransition, useOptimistic, useState } from 'react';
 import { toast } from 'sonner'; 
 import type { FavoriteItem } from '@/services/favorite-service';
-import { RelativeTime } from '@/components/RelativeTime';
+import { RelativeTime } from '@/components/ui/RelativeTime';
 
 interface Props {
   initialFavorites: FavoriteItem[];

@@ -6,7 +6,7 @@ import { getServerTranslation } from '@/lib/i18n/i18n-server';
 import MyPostsList from '@/components/features/MyPostsList';
 import MyFavoritesList from '@/components/features/MyFavoritesList';
 import { getFavoritesPageData, deleteFavorite } from '@/services/favorite-service';
-import TopicPagination from '@/components/TopicPagination';
+import TopicPagination from '@/components/features/TopicPagination';
 import EmptyTip from '@/components/ui/EmptyTip';
 import MyPostsTabs from '@/components/ui/MyPostsTabs';
 import { 

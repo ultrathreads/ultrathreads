@@ -5,18 +5,11 @@ import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type { NodeEntity } from '@/types/domain';
-import type { ThreadViewItem } from '@/types/view';
+import type { ThreadViewItem, BackState } from '@/types/view'; 
 import { markNodeAsRead } from '@/services/node-service';
 
-import ThreadItem from './ThreadItem';
-import NodeHeader, { type HeaderDisplayData } from './NodeHeader';
-
-/** 从列表页透传的回溯状态 */
-export interface BackState {
-  nodeSlug?: string;
-  tagSlug?: string;
-  page?: string;
-}
+import ThreadItem from '@/components/features/ThreadItem';
+import NodeHeader, { type HeaderDisplayData } from '@/components/features/NodeHeader';
 
 interface Props {
   threads: ThreadViewItem[];

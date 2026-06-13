@@ -72,7 +72,7 @@ export function useMarkAsRead({
       // 写入持久化缓存
       markReported(cacheKey);
 
-      navigator.sendBeacon(`/api/post/${postSlug}/view-post?nodeSlug=${nodeSlug || ''}`);
+      navigator.sendBeacon(`/api/posts/${postSlug}/view-post?nodeSlug=${nodeSlug || ''}`);
 
       if (timerRef.current) clearTimeout(timerRef.current);
     };

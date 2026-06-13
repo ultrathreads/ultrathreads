@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { ThreadViewItem } from '@/types/view';
-import type { BackState } from './ThreadTree';
-import { RelativeTime } from '@/components/RelativeTime';
+import type { ThreadViewItem, BackState } from '@/types/view';
+import { RelativeTime } from '@/components/ui/RelativeTime';
 import AuthorLink from '@/components/ui/AuthorLink';
 
 interface Props {

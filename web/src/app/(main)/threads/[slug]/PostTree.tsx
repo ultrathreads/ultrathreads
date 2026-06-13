@@ -3,10 +3,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { PostEntity } from '@/types/domain';
-import type { ThreadViewItem } from '@/types/view';
-import type { BackState } from '@/components/features/ThreadTree';
+import type { ThreadViewItem, BackState } from '@/types/view';
 import ReplyEditor from '@/components/features/ReplyEditor';
-import PostFlatItem from '@/components/PostFlatItem';
+import PostCard from '@/components/features/PostCard';
 import ThreadItem from '@/components/features/ThreadItem';
 import { extractPostTitle } from '@/lib/utils/post';
 
@@ -71,7 +70,7 @@ export function PostTree({ post, viewPosts, totalReplyCount, backState }: PostTr
 
   return (
     <div ref={postListRef} className="tree-post-container">
-      <PostFlatItem
+      <PostCard
         post={post}
         detailHref={`/threads/${post.slug}`}
         replyCount={totalReplyCount}

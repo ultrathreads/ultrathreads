@@ -128,12 +128,13 @@ func setupApp(e *gin.Engine) {
 			postGroup.POST("", postController.StoreRootPost)
 			postGroup.POST("/:slug/replies", postController.StoreReply)
 			postGroup.POST("/:slug", postController.UpdateRootPost)
-		}
-		jwtApi.POST("/replies/:slug", postController.UpdateReply)
+			postGroup.POST("/:slug/like", postController.Like)
+			postGroup.POST("/:slug/favorite", postController.Favorite)
+			postGroup.Any("/:slug/view-post", postController.ViewPost)
 
-		jwtApi.Any("/post/:slug/view-post", postController.ViewPost)
-		jwtApi.POST("/post/:slug/like", postController.Like)
-		jwtApi.POST("/post/:slug/favorite", postController.Favorite)
+		}
+
+		jwtApi.POST("/replies/:slug", postController.UpdateReply)
 
 		// Favorites
 		jwtApi.GET("/favorites/favorited", favoriteController.GetFavorited)

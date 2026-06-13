@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import type { MyPostListItem } from '@/services/my-post-service';
-import { RelativeTime } from '@/components/RelativeTime';
+import { RelativeTime } from '@/components/ui/RelativeTime';
 import type { UserEntity } from '@/types/domains';
 
 interface Props {

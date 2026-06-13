@@ -1,17 +1,19 @@
+// src/components/features/PostCard.tsx
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import type { PostEntity } from '@/types/domain';
-import { RelativeTime } from '@/components/RelativeTime';
+import { RelativeTime } from '@/components/ui/RelativeTime';
 import Avatar from '@/components/ui/Avatar';
 import { likePost, favoritePost } from '@/services/post-service';
 import { ApiBusinessError } from '@/lib/api/client';
 import AuthorLink from '@/components/ui/AuthorLink';
 import { useAuth } from '@/hooks/use-auth';
 
-interface PostFlatItemProps {
+// ✨ 接口名同步更新
+interface PostCardProps {
   post: PostEntity;
   detailHref: string;
   replyCount?: number;
@@ -22,16 +24,18 @@ interface PostFlatItemProps {
   isRoot?: boolean;
 }
 
-export default function PostFlatItem({
+// ✨ 组件名 + 默认导出同步更新
+export default function PostCard({
   post,
   detailHref,
   replyCount = 0,
   onReplyClick,
   onEditClick,
-  isReplyEditorOpen  = false,
+  isReplyEditorOpen = false,
   isEditEditorOpen = false,
   isRoot = false,
-}: PostFlatItemProps) {
+}: PostCardProps) {
+  // ... 其余逻辑完全不变，保持原样即可
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [favCount, setFavCount] = useState(post.favoriteCount ?? 0);
   const [actionLoading, setActionLoading] = useState<'like' | 'favorite' | null>(null);
@@ -92,7 +96,6 @@ export default function PostFlatItem({
       className="post-detail-card"
       style={{ marginBottom: '12px', scrollMarginTop: '100px' }}
     >
-      {/* ✅ 仅根帖显示标题 + 作者本人可见的编辑按钮 */}
       {isRoot && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
           <h2 className="post-detail-title" style={{ margin: 0 }}>{post.title}</h2>
@@ -176,7 +179,6 @@ export default function PostFlatItem({
           ⭐ 收藏 ({favCount})
         </button>
 
-        {/* ✨ 非根帖：作者本人可见的编辑按钮，点击唤起 ReplyEditor */}
         {!isRoot && canEdit && onEditClick && (
           <button
             className={`detail-action-btn ${isEditEditorOpen ? 'detail-action-btn--active' : ''}`}
@@ -191,13 +193,13 @@ export default function PostFlatItem({
 
         {onReplyClick && (
           <button
-            className={`detail-action-btn ${isReplyEditorOpen  ? 'detail-action-btn--active' : ''}`}
+            className={`detail-action-btn ${isReplyEditorOpen ? 'detail-action-btn--active' : ''}`}
             onClick={onReplyClick}
             type="button"
-            aria-expanded={isReplyEditorOpen }
+            aria-expanded={isReplyEditorOpen}
             aria-controls="reply-editor"
           >
-            {isReplyEditorOpen  ? '✖ 不想说了' : '💬 我说两句'}
+            {isReplyEditorOpen ? '✖ 不想说了' : '💬 我说两句'}
           </button>
         )}
       </div>

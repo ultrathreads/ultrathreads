@@ -117,7 +117,7 @@ export async function updateReply(
  * POST /post/:slug/like
  */
 export async function likePost(postSlug: string | number): Promise<void> {
-  await apiFetch<null>(`/post/${postSlug}/like`, {
+  await apiFetch<null>(`/posts/${postSlug}/like`, {
     method: 'POST',
     auth: true,
     cacheStrategy: undefined,
@@ -129,7 +129,7 @@ export async function likePost(postSlug: string | number): Promise<void> {
  * POST /post/:slug/favorite
  */
 export async function favoritePost(postSlug: string | number): Promise<void> {
-  await apiFetch<null>(`/post/${postSlug}/favorite`, {
+  await apiFetch<null>(`/posts/${postSlug}/favorite`, {
     method: 'POST',
     auth: true,
     cacheStrategy: undefined,

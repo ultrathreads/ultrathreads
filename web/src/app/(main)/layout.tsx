@@ -3,7 +3,7 @@ import { Toaster } from 'sonner';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/Footer';
-import BackToTop from '@/components/BackToTop';
+import BackToTop from '@/components/ui/BackToTop';
 import PreviewPopover from '@/components/ui/PreviewPopover';
 import { fetchSiteConfig } from '@/services/site-service';
 

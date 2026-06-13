@@ -15,3 +15,10 @@ export interface ThreadViewItem {
   nodeName?: string;
   replies?: ThreadViewItem[];
 }
+
+/** 从列表页透传的回溯状态 */
+export interface BackState {
+  nodeSlug?: string;
+  tagSlug?: string;
+  page?: string;
+}

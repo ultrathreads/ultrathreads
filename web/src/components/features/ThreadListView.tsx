@@ -1,6 +1,6 @@
 // components/features/ThreadListView.tsx
 import ThreadTree from '@/components/features/ThreadTree';
-import TopicPagination from '@/components/TopicPagination';
+import TopicPagination from '@/components/features/TopicPagination';
 import EmptyTip from '@/components/ui/EmptyTip';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
 

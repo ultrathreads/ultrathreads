@@ -4,10 +4,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getPostWithThread, getPostFlat, getPostDetail } from '@/services/post-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
-import { ViewModeSwitcher } from '@/components/ViewModeSwitcher';
+import { ViewModeSwitcher } from '@/components/ui/ViewModeSwitcher';
 import { PostTree } from './PostTree';
 import { PostFlat } from './PostFlat';
-import type { BackState } from '@/components/features/ThreadTree';
+import type { BackState } from '@/types/view';
 import { ReadTracker } from '@/components/features/ReadTracker';
 
 export const dynamic = 'force-dynamic';
