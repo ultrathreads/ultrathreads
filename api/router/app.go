@@ -141,7 +141,9 @@ func setupApp(e *gin.Engine) {
 
 		// Favorites
 		jwtApi.GET("/favorites/favorited", favoriteController.GetFavorited)
-		jwtApi.DELETE("/favorite/delete", favoriteController.Delete)
+
+		jwtApi.GET("/users/me/favorites", userController.GetFavorites)
+		jwtApi.DELETE("/users/me/favorites", favoriteController.Delete)
 
 		// Tags
 		jwtApi.POST("/tags/auto-complete", tagController.AutoComplete)
@@ -158,7 +160,6 @@ func setupApp(e *gin.Engine) {
 		jwtApi.GET("/user/scorelogs", userController.GetScorelogs)
 		jwtApi.GET("/user/notifications/recent", userController.GetNotificationsRecent)
 		jwtApi.GET("/user/notifications", userController.GetNotifications)
-		jwtApi.GET("/user/favorites", userController.GetFavorites)
 		jwtApi.PUT("/user/update/avatar", userController.UpdateAvatar)
 		jwtApi.PUT("/user/set/username", userController.SetUsername)
 		jwtApi.PUT("/user/set/email", userController.SetEmail)

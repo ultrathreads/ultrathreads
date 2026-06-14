@@ -16,15 +16,16 @@ export interface FavoriteItem {
   createTime: number;
 }
 
-interface FavoritesApiResponse {
-  data: {
-    page: {
-      page: number;
-      pageSize: number;
-      total: number;
-    };
-    results: FavoriteItem[];
-  };
+/** 对应后端 DataEnvelope<T> */
+interface FavoritesData {
+  results: FavoriteItem[];
+}
+
+/** 对应后端完整 ListResponse 信封 */
+interface FavoritesEnvelope {
+  data: FavoritesData;
+  meta: PaginationMeta;
+  context?: Record<string, unknown>;
 }
 
 // ==================== 视图层类型 ====================
@@ -50,30 +51,27 @@ export async function getFavoritesPageData(
 
   const params = new URLSearchParams({
     page: String(safePage),
-    pageSize: String(pageSize), // 根据后端代码，参数名为 pageSize
+    pageSize: String(pageSize),
   });
 
   try {
-    const data = await apiFetch<FavoritesApiResponse>('/user/favorites', {
+    const envelope = await apiFetch<FavoritesEnvelope>('/users/me/favorites', {
       auth: true,
-      params, // apiFetch 会自动处理 URLSearchParams
+      skipDataUnwrap: true,
+      params,
       cacheStrategy: { next: { revalidate: 0 } },
     });
 
     return {
-      favorites: data.results ?? [],
-      paging: {
-        page: data.page?.page ?? safePage,
-        pageSize: data.page?.pageSize ?? pageSize,
-        totalItems: data.page?.total ?? 0,
-      },
+      favorites: envelope.data.results ?? [],
+      paging: envelope.meta,
       error: null,
     };
   } catch (err) {
     console.error('[FavoriteService] Fetch failed:', err);
     return {
       favorites: [],
-      paging: { page: safePage, pageSize: pageSize, totalItems: 0 },
+      paging: { currentPage: safePage, pageSize: pageSize, totalItems: 0 },
       error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
@@ -84,14 +82,13 @@ export async function getFavoritesPageData(
  * 注意：后端接收的是 entityType 和 entityId，而不是 favoriteId
  */
 export async function deleteFavorite(entityType: string, entityId: number): Promise<void> {
-  // 使用 DELETE 请求，参数通过 URLSearchParams 传递
   const params = new URLSearchParams({
     entityType,
     entityId: String(entityId),
   });
 
-  await apiFetch(`/favorite/delete?${params.toString()}`, {
+  await apiFetch(`/users/me/favorites?${params.toString()}`, {
     method: 'DELETE',
-    auth: true, // 必须携带 Token，因为后端需要获取当前用户
+    auth: true,
   });
 }
