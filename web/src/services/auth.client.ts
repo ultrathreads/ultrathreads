@@ -2,7 +2,7 @@
 
 'use client';
 
-import { ApiBusinessError } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client';
 import type { ApiResponse } from '@/types/api';
 import type { LoginParams, LoginResponse } from '@/types/auth';
 
@@ -20,7 +20,7 @@ export async function loginClient(params: LoginParams): Promise<ApiResponse<Logi
 
   if (!res.ok) {
     const data = await res.json().catch(() => null);
-    throw new ApiBusinessError(
+    throw new ApiError(
       data?.error || data?.message || `登录失败 (${res.status})`,
       res.status
     );

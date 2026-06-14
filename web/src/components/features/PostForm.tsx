@@ -23,6 +23,12 @@ interface PostFormProps {
   initialData?: InitialData | null;
 }
 
+function buildPostDetailUrl(slug: string): string {
+  const url = new URL(`/threads/${slug}`, window.location.origin);
+  url.searchParams.set('refresh', '1');
+  return url.pathname + url.search;
+}
+
 export function PostForm({ nodes, initialData }: PostFormProps) {
   const router = useRouter();
   const { recommendTags } = useSiteConfig();
@@ -75,10 +81,9 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
           success: (result) => {
             submittingRef.current = false;
             setTimeout(() => {
-              const targetSlug = isEditMode ? initialData!.slug : result?.slug;
-              router.push(targetSlug ? `/threads/${targetSlug}?refresh=1` : '/');
-              router.refresh();
+              router.push(targetSlug ? buildPostDetailUrl(targetSlug) : '/');
             }, 600);
+
             return isEditMode ? '主贴已更新 ✅' : '主贴发布成功 🎉';
           },
           error: (err) => {

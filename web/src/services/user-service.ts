@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { apiFetch, ApiBusinessError } from '@/lib/api/client';
+import { apiFetch, ApiError } from '@/lib/api/client';
 import type { UserEntity } from '@/types/domain';
 
 /**
@@ -10,7 +10,7 @@ export async function getUserById(userId: string | number): Promise<UserEntity> 
   try {
     return await apiFetch<UserEntity>(`/user/${userId}`);
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[UserService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     notFound();
@@ -25,7 +25,7 @@ export async function getUserBySlug(slug: string): Promise<UserEntity> {
   try {
     return await apiFetch<UserEntity>(`/profile/${slug}`);
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[UserService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     notFound();
@@ -42,7 +42,7 @@ export async function getCurrentUser(): Promise<UserEntity> {
       auth: true, // ✅ 需要携带 Token
     });
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[UserService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     notFound();
@@ -62,7 +62,7 @@ export async function updateCurrentUser(payload: Partial<UserEntity>): Promise<U
       cacheStrategy: undefined, // ✅ 写操作禁用缓存
     });
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[UserService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     throw error; // 更新失败抛出异常，由表单组件捕获并提示

@@ -15,11 +15,13 @@ import (
 	"ultrathreads/util/log"
 )
 
-type R struct {
-	Code    int         `json:"code"`
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
+type SR struct {
 	Data    interface{} `json:"data,omitempty"`
+}
+
+type FR struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
 }
 
 // BaseController controller
@@ -113,7 +115,7 @@ func (c *BaseController) GetLastReadStates(ctx *gin.Context, nodeSlugs ...string
 
 // Success output json data
 func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
-	resp := R{Code: 0, Success: true, Message: "ok", Data: data}
+	resp := SR{Data: data}
 
 	// 仅 debug 模式使用格式化JSON
 	if gin.Mode() == gin.DebugMode {
@@ -125,12 +127,12 @@ func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 
 // Fail output error
 func (c *BaseController) Fail(ctx *gin.Context, error *util.CodeError) {
-	resp := R{Code: error.Code, Success: false, Message: error.Message}
+	resp := FR{Code: error.Code, Message: error.Message}
 
 	if gin.Mode() == gin.DebugMode {
-		ctx.IndentedJSON(http.StatusOK, resp)
+		ctx.IndentedJSON(error.Code, resp)
 	} else {
-		ctx.JSON(http.StatusOK, resp)
+		ctx.JSON(error.Code, resp)
 	}
 	ctx.Abort()
 }

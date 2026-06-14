@@ -5,12 +5,15 @@ import (
 )
 
 var (
-	ErrorNotLogin         = NewError(1, "请先登录")
-	ErrorPostNotFound    = NewError(-1, "话题不存在")
-	ErrorArticleNotFound  = NewError(-2, "文章不存在")
-	ErrorTagNotFound      = NewError(-3, "标签不存在")
-	ErrorCaptchaWrong     = NewError(1000, "验证码错误")
-	ErrorPermissionDenied = NewError(-100, "Permission denied.")
+	ErrorNotLogin = NewError(401, "请先登录")
+	ErrorPermissionDenied = NewError(403, "Permission denied.")
+
+	ErrorResourceNotFound = NewError(404, "请求的资源不存在")
+	ErrorPostNotFound     = NewError(404, "话题不存在")
+	ErrorArticleNotFound  = NewError(404, "文章不存在")
+	ErrorTagNotFound      = NewError(404, "标签不存在")
+
+	ErrorCaptchaWrong     = NewError(422, "验证码错误")
 )
 
 func NewError(code int, text string) *CodeError {

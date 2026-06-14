@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/services/auth.server';
 import { updateUserProfile } from '@/services/user';
 import { uploadAvatar } from '@/services/upload';
 import { useAuth } from '@/hooks/use-auth';
-import { ApiBusinessError } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client';
 import type { CurrentUser } from '@/types/auth';
 import Avatar from '@/components/ui/Avatar';
 
@@ -48,7 +48,7 @@ export default function ProfilePage() {
         setPreviewUrl(user.avatar);
       } catch (err) {
         if (!cancelled) {
-          toast.error(err instanceof ApiBusinessError ? err.message : '加载用户资料失败');
+          toast.error(err instanceof ApiError ? err.message : '加载用户资料失败');
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -91,7 +91,7 @@ export default function ProfilePage() {
         },
         error: (err) => {
           setPreviewUrl(form.avatar);
-          return err instanceof ApiBusinessError ? err.message : '头像上传异常';
+          return err instanceof ApiError ? err.message : '头像上传异常';
         },
       });
     } finally {
@@ -124,7 +124,7 @@ export default function ProfilePage() {
           loading: '保存中...',
           success: '个人资料已更新',
           error: (err) =>
-            err instanceof ApiBusinessError ? err.message : '保存失败，请稍后重试',
+            err instanceof ApiError ? err.message : '保存失败，请稍后重试',
         },
       );
     } finally {

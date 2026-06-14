@@ -8,7 +8,7 @@ import type { PostEntity } from '@/types/domain';
 import { RelativeTime } from '@/components/ui/RelativeTime';
 import Avatar from '@/components/ui/Avatar';
 import { likePost, favoritePost } from '@/services/post-service';
-import { ApiBusinessError } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client';
 import AuthorLink from '@/components/ui/AuthorLink';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -69,7 +69,7 @@ export default function PostCard({
         });
       } catch (err) {
         countSetter(prevCount);
-        if (err instanceof ApiBusinessError) {
+        if (err instanceof ApiError) {
           if (err.code === 401 || err.message === 'AUTH_REQUIRED') {
             toast.error(`请先登录后再${actionName}`);
           } else {

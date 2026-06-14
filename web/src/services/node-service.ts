@@ -1,5 +1,5 @@
 // src/lib/services/node-service.ts
-import { apiFetch, ApiBusinessError } from '@/lib/api/client';
+import { apiFetch, ApiError } from '@/lib/api/client';
 import type { NodeEntity, NodePageData, NodeDetailData } from '@/types/domain';
 
 // ==================== 服务函数 ====================
@@ -66,7 +66,7 @@ export async function markNodeAsRead(nodeSlug: string): Promise<void> {
       auth: true,
     });
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error('[NodeService] markNodeAsRead Biz Error:', {
         message: error.message,
         code: error.code,

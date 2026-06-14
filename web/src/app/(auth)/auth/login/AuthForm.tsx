@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, useCallback } from 'react';
 import { toast } from 'sonner';
-import { ApiBusinessError } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client';
 
 export interface AuthFieldConfig {
   name: string;
@@ -93,7 +93,7 @@ export default function AuthForm({
     try {
       await onSubmit(values);
     } catch (err) {
-      if (err instanceof ApiBusinessError) {
+      if (err instanceof ApiError) {
         setServerError(err.message);
       } else {
         const msg = err instanceof Error ? err.message : '未知错误';

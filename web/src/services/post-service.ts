@@ -1,6 +1,6 @@
 // src/services/post-service.ts
 import { notFound } from 'next/navigation';
-import { apiFetch, ApiBusinessError } from '@/lib/api/client';
+import { apiFetch, ApiError } from '@/lib/api/client';
 import type { PostEntity, PostWithThread } from '@/types/domain';
 import type { CreateRootPostPayload, UpdateRootPostPayload, CreateReplyPayload, CreatePostResponse } from '@/types/post'
 
@@ -17,7 +17,7 @@ export async function getPostDetail(
       noCache: options?.noCache
     });
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     notFound();
@@ -36,7 +36,7 @@ export async function getPostWithThread(
       noCache: options?.noCache
     });
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     notFound();
@@ -50,7 +50,7 @@ export async function getPostFlat(postSlug: string): Promise<PostWithFlat> {
   try {
     return await apiFetch<PostWithFlat>(`/posts/${postSlug}/flat`);
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
+    if (error instanceof ApiError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
     }
     notFound();

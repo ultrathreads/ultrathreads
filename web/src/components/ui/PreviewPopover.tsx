@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
-import { apiFetch, ApiBusinessError } from '@/lib/api/client';
-import type { PostEntity } from '@/types/domain'; // 👈 直接复用已有领域类型
+import { apiFetch, ApiError } from '@/lib/api/client';
+import type { PostEntity } from '@/types/domain';
 import DOMPurify from 'dompurify';
 
 export default function PreviewPopover() {
@@ -124,10 +124,8 @@ export default function PreviewPopover() {
       } catch (err: unknown) {
         if (abortController.signal.aborted) return;
         loadingEl.style.display = 'none';
-        if (err instanceof ApiBusinessError) {
+        if (err instanceof ApiError) {
           errorEl.textContent = err.message;
-        } else if (err instanceof DOMException && err.name === 'AbortError') {
-          return;
         } else {
           errorEl.textContent = err instanceof Error ? err.message : '加载失败';
         }

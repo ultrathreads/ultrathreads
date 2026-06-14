@@ -1,6 +1,6 @@
-// src/lib/services/site.service.ts
+// src/lib/services/site-service.ts
 import { unstable_cache } from 'next/cache';
-import { apiFetch, ApiBusinessError } from '@/lib/api/client';
+import { apiFetch, ApiError } from '@/lib/api/client';
 import type { SiteConfig, SiteConfigRaw } from '@/lib/types/site';
 
 /** 
@@ -18,7 +18,7 @@ export const FALLBACK_SITE_CONFIG: SiteConfig = {
     { label: '关于', href: '/about' },
   ],
   defaultNodeId: 1,
-  recommendTags: [], // ✅ 新增兜底空数组，防止下游 .map() 崩溃
+  recommendTags: [],
 };
 
 /** 将后端原始数据转换为前端标准结构 */
@@ -32,21 +32,29 @@ function mapToSiteConfig(raw: SiteConfigRaw): SiteConfig {
     siteKeywords: raw.setting.siteKeywords,
     navLinks: raw.setting.siteNavs ?? [],
     defaultNodeId: raw.setting.defaultNodeId,
-    recommendTags: raw.setting.recommendTags ?? [], // ✅ 安全取值 + 空数组降级
+    recommendTags: raw.setting.recommendTags ?? [],
   };
 }
 
-// 缓存层保持不变
 const getCachedSiteConfig = unstable_cache(
   async (): Promise<SiteConfig> => {
     try {
       const raw = await apiFetch<SiteConfigRaw>('/site/config');
       return mapToSiteConfig(raw);
     } catch (error) {
-      if (error instanceof ApiBusinessError) {
-        console.error(`[SiteService] Business error (code:${error.code}): ${error.message}`);
+      if (error instanceof ApiError) {
+        if (error.code !== undefined) {
+          console.error(
+            `[SiteService] Business error [HTTP ${error.status}] (code:${error.code}): ${error.message}`
+          );
+        } else {
+          console.error(
+            `[SiteService] Infrastructure error [HTTP ${error.status}]: ${error.message}`
+          );
+        }
       } else {
-        console.error('[SiteService] Fetch failed, using fallback:', error);
+        // 理论上不会进入此分支，保留作为类型安全兜底
+        console.error('[SiteService] Unexpected error, using fallback:', error);
       }
       return FALLBACK_SITE_CONFIG;
     }

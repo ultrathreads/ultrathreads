@@ -3,7 +3,7 @@
 
 import { createContext, useState, useCallback, useRef } from 'react';
 import { getCurrentUser, type CurrentUser } from '@/services/auth.server';
-import { ApiBusinessError } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client';
 import { toast } from 'sonner'; 
 
 interface AuthContextType {
@@ -36,7 +36,7 @@ export function AuthProvider({ initialUser, children }: AuthProviderProps) {
       const userInfo = await getCurrentUser();
       setUser(userInfo ?? null);
     } catch (err) {
-      if (err instanceof ApiBusinessError && err.message === 'UNAUTHORIZED') {
+      if (err instanceof ApiError && err.message === 'UNAUTHORIZED') {
         console.debug('[AuthProvider] Session expired, clearing user.');
         setUser(null);
         return;

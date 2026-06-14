@@ -1,7 +1,7 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { login } from '@/services/auth.server';
-import { ApiBusinessError } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client';
 import type { LoginParams, LoginResponse } from '@/types/auth';
 import type { ApiResponse } from '@/types/api';
 
@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
     return response;
 
   } catch (error) {
-    if (error instanceof ApiBusinessError) {
-      console.error('[BFF Login] ❌ ApiBusinessError caught:', {
+    if (error instanceof ApiError) {
+      console.error('[BFF Login] ❌ ApiError caught:', {
         message: error.message,
         code: error.code,
       });

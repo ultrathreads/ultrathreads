@@ -21,6 +21,12 @@ interface ReplyEditorProps {
   onSuccess?: () => void;
 }
 
+function buildPostDetailUrl(slug: string): string {
+  const url = new URL(`/threads/${slug}`, window.location.origin);
+  url.searchParams.set('refresh', '1');
+  return url.pathname + url.search;
+}
+
 export default function ReplyEditor({
   parentSlug,
   postSlug,
@@ -34,15 +40,14 @@ export default function ReplyEditor({
   onClose,
   onSuccess,
 }: ReplyEditorProps) {
-  // 根据模式决定初始内容
   const [content, setContent] = useState(mode === 'edit' ? (initialContent ?? '') : '');
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const editorWrapperRef = useRef<HTMLDivElement>(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => setMounted(true), []);
 
-  // 当 mode/initialContent 变化时同步内容（防御性处理）
   useEffect(() => {
     if (mode === 'edit') {
       setContent(initialContent ?? '');
@@ -61,7 +66,6 @@ export default function ReplyEditor({
         ? `回复：${replyToTitle}...`
         : '支持 Markdown 语法...';
 
-  // ... autoFocus 和 clickOutside/Escape 的 useEffect 保持不变 ...
   useEffect(() => {
     if (!autoFocus) return;
     requestAnimationFrame(() => {
@@ -87,45 +91,52 @@ export default function ReplyEditor({
     };
   }, [onClose]);
 
-  // 统一提交逻辑：根据 mode 分发
   const handleSubmit = async () => {
     const trimmed = content.trim();
     if (!trimmed) {
       toast.warning(isEdit ? '内容不能为空' : '回复内容不能为空');
       return;
     }
+    if (submittingRef.current) return;
+    submittingRef.current = true;
 
-    const actionFn = isEdit
-      ? () => updateReply(postSlug!, { content: trimmed })   // ✨ 用 postSlug
-      : () => createReply(parentSlug, { content: trimmed }); // ✨ 用 parentSlug
+    try {
+      // ✨ 参照 PostForm：直接将 promise 传入 toast.promise，让 success 自动推导 result 类型
+      await toast.promise(
+        isEdit
+          ? updateReply(postSlug!, { content: trimmed })
+          : createReply(parentSlug, { content: trimmed }),
+        {
+          loading: isEdit ? '保存中...' : '发布中...',
+          success: (result) => {
+            submittingRef.current = false;
+            if (!isEdit) setContent('');
+            onClose?.();
+            onSuccess?.();
 
-    const loadingText = isEdit ? '保存中...' : '发布中...';
-    const successText = isEdit ? '修改成功 ✅' : '回复发布成功 🎉';
+            // 编辑模式：跳转到被编辑内容所属帖子
+            // 回复模式：跳转到新创建回复的 slug，兜底使用 parentSlug
+            const targetSlug = isEdit
+              ? (postSlug ?? parentSlug)
+              : ((result as { slug?: string })?.slug ?? parentSlug);
 
-    toast.promise(actionFn(), {
-      loading: loadingText,
-      success: () => {
-        if (!isEdit) setContent('');
-        onClose?.();
-        onSuccess?.();
+            setTimeout(() => {
+              router.push(buildPostDetailUrl(targetSlug));
+            }, 600);
 
-        // 编辑成功后：URL 追加 refresh=1 并强制刷新
-        if (isEdit) {
-          const url = new URL(window.location.href);
-          url.searchParams.set('refresh', '1');
-          router.replace(url.pathname + url.search);
-        } else {
-          // 回复模式保持原有逻辑
-          router.refresh();
+            return isEdit ? '修改成功 ✅' : '回复发布成功 🎉';
+          },
+          error: (err) => {
+            submittingRef.current = false;
+            return err instanceof Error ? err.message : '操作失败，请重试';
+          },
         }
-
-        return successText;
-      },
-      error: (err) => (err instanceof Error ? err.message : '操作失败，请重试'),
-    });
+      );
+    } catch {
+      submittingRef.current = false;
+    }
   };
 
-  // ✨ UI 文案根据模式切换
   const headerLabel = isEdit
     ? <span className="fixed-reply-editor__label">✏️ 编辑帖子</span>
     : (
@@ -135,6 +146,7 @@ export default function ReplyEditor({
     );
 
   const submitButtonText = isEdit ? '保存修改' : '发布回复';
+  const isSubmitDisabled = !content.trim() || submittingRef.current;
 
   const editorContent = (
     <div
@@ -176,12 +188,12 @@ export default function ReplyEditor({
             )}
             <button
               onClick={handleSubmit}
-              disabled={!content.trim()}
+              disabled={isSubmitDisabled}
               style={{
                 padding: '8px 24px',
-                backgroundColor: !content.trim() ? '#a0aec0' : isEdit ? '#38a169' : '#3182ce',
+                backgroundColor: isSubmitDisabled ? '#a0aec0' : isEdit ? '#38a169' : '#3182ce',
                 color: '#fff', border: 'none', borderRadius: 6,
-                cursor: !content.trim() ? 'not-allowed' : 'pointer', fontSize: 14,
+                cursor: isSubmitDisabled ? 'not-allowed' : 'pointer', fontSize: 14,
               }}
             >
               {submitButtonText}
