@@ -12,6 +12,7 @@ import (
 	"ultrathreads/util/sitemap"
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
+	"ultrathreads/util/hashid"
 )
 
 const (
@@ -97,8 +98,9 @@ func (s *sitemapService) Generate(dateFrom, dateTo int64) {
 	PostService.ScanDesc(dateFrom, dateTo, func(posts []model.Post) {
 		for _, post := range posts {
 			if post.Status == model.StatusOk {
+				postSlug := hashid.Id2Slug[model.Post](post.ID)
 				sm.AddURL(sitemap.URL{
-					Loc:        urls.PostUrl(post.ID),
+					Loc:        urls.PostUrl(postSlug),
 					Lastmod:    util.TimeFromTimestamp(post.LastCommentTime),
 					Changefreq: sitemap.ChangefreqDaily,
 					Priority:   "0.8",

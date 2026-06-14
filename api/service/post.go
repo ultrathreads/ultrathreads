@@ -458,7 +458,8 @@ func (s *postService) GenerateRss() {
 
 	var items []*feeds.Item
 	for _, post := range posts {
-		postUrl := urls.PostUrl(post.ID)
+		postSlug := hashid.Id2Slug[model.Post](post.ID)
+		postUrl := urls.PostUrl(postSlug)
 		user := cache.UserCache.Get(post.UserId)
 		if user == nil {
 			continue

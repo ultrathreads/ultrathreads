@@ -49,13 +49,8 @@ func TagArticlesUrl(tagId int64) string {
 }
 
 // 话题详情
-func PostUrl(postId int64) string {
-	return AbsUrl("/post/" + strconv.FormatInt(postId, 10))
-}
-
-// 项目详情
-func ProjectUrl(projectId int64) string {
-	return AbsUrl("/project/" + strconv.FormatInt(projectId, 10))
+func PostUrl(postSlug string) string {
+	return AbsUrl("/threads/" + postSlug)
 }
 
 func UrlJoin(parts ...string) string {

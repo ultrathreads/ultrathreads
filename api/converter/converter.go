@@ -39,12 +39,14 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 		if entityType.String() == model.EntityTypeArticle {
 			detailUrl = urls.ArticleUrl(entityId.Int())
 		} else if entityType.String() == model.EntityTypePost {
-			detailUrl = urls.PostUrl(entityId.Int())
+			postSlug := hashid.Id2Slug[model.Post](entityId.Int())
+			detailUrl = urls.PostUrl(postSlug)
 		}
 		icon = "comment"
 	} else if notification.Type == model.MsgTypePostLike {
 		entityId := gjson.Get(notification.ExtraData, "entityId")
-		detailUrl = urls.PostUrl(entityId.Int())
+		postSlug := hashid.Id2Slug[model.Post](entityId.Int())
+		detailUrl = urls.PostUrl(postSlug)
 		icon = "heart"
 	} else if notification.Type == model.MsgTypeUserWatch {
 		entityId := gjson.Get(notification.ExtraData, "entityId")
@@ -103,7 +105,8 @@ func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 		if post == nil || post.Status != model.StatusOk {
 			rsp.Deleted = true
 		} else {
-			rsp.Url = urls.PostUrl(post.ID)
+			posSlug := hashid.Id2Slug[model.Post](post.ID)
+			rsp.Url = urls.PostUrl(posSlug)
 			rsp.User = ToUserById(post.UserId)
 			rsp.Title = post.Title
 			rsp.Content = util.GetMarkdownSummary(post.Content)
