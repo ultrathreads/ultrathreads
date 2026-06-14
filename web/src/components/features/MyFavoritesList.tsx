@@ -38,7 +38,7 @@ export default function MyFavoritesList({ initialFavorites, onDeleteFavoriteActi
         await onDeleteFavoriteAction(formData);
         
         // 执行到这里，说明服务端成功处理了请求
-        toast.success('已取消收藏');
+        // toast.success('已取消收藏');
       } catch (error) {
         // 捕获服务端抛出的错误
         toast.error(error instanceof Error ? error.message : '操作失败，请重试');

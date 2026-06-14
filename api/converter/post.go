@@ -3,7 +3,7 @@ package converter
 import (
 	"html/template"
 
-	"ultrathreads/cache"
+	//"ultrathreads/cache"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -50,10 +50,12 @@ func ToPost(post *model.Post) *model.PostResponse {
 		}
 	}
 
+	/*
 	if post.NodeId > 0 {
 		node := service.NodeService.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
+	*/
 
 	rsp.RawContent = post.Content // 供编辑使用
 	mr := markdown.NewMd(markdown.MdWithTOC()).Run(post.Content)
@@ -73,12 +75,15 @@ func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
 
 	// 列表页特有：LastCommentUser
 	rsp.LastCommentUser = ToUserDefaultIfNull(post.LastCommentUserId)
+	rsp.NodeSlug = hashid.Id2Slug[model.Node](post.NodeId)
 
 	// 列表页特有：Node 走 Cache（高性能）
+	/*
 	if post.NodeId > 0 {
 		node := cache.NodeCache.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
+	*/
 
 	return rsp
 }

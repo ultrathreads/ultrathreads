@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // 话题
 type Post struct {
 	Model
@@ -19,8 +21,9 @@ type Post struct {
 	LastCommentUserId int64  `gorm:"index:idx_post_last_comment_user_id" json:"lastCommentUserId" form:"lastCommentUserId"` // 最后回复时间                            // 状态：0：正常、1：删除
 	LastCommentTime   int64  `gorm:"index:idx_post_last_comment_time" json:"lastCommentTime" form:"lastCommentTime"`        // 最后回复时间
 	CreateTime        int64  `gorm:"index:idx_post_create_time" json:"createTime" form:"createTime"`                        // 创建时间
-	UpdatedAt         int64  `gorm:"index:idx_post_updated_at" json:"updateAt" form:"updateAt"`                        // 更新时间
-	ExtraData         string `gorm:"type:text" json:"extraData" form:"extraData"`                                            // 扩展数据
+	CreatedAt         time.Time  `gorm:"index:idx_post_updated_at" json:"createdAt" form:"createdAt"`                       // 创建时间
+	UpdatedAt         time.Time  `gorm:"index:idx_post_updated_at" json:"updateAt" form:"updateAt"`                         // 更新时间
+	ExtraData         string `gorm:"type:text" json:"extraData" form:"extraData"`                                           // 扩展数据
 }
 
 func (p *Post) IsRoot() bool {

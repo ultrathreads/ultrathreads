@@ -23,6 +23,21 @@ func (d *nodeDao) Get(id int64) *model.Node {
 	return ret
 }
 
+func (d *nodeDao) FindByIds(ids []int64) ([]model.Node) {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	// 可选优化：对 ids 去重，避免生成冗余的 IN 条件
+
+	qb := querybuilder.NewQueryBuilder().In("id", ids)
+	
+	// 必须捕获并返回 Find 内部的错误
+	results := d.Find(qb)
+	
+	return results
+}
+
 func (d *nodeDao) Take(where ...interface{}) *model.Node {
 	ret := &model.Node{}
 	if err := db.Take(ret, where...).Error; err != nil {

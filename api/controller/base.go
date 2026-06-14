@@ -16,7 +16,8 @@ import (
 )
 
 type SR struct {
-	Data    interface{} `json:"data,omitempty"`
+	Data     interface{} `json:"data,omitempty"`
+	Included interface{} `json:"included,omitempty"` // 新增字段，nil时自动忽略
 }
 
 type FR struct {
@@ -122,6 +123,14 @@ func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 		ctx.IndentedJSON(http.StatusOK, resp)
 	} else {
 		ctx.JSON(http.StatusOK, resp)
+	}
+}
+
+func (c *BaseController) SuccessWithIncluded(ctx *gin.Context, data interface{}) {
+	if gin.Mode() == gin.DebugMode {
+		ctx.IndentedJSON(http.StatusOK, data)
+	} else {
+		ctx.JSON(http.StatusOK, data)
 	}
 }
 

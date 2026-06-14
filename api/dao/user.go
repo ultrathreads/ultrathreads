@@ -29,6 +29,14 @@ func (d *userDao) Get(id int64) *model.User {
 	return ret
 }
 
+func (d *userDao) FindByIds(ids []int64) []model.User {
+	if len(ids) == 0 {
+		return nil
+	}
+	qb := querybuilder.NewQueryBuilder().In("id", ids)
+	return d.Find(qb)
+}
+
 // Take 按条件获取单条记录（无排序保证），未找到返回 nil
 func (d *userDao) Take(where ...interface{}) *model.User {
 	ret := &model.User{}

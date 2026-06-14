@@ -47,12 +47,40 @@ func (c *PostController) List(ctx *gin.Context) {
 }
 
 // ListThreads 帖子列表（含扁平化回帖）
-func (c *PostController) ListThreads(ctx *gin.Context) {
+func (c *PostController) Sideload(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
-	limit := util.FormIntDefault(ctx, "limit", 20)
+	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
 	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
 
-	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeSlug)
+	posts, paging := service.PostService.GetNodeThreadsFull(page, pageSize, nodeSlug)
+
+	var lastReadAtMap map[string]int64
+	if nodeSlug != "" {
+		lastReadAtMap = c.GetLastReadStates(ctx, nodeSlug)
+	} else {
+		lastReadAtMap = c.GetLastReadStates(ctx)
+	}
+
+	results, incUsers, incNodes := converter.ToSimplePostsWithIncluded(posts)
+
+	resp := model.PostListWithIncluded{
+		Data:  results,
+		Meta:     *paging,
+		LastRead: lastReadAtMap,
+	}
+	resp.Included.Users = incUsers
+	resp.Included.Nodes = incNodes
+
+	c.SuccessWithIncluded(ctx, resp)
+}
+
+// ListThreads 帖子列表（含扁平化回帖）
+func (c *PostController) ListThreads(ctx *gin.Context) {
+	page := util.FormIntDefault(ctx, "page", 1)
+	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
+	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
+
+	posts, paging := service.PostService.GetNodeThreadsFull(page, pageSize, nodeSlug)
 
 	var lastReadAtMap map[string]int64
 	if nodeSlug != "" {
