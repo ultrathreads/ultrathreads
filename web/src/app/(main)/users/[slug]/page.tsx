@@ -23,10 +23,10 @@ export default async function UserPublicPostsPage({ params, searchParams }: Prop
   const t = await getServerTranslation(['common']);
   const { slug } = await params;
   const { page: pageStr } = await searchParams;
-  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
+  const page = Math.max(1, parseInt(pageStr || '1', 10));
 
   const user = await getUserBySlug(slug);
-  const { posts, paging, error } = await getUserRootPostsPageData(user.slug, currentPage);
+  const { posts, paging, error } = await getUserRootPostsPageData(user.slug, page);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
@@ -48,7 +48,7 @@ export default async function UserPublicPostsPage({ params, searchParams }: Prop
         <TopicPagination
           totalItems={paging.totalItems}
           pageSize={paging.pageSize}
-          currentPage={paging.currentPage}
+          page={paging.page}
         />
       )}
     </>

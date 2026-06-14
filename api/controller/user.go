@@ -138,10 +138,14 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 	// 3. 执行查询并返回结果
 	favorites, paging := service.FavoriteService.List(qb)
 
-	c.Success(ctx, gin.H{
-		"results": converter.ToFavorites(favorites),
-		"page":    paging,
-	})
+	resp := NewListResponse(
+	    converter.ToFavorites(favorites),
+	    paging.Page,
+	    paging.Limit,
+	    int(paging.Total),
+	    nil,
+	)
+	c.SuccessList(ctx, resp)
 }
 
 // GetRecentWatchers 关注该用户的人

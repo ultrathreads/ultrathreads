@@ -22,13 +22,13 @@ interface BackState {
 
 async function parseSearchParams(searchParams: Props['searchParams']) {
   const { page: pageStr } = await searchParams;
-  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
-  return { currentPage };
+  const page = Math.max(1, parseInt(pageStr || '1', 10));
+  return { page };
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { currentPage, slug } = await parseSearchParams(searchParams);
-  let title = currentPage > 1 ? `帖子列表 - 第 ${currentPage} 页` : '帖子列表';
+  const { page, slug } = await parseSearchParams(searchParams);
+  let title = page > 1 ? `帖子列表 - 第 ${page} 页` : '帖子列表';
 
   if (slug) {
     const { tag } = await getTagDetail(slug);
@@ -40,14 +40,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function TagPage({ params, searchParams }: Props) {
   const t = await getServerTranslation(['common', 'home']);
   const { slug } = await params;
-  const { currentPage } = await parseSearchParams(searchParams);
+  const { page } = await parseSearchParams(searchParams);
 
   if (!slug || typeof slug !== 'string' || slug.trim() === '') {
     notFound();
   }
 
   const [threadResult, tagResult] = await Promise.all([
-    getTagPageData(slug, currentPage),
+    getTagPageData(slug, page),
     getTagDetail(slug),
   ]);
 
@@ -61,8 +61,8 @@ export default async function TagPage({ params, searchParams }: Props) {
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
 
   const backState: BackState = { tagSlug: String(slug) };
-  if (currentPage > 1) {
-    backState.page = String(currentPage);
+  if (page > 1) {
+    backState.page = String(page);
   }
 
   return (
@@ -76,8 +76,8 @@ export default async function TagPage({ params, searchParams }: Props) {
       {viewPosts.length > 0 && (
         <TopicPagination
           totalItems={paging.total}
-          pageSize={paging.limit}
-          currentPage={paging.page}
+          pageSize={paging.pageSize}
+          page={paging.page}
         />
       )}
     </>

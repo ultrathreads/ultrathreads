@@ -24,14 +24,14 @@ export default async function NodePage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { page: pageStr } = await searchParams;
   
-  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
+  const page = Math.max(1, parseInt(pageStr || '1', 10));
   
   if (!slug || typeof slug !== 'string' || slug.trim() === '') {
     notFound();
   }
   // 并发获取数据
   const [threadResult, nodeResult] = await Promise.all([
-    getThreadPageData(currentPage, slug),
+    getThreadPageData(page, slug),
     getNodeDetail(slug),
   ]);
 
@@ -41,7 +41,7 @@ export default async function NodePage({ params, searchParams }: Props) {
       t={t} 
       threadResult={threadResult} 
       nodeResult={nodeResult} 
-      currentPage={currentPage} 
+      page={page} 
       safeNodeSlug={slug} 
     />
   );

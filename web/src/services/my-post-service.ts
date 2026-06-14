@@ -31,16 +31,16 @@ export interface MyReplyPostListItem {
   node: Pick<NodeEntity, 'slug' | 'name'> | null;
 }
 
-/**
- * 通用 API 响应结构（支持泛型）
- */
-interface UserPostsApiResponse<T> {
+/** 对应后端 DataEnvelope<T> */
+interface UserPostsData<T> {
   results: T[];
-  page: {
-    page: number;
-    limit: number;
-    total: number;
-  };
+}
+
+/** 对应后端完整 ListResponse 信封 */
+interface UserPostsEnvelope<T> {
+  data: UserPostsData<T>;
+  meta: PaginationMeta;
+  context?: Record<string, unknown>;
 }
 
 // ==================== 视图层类型 ====================
@@ -63,39 +63,36 @@ async function fetchUserPostsByType<T>(
   userSlug: string,
   page: number,
   type: 'root' | 'reply',
-  limit: number = DEFAULT_LIMIT,
+  pageSize: number = DEFAULT_LIMIT,
 ): Promise<UserPostsPageData<T>> {
   const safePage = Math.max(1, Number.isNaN(page) ? 1 : page);
 
   const params = new URLSearchParams({
     page: String(safePage),
-    limit: String(limit),
+    pageSize: String(pageSize),
     type,
   });
 
   try {
-    const data = await apiFetch<UserPostsApiResponse<T>>(
+    const envelope = await apiFetch<UserPostsEnvelope<T>>(
       `/users/${userSlug}/posts?${params.toString()}`,
       {
         auth: true,
+        skipDataUnwrap: true,
         cacheStrategy: { next: { revalidate: 0 } },
       },
     );
 
     return {
-      posts: data.results ?? [],
-      paging: {
-        currentPage: data.page?.page ?? safePage,
-        pageSize: data.page?.limit ?? limit,
-        totalItems: data.page?.total ?? 0,
-      },
+      posts: envelope.data.results ?? [],
+      paging: envelope.meta,
       error: null,
     };
   } catch (err) {
     console.error(`[UserPostService] Fetch ${type} posts failed:`, err);
     return {
       posts: [],
-      paging: { currentPage: safePage, pageSize: limit, totalItems: 0 },
+      paging: { page: safePage, pageSize: pageSize, totalItems: 0 },
       error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
@@ -107,9 +104,9 @@ async function fetchUserPostsByType<T>(
 export function getUserRootPostsPageData(
   userSlug: string,
   page: number,
-  limit?: number,
+  pageSize?: number,
 ): Promise<UserPostsPageData<MyRootPostListItem>> {
-  return fetchUserPostsByType<MyRootPostListItem>(userSlug, page, 'root', limit);
+  return fetchUserPostsByType<MyRootPostListItem>(userSlug, page, 'root', pageSize);
 }
 
 /**
@@ -118,7 +115,7 @@ export function getUserRootPostsPageData(
 export function getUserReplyPostsPageData(
   userSlug: string,
   page: number,
-  limit?: number,
+  pageSize?: number,
 ): Promise<UserPostsPageData<MyReplyPostListItem>> {
-  return fetchUserPostsByType<MyReplyPostListItem>(userSlug, page, 'reply', limit);
+  return fetchUserPostsByType<MyReplyPostListItem>(userSlug, page, 'reply', pageSize);
 }

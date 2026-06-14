@@ -14,14 +14,20 @@ import (
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 )
+// ValidationError 字段级校验错误
+type ValidationError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
 
 type SR struct {
-	Data    interface{} `json:"data,omitempty"`
+	Data 		any  `json:"data,omitempty"`
 }
 
 type FR struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
+	Code    int               `json:"code"`
+	Message string            `json:"message"`
+	Errors  []ValidationError `json:"errors,omitempty"` 
 }
 
 // BaseController controller
@@ -118,6 +124,14 @@ func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 	resp := SR{Data: data}
 
 	// 仅 debug 模式使用格式化JSON
+	if gin.Mode() == gin.DebugMode {
+		ctx.IndentedJSON(http.StatusOK, resp)
+	} else {
+		ctx.JSON(http.StatusOK, resp)
+	}
+}
+
+func (c *BaseController) SuccessList(ctx *gin.Context, resp interface{}) {
 	if gin.Mode() == gin.DebugMode {
 		ctx.IndentedJSON(http.StatusOK, resp)
 	} else {

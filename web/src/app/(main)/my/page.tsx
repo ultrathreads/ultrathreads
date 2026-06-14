@@ -39,7 +39,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function MyPostsPage({ searchParams }: Props) {
   const t = await getServerTranslation(['common']);
   const params = await searchParams;
-  const currentPage = Math.max(1, parseInt(params.page || '1', 10));
+  const page = Math.max(1, parseInt(params.page || '1', 10));
   
   // 默认 Tab 设为 'root'
   const currentTab = params.tab || 'root';
@@ -52,13 +52,13 @@ export default async function MyPostsPage({ searchParams }: Props) {
   // 根据当前 Tab 渲染不同的内容
   const renderContent = async () => {
     if (currentTab === 'bookmarks') {
-      return <BookmarksContent currentPage={currentPage} t={t} />;
+      return <BookmarksContent page={page} t={t} />;
     } else if (currentTab === 'replies') {
-      return <ReplyPostsContent userSlug={currentUser.slug} currentPage={currentPage} t={t} tab={currentTab} />;
+      return <ReplyPostsContent userSlug={currentUser.slug} page={page} t={t} tab={currentTab} />;
     }
 
     // 默认渲染根帖列表（无论是 'root' 还是其他未匹配的值，都兜底显示根帖）
-     return <RootPostsContent userSlug={currentUser.slug} currentPage={currentPage} t={t} tab={currentTab} />;
+     return <RootPostsContent userSlug={currentUser.slug} page={page} t={t} tab={currentTab} />;
   };
 
   return (
@@ -73,8 +73,8 @@ export default async function MyPostsPage({ searchParams }: Props) {
 }
 
 // 主帖内容组件
-async function RootPostsContent({ userSlug, currentPage, t, tab }: { userSlug: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
-  const { posts, paging, error } = await getUserRootPostsPageData(userSlug, currentPage);
+async function RootPostsContent({ userSlug, page, t, tab }: { userSlug: string; page: number; t: any; tab: 'root' | 'replies' }) {
+  const { posts, paging, error } = await getUserRootPostsPageData(userSlug, page);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
@@ -92,7 +92,7 @@ async function RootPostsContent({ userSlug, currentPage, t, tab }: { userSlug: s
         <TopicPagination
           totalItems={paging.totalItems}
           pageSize={paging.pageSize}
-          currentPage={paging.currentPage}
+          page={paging.page}
         />
       )}
     </>
@@ -100,8 +100,8 @@ async function RootPostsContent({ userSlug, currentPage, t, tab }: { userSlug: s
 }
 
 // 回帖内容组件
-async function ReplyPostsContent({ userSlug, currentPage, t, tab }: { userSlug: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
-  const { posts, paging, error } = await getUserReplyPostsPageData(userSlug, currentPage);
+async function ReplyPostsContent({ userSlug, page, t, tab }: { userSlug: string; page: number; t: any; tab: 'root' | 'replies' }) {
+  const { posts, paging, error } = await getUserReplyPostsPageData(userSlug, page);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
@@ -120,7 +120,7 @@ async function ReplyPostsContent({ userSlug, currentPage, t, tab }: { userSlug: 
         <TopicPagination
           totalItems={paging.totalItems}
           pageSize={paging.pageSize}
-          currentPage={paging.currentPage}
+          page={paging.page}
         />
       )}
     </>
@@ -128,8 +128,8 @@ async function ReplyPostsContent({ userSlug, currentPage, t, tab }: { userSlug: 
 }
 
 // 更新：书签内容组件
-async function BookmarksContent({ currentPage, t }: { currentPage: number; t: any }) {
-  const { favorites, paging, error } = await getFavoritesPageData(currentPage);
+async function BookmarksContent({ page, t }: { page: number; t: any }) {
+  const { favorites, paging, error } = await getFavoritesPageData(page);
 
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
@@ -151,7 +151,7 @@ async function BookmarksContent({ currentPage, t }: { currentPage: number; t: an
       await deleteFavorite(entityType, entityId);
       
       // 2. 删除成功后，重新验证当前页面的数据
-      revalidatePath(`/my?tab=bookmarks&page=${currentPage}`);
+      revalidatePath(`/my?tab=bookmarks&page=${page}`);
       
       // 3. 如果没有抛出错误，代表操作成功
       // 此时不需要显式 return，客户端的 await 会正常走完
@@ -179,7 +179,7 @@ async function BookmarksContent({ currentPage, t }: { currentPage: number; t: an
         <TopicPagination
           totalItems={paging.totalItems}
           pageSize={paging.pageSize}
-          currentPage={paging.currentPage}
+          page={paging.page}
         />
       )}
     </>

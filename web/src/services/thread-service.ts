@@ -22,11 +22,19 @@ export interface ThreadListItem {
   node: Pick<NodeEntity, 'slug' | 'name'>;
 }
 
-/** API 原始响应结构（不导出，仅内部使用） */
-interface ThreadsApiResponse {
+/** 对应后端 DataEnvelope<T> */
+interface ThreadListData {
   results: ThreadListItem[];
-  page: PaginationMeta;
-  lastReadAtMap: Record<string, number>;
+}
+
+/** 对应后端完整 ListResponse 信封 */
+interface ThreadListEnvelope {
+  data: ThreadListData;
+  meta: PaginationMeta;
+  context?: {
+    lastReadAtMap?: Record<string, number>;
+    [key: string]: unknown;
+  };
 }
 
 // ==================== 视图层类型 ====================
@@ -45,7 +53,7 @@ const DEFAULT_LIMIT = 20;
 /**
  * 获取帖子列表页数据
  * @param page 当前页码
- * @param nodeSlug 可选的板块ID，传入时仅获取该板块下的帖子；未传或无效时默认为 0
+ * @param nodeSlug 可选的板块ID，传入时仅获取该板块下的帖子；未传或无效时默认为全局列表
  */
 export async function getThreadPageData(
   page: number,
@@ -55,7 +63,7 @@ export async function getThreadPageData(
 
   const params = new URLSearchParams({
     page: String(safePage),
-    limit: String(DEFAULT_LIMIT),
+    pageSize: String(DEFAULT_LIMIT),
   });
 
   // 根据 nodeSlug 是否存在，动态选择 RESTful 路径
@@ -69,26 +77,26 @@ export async function getThreadPageData(
   const cacheTags = ['threads', ...(nodeSlug ? [`node-${nodeSlug}`] : [])];
 
   try {
-    const data = await apiFetch<ThreadsApiResponse>(
+    const envelope = await apiFetch<ThreadListEnvelope>(
       `${basePath}?${params.toString()}`,
       {
         auth: true,
+        skipDataUnwrap: true,
         cacheStrategy: { next: { tags: cacheTags } },
-        // cacheStrategy: { next: { tags: cacheTags, revalidate: 60 } },
       },
     );
 
     return {
-      posts: data.results ?? [],
-      paging: data.page,
-      lastReadAtMap: data.lastReadAtMap ?? {},
+      posts: envelope.data.results ?? [],
+      paging: envelope.meta,
+      lastReadAtMap: envelope.context?.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {
     console.error('[ThreadService] Fetch failed:', err);
     return {
       posts: [],
-      paging: { currentPage: safePage, pageSize: DEFAULT_LIMIT, totalItems: 0 },
+      paging: { page: safePage, pageSize: DEFAULT_LIMIT, totalItems: 0 },
       lastReadAtMap: {},
       error: err instanceof Error ? err.message : 'Unknown error',
     };
@@ -108,31 +116,32 @@ export async function getTagPageData(
 
   const params = new URLSearchParams({
     page: String(safePage),
-    limit: String(DEFAULT_LIMIT),
+    pageSize: String(DEFAULT_LIMIT),
   });
 
   const cacheTags = ['threads', `tag-${tagSlug}`];
 
   try {
-    const data = await apiFetch<ThreadsApiResponse>(
-       `/tags/${encodeURIComponent(tagSlug)}/threads?${params.toString()}`,
+    const envelope = await apiFetch<ThreadListEnvelope>(
+      `/tags/${encodeURIComponent(tagSlug)}/threads?${params.toString()}`,
       {
         auth: true,
+        skipDataUnwrap: true,
         cacheStrategy: { next: { tags: cacheTags } },
       },
     );
 
     return {
-      posts: data.results ?? [],
-      paging: data.page,
-      lastReadAtMap: data.lastReadAtMap ?? {},
+      posts: envelope.data.results ?? [],
+      paging: envelope.meta,
+      lastReadAtMap: envelope.context?.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {
     console.error('[ThreadService] Fetch tag posts failed:', err);
     return {
       posts: [],
-      paging: { currentPage: safePage, pageSize: DEFAULT_LIMIT, totalItems: 0 },
+      paging: { page: safePage, pageSize: DEFAULT_LIMIT, totalItems: 0 },
       lastReadAtMap: {},
       error: err instanceof Error ? err.message : 'Unknown error',
     };

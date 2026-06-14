@@ -8,7 +8,7 @@ import type { UserEntity } from '@/types/domains';
 
 interface Props {
   initialPosts: MyPostListItem[];
-  initialPaging: { currentPage: number; pageSize: number; totalItems: number };
+  initialPaging: { page: number; pageSize: number; totalItems: number };
   user?: UserEntity;
   tab: 'root' | 'replies';
 }

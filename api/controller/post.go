@@ -49,10 +49,10 @@ func (c *PostController) List(ctx *gin.Context) {
 // ListThreads 帖子列表（含扁平化回帖）
 func (c *PostController) ListThreads(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
-	limit := util.FormIntDefault(ctx, "limit", 20)
+	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
 	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
 
-	posts, paging := service.PostService.GetNodeThreadsFull(page, limit, nodeSlug)
+	posts, paging := service.PostService.GetNodeThreadsFull(page, pageSize, nodeSlug)
 
 	var lastReadAtMap map[string]int64
 	if nodeSlug != "" {
@@ -61,12 +61,18 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 		lastReadAtMap = c.GetLastReadStates(ctx)
 	}
 
-	data := map[string]interface{}{
-		"results": 		 converter.ToSimplePosts(posts),
-		"page":    		 paging,
-		"lastReadAtMap": lastReadAtMap,
-	}
-	c.Success(ctx, data)
+	var userContext interface{}
+	userContext = map[string]interface{}{
+        "lastReadAtMap": lastReadAtMap,
+    }
+	resp := NewListResponse(
+	    converter.ToSimplePosts(posts),
+	    paging.Page,
+	    paging.Limit,
+	    int(paging.Total),
+	    userContext,
+	)
+	c.SuccessList(ctx, resp)
 }
 
 // ListTagThreads 标签帖子列表
@@ -78,12 +84,18 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
-	data := map[string]interface{}{
-		"results":       converter.ToSimplePosts(posts),
-		"page":          paging,
-		"lastReadAtMap": lastReadAtMap,
-	}
-	c.Success(ctx, data)
+	var userContext interface{}
+	userContext = map[string]interface{}{
+        "lastReadAtMap": lastReadAtMap,
+    }
+	resp := NewListResponse(
+	    converter.ToSimplePosts(posts),
+	    paging.Page,
+	    paging.Limit,
+	    int(paging.Total),
+	    userContext,
+	)
+	c.SuccessList(ctx, resp)
 }
 
 // GetPostWithThread 帖子详情（含扁平化回帖）
@@ -360,12 +372,19 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 	// 3. 调用 Service 层获取数据
 	posts, paging := service.PostService.GetUserPosts(gDto.Slug, postType, page, 20)
 
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	//data["lastReadAtMap"] = c.GetLastReadStates(ctx)
-	// 4. 格式化并返回结果
-	c.Success(ctx, data)
+	lastReadAtMap := c.GetLastReadStates(ctx)
+	var userContext interface{}
+	userContext = map[string]interface{}{
+        "lastReadAtMap": lastReadAtMap,
+    }
+	resp := NewListResponse(
+	    converter.ToSimplePosts(posts),
+	    paging.Page,
+	    paging.Limit,
+	    int(paging.Total),
+	    userContext,
+	)
+	c.SuccessList(ctx, resp)
 }
 
 // Like 点赞

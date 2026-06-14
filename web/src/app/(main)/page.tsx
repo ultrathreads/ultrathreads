@@ -16,7 +16,7 @@ export default async function HomePage() {
       t={t} 
       threadResult={threadResult} 
       nodeResult={{ node: null, error: null }} 
-      currentPage={1} 
+      page={1} 
       safeNodeSlug="" 
     />
   );

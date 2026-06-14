@@ -6,13 +6,13 @@ import Pagination from '@/components/ui/Pagination';
 interface TopicPaginationProps {
   totalItems: number;
   pageSize: number;
-  currentPage: number;
+  page: number;
 }
 
 export default function TopicPagination({
   totalItems,
   pageSize,
-  currentPage,
+  page,
 }: TopicPaginationProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,7 +32,7 @@ export default function TopicPagination({
     <Pagination
       totalItems={totalItems}
       pageSize={pageSize}
-      currentPage={currentPage}
+      page={page}
       onPageChange={handlePageChange}
     />
   );

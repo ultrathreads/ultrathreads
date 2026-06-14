@@ -5,14 +5,14 @@ import { useMemo } from 'react';
 interface PaginationProps {
   totalItems: number;
   pageSize: number;
-  currentPage: number;
+  page: number;
   onPageChange: (page: number) => void;
 }
 
 export default function Pagination({
   totalItems,
   pageSize,
-  currentPage,
+  page,
   onPageChange,
 }: PaginationProps) {
   const totalPages = Math.ceil(totalItems / pageSize);
@@ -22,8 +22,8 @@ export default function Pagination({
     if (totalPages <= 0) return [1];
 
     const delta = 2;
-    const left = Math.max(2, currentPage - delta);
-    const right = Math.min(totalPages - 1, currentPage + delta);
+    const left = Math.max(2, page - delta);
+    const right = Math.min(totalPages - 1, page + delta);
 
     pages.push(1);
     if (left > 2) pages.push('...');
@@ -32,11 +32,11 @@ export default function Pagination({
     if (totalPages > 1) pages.push(totalPages);
 
     return pages;
-  }, [currentPage, totalPages]);
+  }, [page, totalPages]);
 
   const goTo = (p: number) => {
     const target = Math.max(1, Math.min(totalPages, p));
-    if (target !== currentPage && !Number.isNaN(target)) {
+    if (target !== page && !Number.isNaN(target)) {
       onPageChange(target);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -48,21 +48,21 @@ export default function Pagination({
   return (
     <div className="pagination-wrapper">
       <div className="pagination-info" id="paginationInfo">
-        共 {totalItems} 条主题 · 第 {currentPage}/{safeTotalPages} 页
+        共 {totalItems} 条主题 · 第 {page}/{safeTotalPages} 页
       </div>
 
       <div className="pagination-controls" id="paginationControls">
         <button
-          className={`page-btn ${currentPage === 1 ? 'disabled' : ''}`}
+          className={`page-btn ${page === 1 ? 'disabled' : ''}`}
           onClick={() => goTo(1)}
-          disabled={currentPage === 1}
+          disabled={page === 1}
         >
           «
         </button>
         <button
-          className={`page-btn ${currentPage === 1 ? 'disabled' : ''}`}
-          onClick={() => goTo(currentPage - 1)}
-          disabled={currentPage === 1}
+          className={`page-btn ${page === 1 ? 'disabled' : ''}`}
+          onClick={() => goTo(page - 1)}
+          disabled={page === 1}
         >
           ‹
         </button>
@@ -75,7 +75,7 @@ export default function Pagination({
           ) : (
             <button
               key={p}
-              className={`page-btn ${p === currentPage ? 'active' : ''}`}
+              className={`page-btn ${p === page ? 'active' : ''}`}
               onClick={() => goTo(p as number)}
             >
               {p}
@@ -84,16 +84,16 @@ export default function Pagination({
         )}
 
         <button
-          className={`page-btn ${currentPage === safeTotalPages ? 'disabled' : ''}`}
-          onClick={() => goTo(currentPage + 1)}
-          disabled={currentPage === safeTotalPages}
+          className={`page-btn ${page === safeTotalPages ? 'disabled' : ''}`}
+          onClick={() => goTo(page + 1)}
+          disabled={page === safeTotalPages}
         >
           ›
         </button>
         <button
-          className={`page-btn ${currentPage === safeTotalPages ? 'disabled' : ''}`}
+          className={`page-btn ${page === safeTotalPages ? 'disabled' : ''}`}
           onClick={() => goTo(safeTotalPages)}
-          disabled={currentPage === safeTotalPages}
+          disabled={page === safeTotalPages}
         >
           »
         </button>
@@ -101,14 +101,14 @@ export default function Pagination({
 
       <div className="pagination-jump">
         跳至
-        {/* 👇 key={currentPage} 确保切换页码时 input 自动重置为当前页 */}
+        {/* 👇 key={page} 确保切换页码时 input 自动重置为当前页 */}
         <input
-          key={currentPage}
+          key={page}
           className="jump-input"
           type="number"
           min={1}
           max={safeTotalPages}
-          defaultValue={String(currentPage)}
+          defaultValue={String(page)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               goTo(parseInt(e.currentTarget.value, 10));

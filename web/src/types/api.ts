@@ -19,7 +19,7 @@ export interface PostWithRepliesResponse {
 export interface PageResponse<T> {
   items: T[];
   totalItems: number;
-  currentPage: number;
+  page: number;
   pageSize: number;
 }
 
@@ -27,7 +27,7 @@ export interface PaginationMeta {
   /** 总记录数 */
   totalItems: number;
   /** 当前页码（从 1 开始） */
-  currentPage: number;
+  page: number;
   /** 每页条数 */
   pageSize: number;
 }
@@ -45,7 +45,7 @@ export interface HomePageData {
   tags: { label: string }[];
   pagination: {
     totalItems: number;
-    currentPage: number;
+    page: number;
     pageSize: number;
   };
 }

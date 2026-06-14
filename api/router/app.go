@@ -73,7 +73,6 @@ func setupApp(e *gin.Engine) {
 		optional.GET("/posts/noreply", postController.GetPostsNoreply)
 		optional.GET("/posts/last", postController.GetPostsLast)
 		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
-		optional.GET("/user/posts/:slug", postController.GetUserPosts)
 		optional.GET("/post/:slug/recentlikes", postController.GetRecentLikes)
 
 		// Tags
