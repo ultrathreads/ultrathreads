@@ -4,8 +4,8 @@
 import { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react';
 import { toast } from 'sonner';
 import { getCurrentUser } from '@/services/auth.server';
-import { updateUserProfile } from '@/services/user';
-import { uploadAvatar } from '@/services/upload';
+import { updateUserProfile } from '@/services/user-service';
+import { uploadAvatar } from '@/services/upload-service';
 import { useAuth } from '@/hooks/use-auth';
 import { ApiError } from '@/lib/api/client';
 import type { CurrentUser } from '@/types/auth';
@@ -23,7 +23,7 @@ const DEFAULT_FORM: ProfileForm = {
 
 export default function ProfilePage() {
   const { refreshUser } = useAuth();
-  const [userId, setUserId] = useState<number | null>(null);
+  const [userSlug, setUserSlug] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileForm>(DEFAULT_FORM);
   const [previewUrl, setPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -38,7 +38,7 @@ export default function ProfilePage() {
       try {
         const user = await getCurrentUser();
         if (cancelled) return;
-        setUserId(user.id);
+        setUserSlug(user.slug)
         setForm({
           nickname: user.nickname,
           avatar: user.avatar,
@@ -108,7 +108,7 @@ export default function ProfilePage() {
       toast.warning('昵称不能为空');
       return;
     }
-    if (userId === null) {
+    if (userSlug === null) {
       toast.error('用户信息未加载完成，请稍后重试');
       return;
     }
@@ -117,7 +117,7 @@ export default function ProfilePage() {
       setSaving(true);
       await toast.promise(
         // ✅ 核心修复：先更新后端，再刷新全局 AuthContext
-        updateUserProfile(userId, form).then(async () => {
+        updateUserProfile(userSlug, form).then(async () => {
           await refreshUser();
         }),
         {

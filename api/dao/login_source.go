@@ -36,7 +36,7 @@ func (d *loginSourceDao) List(cnd *querybuilder.QueryBuilder) (list []model.Logi
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
+		PageSize: cnd.Paging.PageSize,
 		Total: count,
 	}
 	return

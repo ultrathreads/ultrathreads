@@ -69,13 +69,14 @@ func (s *userService) Count(cnd *querybuilder.QueryBuilder) int64 { // âœ… int â
 }
 
 func (s *userService) Update(dto form.UserUpdateForm) error {
-	err := dao.UserDao.Updates(dto.ID, map[string]interface{}{
+	userID := hashid.Slug2Id[model.User](dto.Slug)
+	err := dao.UserDao.Updates(userID, map[string]interface{}{
 		"nickname":    dto.Nickname,
 		"description": dto.Description,
 		"level":       dto.Level,
 		"update_time": util.NowTimestamp(),
 	})
-	cache.UserCache.Invalidate(dto.ID)
+	cache.UserCache.Invalidate(userID)
 	return err
 }
 

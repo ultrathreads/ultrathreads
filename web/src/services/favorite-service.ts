@@ -2,6 +2,7 @@
 import { apiFetch } from '@/lib/api/client';
 import type { UserEntity } from '@/types/domain';
 import type { PaginationMeta } from '@/types/api';
+import { DEFAULT_LIMIT } from '@/constants';
 
 // ==================== 传输层类型 ====================
 export interface FavoriteItem {
@@ -20,7 +21,7 @@ interface FavoritesApiResponse {
   data: {
     page: {
       page: number;
-      limit: number;
+      pageSize: number;
       total: number;
     };
     results: FavoriteItem[];
@@ -34,23 +35,20 @@ export interface FavoritesPageData {
   error: string | null;
 }
 
-// ==================== 服务函数 ====================
-const DEFAULT_LIMIT = 20;
-
 /**
  * 获取当前用户的书签列表
  * @param page 页码
- * @param limit 每页条数
+ * @param pageSize 每页条数
  */
 export async function getFavoritesPageData(
   page: number,
-  limit: number = DEFAULT_LIMIT,
+  pageSize: number = DEFAULT_LIMIT,
 ): Promise<FavoritesPageData> {
   const safePage = Math.max(1, Number.isNaN(page) ? 1 : page);
 
   const params = new URLSearchParams({
     page: String(safePage),
-    pageSize: String(limit), // 根据后端代码，参数名为 pageSize
+    pageSize: String(pageSize), // 根据后端代码，参数名为 pageSize
   });
 
   try {
@@ -64,7 +62,7 @@ export async function getFavoritesPageData(
       favorites: data.results ?? [],
       paging: {
         currentPage: data.page?.page ?? safePage,
-        pageSize: data.page?.limit ?? limit,
+        pageSize: data.page?.pageSize ?? pageSize,
         totalItems: data.page?.total ?? 0,
       },
       error: null,
@@ -73,7 +71,7 @@ export async function getFavoritesPageData(
     console.error('[FavoriteService] Fetch failed:', err);
     return {
       favorites: [],
-      paging: { currentPage: safePage, pageSize: limit, totalItems: 0 },
+      paging: { currentPage: safePage, pageSize: pageSize, totalItems: 0 },
       error: err instanceof Error ? err.message : 'Unknown error',
     };
   }

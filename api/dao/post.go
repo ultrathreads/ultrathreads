@@ -65,8 +65,8 @@ func (d *postDao) List(cnd *querybuilder.QueryBuilder) (list []model.Post, pagin
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
-		Total: count, // ✅ int64，与升级后的 Paging.Total 类型一致
+		PageSize: cnd.Paging.PageSize,
+		Total: count,
 	}
 	return
 }

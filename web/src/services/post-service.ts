@@ -1,7 +1,7 @@
 // src/services/post-service.ts
 import { notFound } from 'next/navigation';
 import { apiFetch, ApiError } from '@/lib/api/client';
-import type { PostEntity, PostWithThread } from '@/types/domain';
+import type { PostEntity, PostWithTree } from '@/types/domain';
 import type { CreateRootPostPayload, UpdateRootPostPayload, CreateReplyPayload, CreatePostResponse } from '@/types/post'
 
 interface PostServiceOptions {
@@ -27,12 +27,12 @@ export async function getPostDetail(
 /**
  * ✅ 获取帖子详情及其所有回帖
  */
-export async function getPostWithThread(
+export async function getPostTree(
   postSlug: string,
   options?: PostServiceOptions
-  ): Promise<PostWithThread> {
+  ): Promise<PostWithTree> {
   try {
-    return await apiFetch<PostWithThread>(`/posts/${postSlug}/tree`, {
+    return await apiFetch<PostWithTree>(`/posts/${postSlug}/tree`, {
       noCache: options?.noCache
     });
   } catch (error) {

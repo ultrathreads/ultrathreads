@@ -2,6 +2,7 @@
 import { apiFetch } from '@/lib/api/client';
 import type { PostEntity, NodeEntity, UserEntity } from '@/types/domain';
 import type { PaginationMeta } from '@/types/api';
+import { DEFAULT_LIMIT } from '@/constants';
 
 // ==================== 传输层类型 ====================
 
@@ -40,8 +41,6 @@ export interface ThreadPageData {
 
 // ==================== 服务函数 ====================
 
-const DEFAULT_LIMIT = 20;
-
 /**
  * 获取帖子列表页数据
  * @param page 当前页码
@@ -55,7 +54,7 @@ export async function getThreadPageData(
 
   const params = new URLSearchParams({
     page: String(safePage),
-    limit: String(DEFAULT_LIMIT),
+    pageSize: String(DEFAULT_LIMIT),
   });
 
   // 根据 nodeSlug 是否存在，动态选择 RESTful 路径
@@ -108,7 +107,7 @@ export async function getTagPageData(
 
   const params = new URLSearchParams({
     page: String(safePage),
-    limit: String(DEFAULT_LIMIT),
+    pageSize: String(DEFAULT_LIMIT),
   });
 
   const cacheTags = ['threads', `tag-${tagSlug}`];

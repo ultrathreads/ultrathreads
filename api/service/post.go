@@ -155,31 +155,31 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model
 }
 
 // GetPostWithThread 获取帖子详情及其所属主题的所有扁平回帖
-func (s *postService) GetPostWithThread(postSlug string) (*model.Post, []model.Post, error) {
+func (s *postService) GetPostTree(postSlug string) (*model.Post, []model.Post, error) {
 	postId := hashid.Slug2Id[model.Post](postSlug)
 	if postId <= 0 {
 		return nil, nil, errors.New("invalid post_id")
 	}
 
-	post := dao.PostDao.Get(postId)
-	if post == nil || post.Status != model.StatusOk {
+	currentPost := dao.PostDao.Get(postId)
+	if currentPost == nil || currentPost.Status != model.StatusOk {
 		return nil, nil, errors.New("post not found")
 	}
 
-	var replies []model.Post
-	if post.ThreadId > 0 {
+	var posts []model.Post
+	if currentPost.ThreadId > 0 {
 		cnd := querybuilder.NewQueryBuilder().
-			Eq("thread_id", post.ThreadId).
+			Eq("thread_id", currentPost.ThreadId).
 			Eq("status", model.StatusOk).
 			Asc("create_time")
-		replies = dao.PostDao.Find(cnd)
+		posts = dao.PostDao.Find(cnd)
 	}
 
-	if replies == nil {
-		replies = []model.Post{}
+	if posts == nil {
+		posts = []model.Post{}
 	}
 
-	return post, replies, nil
+	return currentPost, posts, nil
 }
 
 func (s *postService) GetPostsByThreadId(slug string) ([]model.Post, error) {

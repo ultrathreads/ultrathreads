@@ -53,7 +53,7 @@ func (d *tagDao) List(cnd *querybuilder.QueryBuilder) (list []model.Tag, paging 
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
+		PageSize: cnd.Paging.PageSize,
 		Total: count,
 	}
 	return

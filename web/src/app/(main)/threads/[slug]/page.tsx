@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { getPostWithThread, getPostFlat, getPostDetail } from '@/services/post-service';
+import { getPostTree, getPostFlat, getPostDetail } from '@/services/post-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
 import { ViewModeSwitcher } from '@/components/ui/ViewModeSwitcher';
 import { PostTree } from './PostTree';
@@ -152,7 +152,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
   const forceRefresh = resolvedSp.refresh === '1';
   const serviceOpts = { noCache: forceRefresh };
 
-  let post = null;
+  let currentPost = null;
   let viewData: any = null;
   let totalReplyCount = 0;
 
@@ -174,45 +174,27 @@ export default async function ReadPage({ params, searchParams }: Props) {
       }
 
       viewData = posts;
-      totalReplyCount = posts.length > 0 ? posts.length - 1 : 0;
-      post = posts[0];
+      totalReplyCount = Math.max(0, posts.length - 1);
+      currentPost = posts[0];
     } else {
-      const result = await getPostWithThread(slug, serviceOpts);
-      post = result.post;
-      const replies = result.replies ?? [];
-      viewData = buildThreadTree(replies);
-      totalReplyCount = replies.length > 0 ? replies.length - 1 : 0;
+      const result = await getPostTree(slug, serviceOpts);
+      currentPost = result.currentPost;
+      const posts = result.posts ?? [];
+      viewData = buildThreadTree(posts);
+      totalReplyCount = posts.length > 0 ? posts.length - 1 : 0;
     }
   } catch (error) {
-    console.error(`[ReadPage] Failed to fetch post ${slug} (${view}):`, error);
-
-    if (view === 'flat') {
-      try {
-        const detail = await getPostDetail(slug);
-        if (detail.threadSlug) {
-          const threadSlug = String(detail.threadSlug);
-          const result = await getPostFlat(threadSlug);
-          const posts = result.posts ?? [];
-          if (posts.length > 0) {
-            viewData = posts;
-            totalReplyCount = posts.length - 1;
-            post = posts[0];
-          }
-        }
-      } catch (retryError) {
-        console.error(`[ReadPage] Flat mode retry failed for ${slug}:`, retryError);
-      }
-    }
+    console.error(`[ReadPage] Failed to fetch currentPost ${slug} (${view}):`, error);
   }
 
-  if (!post) {
+  if (!currentPost) {
     notFound();
   }
 
   return (
     <>
       {/* ✅ SEO 结构化数据 */}
-      <JsonLd post={post} totalReplyCount={totalReplyCount} />
+      <JsonLd post={currentPost} totalReplyCount={totalReplyCount} />
 
       <div className="detail-top-bar">
         <Link className="back-list-btn" href={backUrl}>← 返回列表</Link>
@@ -223,13 +205,13 @@ export default async function ReadPage({ params, searchParams }: Props) {
         <PostFlat posts={viewData} totalReplyCount={totalReplyCount} />
       ) : (
         <PostTree
-          post={post}
+          post={currentPost}
           viewPosts={viewData}
           totalReplyCount={totalReplyCount}
           backState={backState}
         />
       )}
-      <ReadTracker postSlug={slug} nodeSlug={post.node?.slug} />
+      <ReadTracker postSlug={slug} nodeSlug={currentPost.node?.slug} />
     </>
   );
 }

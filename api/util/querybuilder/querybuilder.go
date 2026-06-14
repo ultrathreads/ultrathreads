@@ -92,12 +92,12 @@ func (s *QueryBuilder) Limit(limit int) *QueryBuilder {
 	return s
 }
 
-func (s *QueryBuilder) Page(page, limit int) *QueryBuilder {
+func (s *QueryBuilder) Page(page, pageSize int) *QueryBuilder {
 	if s.Paging == nil {
-		s.Paging = &Paging{Page: page, Limit: limit}
+		s.Paging = &Paging{Page: page, PageSize: pageSize}
 	} else {
 		s.Paging.Page = page
-		s.Paging.Limit = limit
+		s.Paging.PageSize = pageSize
 	}
 	return s
 }
@@ -125,8 +125,8 @@ func (s *QueryBuilder) Build(db *gorm.DB) *gorm.DB {
 	}
 
 	// paging
-	if s.Paging != nil && s.Paging.Limit > 0 {
-		ret = ret.Limit(s.Paging.Limit)
+	if s.Paging != nil && s.Paging.PageSize > 0 {
+		ret = ret.Limit(s.Paging.PageSize)
 	}
 	if s.Paging != nil && s.Paging.Offset() > 0 {
 		ret = ret.Offset(s.Paging.Offset())

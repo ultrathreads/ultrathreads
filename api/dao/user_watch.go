@@ -52,7 +52,7 @@ func (d *userWatchDao) List(cnd *querybuilder.QueryBuilder) ([]model.UserWatch, 
 
 	paging := &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
+		PageSize: cnd.Paging.PageSize,
 		Total: count,
 	}
 	return list, paging

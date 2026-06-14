@@ -2,24 +2,24 @@ package querybuilder
 
 // Paging 分页请求数据
 type Paging struct {
-	Page  int   `json:"page"`  // 页码
-	Limit int   `json:"limit"` // 每页条数
-	Total int64 `json:"total"` // ✅ 改为 int64，匹配 GORM v2 Count 返回值，防止大表溢出
+	Page     int   `json:"page"`     // 页码
+	PageSize int   `json:"pageSize"` // 每页条数
+	Total    int64 `json:"total"`    // 改为 int64，匹配 GORM v2 Count 返回值，防止大表溢出
 }
 
 func (p *Paging) Offset() int {
 	if p.Page <= 0 {
 		return 0
 	}
-	return (p.Page - 1) * p.Limit
+	return (p.Page - 1) * p.PageSize
 }
 
 func (p *Paging) TotalPage() int64 {
-	if p.Total == 0 || p.Limit == 0 {
+	if p.Total == 0 || p.PageSize == 0 {
 		return 0
 	}
-	totalPage := p.Total / int64(p.Limit)
-	if p.Total%int64(p.Limit) > 0 {
+	totalPage := p.Total / int64(p.PageSize)
+	if p.Total%int64(p.PageSize) > 0 {
 		totalPage++
 	}
 	return totalPage
@@ -32,7 +32,7 @@ func GetPaging(page, limit int) *Paging {
 	if limit <= 0 {
 		limit = 20
 	}
-	return &Paging{Page: page, Limit: limit}
+	return &Paging{Page: page, PageSize: limit}
 }
 
 // ParamPair 查询条件对

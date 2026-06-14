@@ -50,7 +50,7 @@ func (d *nodeDao) List(cnd *querybuilder.QueryBuilder) (list []model.Node, pagin
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
+		PageSize: cnd.Paging.PageSize,
 		Total: count,
 	}
 	return

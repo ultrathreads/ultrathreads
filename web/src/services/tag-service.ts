@@ -35,9 +35,9 @@ export async function getTagDetail(tagSlug: string): Promise<TagDetailData> {
  * 获取热门标签列表
  * - 失败时返回空数组兜底，保证侧边栏不白屏
  */
-export async function getHotTags(limit = 20): Promise<TagPageData> {
+export async function getHotTags(pageSize = 20): Promise<TagPageData> {
   try {
-    const data = await apiFetch<TagEntity[]>(`/tags/hot?limit=${limit}`, {
+    const data = await apiFetch<TagEntity[]>(`/tags/hot?pageSize=${pageSize}`, {
       auth: false,
       cacheStrategy: { next: { tags: ['tags'], revalidate: 120 } },
     });

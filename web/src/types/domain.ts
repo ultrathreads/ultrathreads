@@ -55,9 +55,9 @@ export interface TagEntity {
 /** 主帖与回帖同构别名 */
 export type ThreadEntity = PostEntity;
 
-export interface PostWithThread {
-  post: PostEntity;
-  replies: PostEntity[];
+export interface PostWithTree {
+  currentPost: PostEntity;
+  posts: PostEntity[];
 }
 
 export interface PostWithFlat {

@@ -64,14 +64,14 @@ func (d *userDao) List(cnd *querybuilder.QueryBuilder) (list []model.User, pagin
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
+		PageSize: cnd.Paging.PageSize,
 		Total: count,
 	}
 	return
 }
 
 // Count 统计数量
-func (d *userDao) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ 改为 int64
+func (d *userDao) Count(cnd *querybuilder.QueryBuilder) int64 {
 	return cnd.Count(db, &model.User{})
 }
 

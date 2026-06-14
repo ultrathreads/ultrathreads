@@ -76,7 +76,7 @@ export default async function TagPage({ params, searchParams }: Props) {
       {viewPosts.length > 0 && (
         <TopicPagination
           totalItems={paging.total}
-          pageSize={paging.limit}
+          pageSize={paging.pageSize}
           currentPage={paging.page}
         />
       )}

@@ -2,7 +2,7 @@ package form
 
 // UserUpdateForm user update form
 type UserUpdateForm struct {
-	ID          int64  //非表单赋值
+	Slug 	    string   `uri:"slug" json:"slug" binding:"required"`
 	Nickname    string `form:"nickname" json:"nickname" binding:"required"`
 	Avatar      string `form:"avatar" json:"avatar"`
 	Website     string `form:"website" json:"website"`

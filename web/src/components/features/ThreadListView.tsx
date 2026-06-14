@@ -42,7 +42,7 @@ export default function ThreadListView({ t, threadResult, nodeResult, currentPag
       {viewPosts.length > 0 && (
         <TopicPagination
           totalItems={paging.total}
-          pageSize={paging.limit}
+          pageSize={paging.pageSize}
           currentPage={paging.page}
         />
       )}

@@ -64,15 +64,15 @@ func (d *linkDao) List(cnd *querybuilder.QueryBuilder) (list []model.Link, pagin
 	count := cnd.Count(db, &model.Link{})
 
 	paging = &querybuilder.Paging{
-		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
-		Total: count, // ✅ int64，与升级后的 Paging.Total 类型一致
+		Page:     cnd.Paging.Page,
+		PageSize: cnd.Paging.PageSize,
+		Total:    count,
 	}
 	return
 }
 
 // Count 统计数量
-func (d *linkDao) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ 改为 int64
+func (d *linkDao) Count(cnd *querybuilder.QueryBuilder) int64 {
 	return cnd.Count(db, &model.Link{})
 }
 
@@ -93,6 +93,6 @@ func (d *linkDao) UpdateColumn(id int64, name string, value interface{}) error {
 }
 
 // Delete 根据 ID 删除
-func (d *linkDao) Delete(id int64) error { // ✅ 补充 error 返回值
+func (d *linkDao) Delete(id int64) error {
 	return db.Delete(&model.Link{}, "id = ?", id).Error
 }

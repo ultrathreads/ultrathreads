@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrorNotLogin = NewError(401, "请先登录")
+	ErrorNotLogin         = NewError(401, "请先登录")
 	ErrorPermissionDenied = NewError(403, "Permission denied.")
 
 	ErrorResourceNotFound = NewError(404, "请求的资源不存在")

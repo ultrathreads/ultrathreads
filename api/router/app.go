@@ -55,17 +55,12 @@ func setupApp(e *gin.Engine) {
 			nodeGroup.GET("/:slug/threads", postController.ListThreads)
 		}
 
-		threadGroup := optional.Group("/threads/:slug")
-		{
-			threadGroup.GET("/", postController.GetPostWithThread)
-		}
-
 		postApi := optional.Group("/posts")
 		{
 			postApi.GET("", postController.List)
 			postApi.GET("/:slug", postController.Show)
-			postApi.GET("/:slug/tree", postController.GetPostWithThread)
-			postApi.GET("/:slug/flat", postController.GetPostsFlat)
+			postApi.GET("/:slug/tree", postController.GetPostTree)
+			postApi.GET("/:slug/flat", postController.GetPostFlat)
 		}
 		
 		optional.GET("/posts/excellent", postController.GetPostsExcellent)
@@ -154,7 +149,7 @@ func setupApp(e *gin.Engine) {
 		jwtApi.POST("/article/:id/favorite", articleController.Favorite)
 
 		// Users（个人操作）
-		jwtApi.PUT("/users/:id", userController.Update)
+		jwtApi.PUT("/users/:slug", userController.Update)
 		jwtApi.GET("/user/current", userController.GetCurrent)
 		jwtApi.GET("/user/scorelogs", userController.GetScorelogs)
 		jwtApi.GET("/user/notifications/recent", userController.GetNotificationsRecent)

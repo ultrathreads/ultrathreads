@@ -52,7 +52,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &userForm) {
 		return
 	}
-	userForm.ID = gDto.ID
+
 	err := service.UserService.Update(userForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))

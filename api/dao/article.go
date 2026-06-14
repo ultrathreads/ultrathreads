@@ -42,9 +42,9 @@ func (d *articleDao) List(cnd *querybuilder.QueryBuilder) (list []model.Article,
 	count := cnd.Count(db, &model.Article{})
 
 	paging = &querybuilder.Paging{
-		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
-		Total: count,
+		Page:     cnd.Paging.Page,
+		PageSize: cnd.Paging.PageSize,
+		Total:    count,
 	}
 	return
 }

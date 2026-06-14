@@ -87,7 +87,7 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 }
 
 // GetPostWithThread 帖子详情（含扁平化回帖）
-func (c *PostController) GetPostWithThread(ctx *gin.Context) {
+func (c *PostController) GetPostTree(ctx *gin.Context) {
 
 	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
@@ -95,22 +95,22 @@ func (c *PostController) GetPostWithThread(ctx *gin.Context) {
 		return
 	}
 
-	post, replies, err := service.PostService.GetPostWithThread(gDto.Slug)
+	currentPost, posts, err := service.PostService.GetPostTree(gDto.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 
 	data := map[string]interface{}{
-		"post":    converter.ToPost(post),
-		"replies": converter.ToSimplePosts(replies),
+		"currentPost": converter.ToPost(currentPost),
+		"posts":       converter.ToSimplePosts(posts),
 	}
 	c.Success(ctx, data)
 }
 
 
 // GetPostWithFlat 帖子详情（含扁平化回帖）
-func (c *PostController) GetPostsFlat(ctx *gin.Context) {
+func (c *PostController) GetPostFlat(ctx *gin.Context) {
 	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
 		c.Fail(ctx, util.ErrorPostNotFound)

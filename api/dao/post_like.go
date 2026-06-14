@@ -65,14 +65,14 @@ func (d *postLikeDao) List(cnd *querybuilder.QueryBuilder) (list []model.PostLik
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
-		Total: count, // ✅ int64，与升级后的 Paging.Total 类型一致
+		PageSize: cnd.Paging.PageSize,
+		Total: count,
 	}
 	return
 }
 
 // Count 统计数量
-func (d *postLikeDao) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ 新增方法，返回 int64
+func (d *postLikeDao) Count(cnd *querybuilder.QueryBuilder) int64 {
 	return cnd.Count(db, &model.PostLike{})
 }
 

@@ -49,7 +49,7 @@ func (d *userScoreLogDao) List(cnd *querybuilder.QueryBuilder) (list []model.Use
 
 	paging = &querybuilder.Paging{
 		Page:  cnd.Paging.Page,
-		Limit: cnd.Paging.Limit,
+		PageSize: cnd.Paging.PageSize,
 		Total: count,
 	}
 	return
