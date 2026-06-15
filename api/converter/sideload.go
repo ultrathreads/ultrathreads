@@ -120,6 +120,9 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 			CreateTime:      p.CreateTime,
 			Title:      p.Title,
 			LastCommentTime: p.LastCommentTime,
+
+			IsRoot:   p.IsRoot(),
+			IsPinned: p.IsPinned,
 		}
 
 		rsp.LastCommentTime = p.LastCommentTime

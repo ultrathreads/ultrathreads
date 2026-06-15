@@ -12,6 +12,9 @@ type PostItem struct {
 	TagSlugs   []string `json:"tagSlugs"`
 	Title    string `json:"title"`
 
+	IsPinned      bool         `json:"isPinned"`
+	IsRoot        bool         `json:"isRoot"`
+
 	CreateTime      int64          `json:"createTime"`
 	LastCommentTime int64          `json:"lastCommentTime"`
 

@@ -58,6 +58,7 @@ export default async function TagPage({ params, searchParams }: Props) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
   }
 
+  // 目前标签列表，列的都是主贴，还需要去build thread tree吗？实际上里面做了一些数据对齐工作。
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
 
   const backState: BackState = { tagSlug: String(slug) };

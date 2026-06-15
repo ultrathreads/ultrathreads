@@ -75,36 +75,6 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 	c.SuccessWithIncluded(ctx, rsp)
 }
 
-// ListThreads 帖子列表（含扁平化回帖）
-func (c *PostController) ListThreads_old(ctx *gin.Context) {
-	page := util.FormIntDefault(ctx, "page", 1)
-	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
-	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
-
-	posts, paging := service.PostService.GetNodeThreadsFull(page, pageSize, nodeSlug)
-
-	var lastReadAtMap map[string]int64
-	if nodeSlug != "" {
-		lastReadAtMap = c.GetLastReadStates(ctx, nodeSlug)
-	} else {
-		lastReadAtMap = c.GetLastReadStates(ctx)
-	}
-
-	/*
-	data := map[string]interface{}{
-		"results": 		 converter.ToSimplePosts(posts),
-		"page":    		 paging,
-		"lastReadAtMap": lastReadAtMap,
-	}
-	*/
-	c.SuccessWithIncluded(ctx, gin.H{
-		"data": converter.ToSimplePosts(posts),
-		"meta": paging,
-		"lastReadAtMap": lastReadAtMap,
-		"included": nil,
-	})
-}
-
 // ListTagThreads 标签帖子列表
 func (c *PostController) ListTagThreads(ctx *gin.Context) {
 	tagSlug := util.ParamStringDefault(ctx, "slug", "")
@@ -114,12 +84,18 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
-	data := map[string]interface{}{
-		"results":       converter.ToSimplePosts(posts),
-		"page":          paging,
-		"lastReadAtMap": lastReadAtMap,
+	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
+
+	rsp := model.PostListWithIncluded{
+		Data:     results,
+		Meta:     *paging,
+		LastRead: lastReadAtMap,
 	}
-	c.Success(ctx, data)
+	rsp.Included.Users = incUsers
+	rsp.Included.Nodes = incNodes
+	rsp.Included.Tags = incTags
+
+	c.SuccessWithIncluded(ctx, rsp)
 }
 
 // GetPostWithThread 帖子详情（含扁平化回帖）

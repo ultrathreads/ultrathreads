@@ -121,18 +121,21 @@ export async function getTagPageData(
   const cacheTags = ['threads', `tag-${tagSlug}`];
 
   try {
-    const data = await apiFetch<ThreadsApiResponse>(
+    const rsp = await apiFetch<ThreadsApiResponse>(
        `/tags/${encodeURIComponent(tagSlug)}/threads?${params.toString()}`,
       {
         auth: true,
+        skipDataUnwrap: true,
         cacheStrategy: { next: { tags: cacheTags } },
       },
     );
 
+    const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
+
     return {
-      posts: data.results ?? [],
-      paging: data.page,
-      lastReadAtMap: data.lastReadAtMap ?? {},
+      posts: assembledPosts,
+      paging: rsp.meta,
+      lastReadAtMap: rsp.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {
