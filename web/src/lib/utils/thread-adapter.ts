@@ -24,6 +24,13 @@ export function adaptToThreadView(
   const post = source as PostEntity;
   const listItem = source as ThreadListItem;
 
+  const node = (isPostEntity ? post.node : listItem.node)
+  ? {
+      slug: (isPostEntity ? post.node!.slug : listItem.node!.slug),
+      name: (isPostEntity ? post.node!.name : listItem.node!.name),
+    }
+  : undefined;
+
   // ✅ 安全提取用户名，防止 user 对象缺失导致详情页崩溃
   const author = isPostEntity
     ? (post.user?.nickname || post.user?.username)
@@ -63,6 +70,7 @@ export function adaptToThreadView(
 
   return {
     slug: source.slug,
+    node,
     threadSlug: source.threadSlug,
     parentSlug: isPostEntity
       ? (post.parentSlug ?? '')
@@ -74,9 +82,6 @@ export function adaptToThreadView(
     authorSlug,
     avatar,
     date: Number.isFinite(contentTimestamp) ? contentTimestamp : 0,
-    nodeName: isPostEntity
-      ? post.node?.name
-      : listItem.node?.name,
     tags,
   };
 }

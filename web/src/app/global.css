@@ -529,39 +529,39 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .thread-tree-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
 /* 板块标题栏 */
-.board-title-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.board-title-wrapper { display: flex; align-items: center; gap: 10px; }
+.board-title-icon { font-size: 1.25rem; line-height: 1; padding-right: 0 15px;}
+.board-title-text { line-height: 1.4; }
+.board-title-name { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
+.board-title-desc { font-size: 0.875rem; font-weight: 400; color: var(--text-secondary); margin-top: 2px; }
+
+/* ========== 树形列表基础结构 + 间距分组策略 ========== */
+ul.thread, ul.reply { list-style: none; padding: 0; margin: 0; }
+
+/* 主贴组之间：加大间距，明确分组边界 */
+ul.thread > li {
+    margin-bottom: 10px;
 }
-.board-title-icon {
-    font-size: 1.25rem;
-    line-height: 1;
-}
-.board-title-text {
-    line-height: 1.4;
-}
-.board-title-name {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-.board-title-desc {
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: var(--text-secondary);
-    margin-top: 2px;
+ul.thread > li:last-child {
+    margin-bottom: 0;
 }
 
-/* 树形列表基础结构 */
-ul.thread, ul.reply { list-style: none; padding: 0; margin: 0; }
-ul.reply { padding-left: 20px; margin-left: 8px; margin-top: 2px; }
+/* 回复列表：紧贴主贴，消除脱离感 */
+ul.reply {
+    padding-left: 20px;
+    margin-left: 8px;
+    margin-top: 0;           /* ✨ 从 2px → 0 */
+}
 ul.reply.collapsed { display: none; }
 ul.reply ul.reply { border-left: round(0.2em, 1px) dotted var(--border-base); }
-ul.reply li:last-child > ul {border: none; }
-.thread > li, .reply > li { margin-bottom: 4px; }
+ul.reply li:last-child > ul { border: none; }
 
-/* 单条帖子/回复项 */
+/* 回复项之间：极度紧凑，强化附属感 */
+.reply > li {
+    margin-bottom: 1px;      /* ✨ 从 4px → 1px */
+}
+
+/* ========== 单条帖子/回复项 ========== */
 .entry {
     display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
     padding: 5px 8px; border-radius: 6px; transition: background-color 0.15s; line-height: 1.6;
@@ -569,40 +569,52 @@ ul.reply li:last-child > ul {border: none; }
 .entry:hover { background-color: var(--bg-hover); }
 .entry.active { background-color: var(--bg-hover); }
 
-/* 折叠/展开按钮 */
+/* ✨ 回复条目紧凑化：行高 + 内边距 + 元素间距 */
+ul.reply .entry {
+    line-height: 1.4;
+    padding: 3px 8px;
+    gap: 4px;
+}
+
+/* ========== 折叠/展开按钮 ========== */
 .fold-expand { flex-shrink: 0; display: inline-flex; align-items: center; }
 .fold-expand a { display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }
 .fold-expand svg { transition: transform 0.2s; display: block; }
 .folded > .entry .fold-expand svg { transform: rotate(-90deg); }
 
-/* 图标、标题、已读状态 */
+/* ========== 图标、标题、已读状态 ========== */
 .entry .icon-topic { flex-shrink: 0; vertical-align: middle; }
 .entry .icon-topic.is-unread { color: var(--color-primary); }
 .entry .icon-reply-svg { flex-shrink: 0; vertical-align: middle; width: 14px; height: 14px; }
 .entry .icon-reply-svg path { fill: var(--text-muted); stroke: var(--text-muted); stroke-width: 12; stroke-linejoin: round; }
-a.subject { font-size: 1rem; font-weight: 600; color: var(--text-primary); text-decoration: none; word-break: break-word; }
+
+/* ✨ 主贴标题：1.125rem / 700 */
+a.subject {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-decoration: none;
+    word-break: break-word;
+}
 a.subject:hover { color: var(--color-primary); text-decoration: underline; }
 a.subject.read { font-weight: 400; color: var(--text-regular); }
 .thread .subject.active { color: var(--color-primary); font-weight: 700; pointer-events: none; }
 
-/* 被回复标题标签 */
-.reply-to-tag {
-  display: inline-block;
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.875rem;
-  font-weight: normal;
-  color: var(--text-secondary);
-  background-color: var(--bg-muted);
-  padding: 2px 10px;
-  border-radius: 4px;
-  line-height: 1.6;
+/* ✨ 回复标题：1rem / 400，明显小于主贴但不显碎 */
+ul.reply a.subject {
+    font-size: 1rem;
+    font-weight: 400;
 }
 
-/* 元信息：作者、时间、分类 */
-.metadata { font-size: 0.875rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+/* ========== 被回复标题标签 ========== */
+.reply-to-tag {
+    display: inline-block; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 0.875rem; font-weight: normal; color: var(--text-secondary);
+    background-color: var(--bg-muted); padding: 2px 10px; border-radius: 4px; line-height: 1.6;
+}
+
+/* ========== 元信息：作者、时间、分类 ========== */
+.metadata { font-size: 1rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .author-name { font-weight: 600; color: var(--text-muted); }
 .author-name.mod { color: var(--text-mod); }
 .tail { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -613,45 +625,31 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .category { color: var(--text-muted); font-style: italic; }
 .category:hover { color: var(--color-primary); }
 
+/* ✨ 回复元信息同步缩小，避免撑开行高 */
+ul.reply .metadata {
+    font-size: 0.875rem;
+}
+
 .metadata .tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 2px; vertical-align: middle; }
-
 .metadata .tag-link {
-  display: inline-block;
-  padding: 0 8px;
-  font-size: 0.75rem;
-  line-height: 20px;
-  border-radius: 10px;
-  color: var(--color-primary);
-  background-color: var(--bg-tag);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color 0.2s, color 0.2s;
+    display: inline-block; padding: 0 8px; font-size: 0.75rem; line-height: 20px; border-radius: 10px;
+    color: var(--color-primary); background-color: var(--bg-tag); text-decoration: none; white-space: nowrap;
+    transition: background-color 0.2s, color 0.2s;
 }
+.metadata .tag-link:hover { background-color: var(--color-primary); color: #fff; }
 
-.metadata .tag-link:hover {
-  background-color: var(--color-primary);
-  color: #fff;
-}
-
-/* 悬浮预览按钮 */
+/* ========== 悬浮预览按钮 ========== */
 .icon-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; border:none; border-radius: 4px;
+    width: 20px; height: 20px; border: none; border-radius: 4px;
     cursor: pointer; transition: background-color 0.15s, color 0.15s;
     flex-shrink: 0; vertical-align: middle;
 }
 .icon-btn:hover { background-color: var(--bg-tag); }
 .icon-btn:hover svg { fill: var(--color-primary); }
 .icon-btn svg { display: block; transition: fill 0.15s; }
-.entry .icon-btn {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-.entry:hover .icon-btn {
-  opacity: 1;
-  visibility: visible;
-}
+.entry .icon-btn { opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; }
+.entry:hover .icon-btn { opacity: 1; visibility: visible; }
 
 /* =============================================
    7. 帖子详情页 Detail Page

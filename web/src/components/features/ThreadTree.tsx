@@ -5,7 +5,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type { NodeEntity } from '@/types/domain';
-import type { ThreadViewItem, BackState } from '@/types/view'; 
+import type { ThreadViewItem } from '@/types/view';
 import { markNodeAsRead } from '@/services/node-service';
 
 import ThreadItem from '@/components/features/ThreadItem';
@@ -15,23 +15,6 @@ interface Props {
   threads: ThreadViewItem[];
   activeNode: NodeEntity | null;
   activeTag?: HeaderDisplayData | null;
-  backState?: BackState;
-}
-
-/**
- * 构建带回溯参数的详情页链接
- */
-function buildPostUrl(postSlug: string, backState?: BackState): string {
-  if (!backState || (!backState.nodeSlug && !backState.tagSlug && !backState.page)) {
-    return `/threads/${postSlug}`;
-  }
-
-  const params = new URLSearchParams();
-  if (backState.nodeSlug) params.set('nodeSlug', backState.nodeSlug);
-  if (backState.tagSlug) params.set('tagSlug', backState.tagSlug);
-  if (backState.page) params.set('page', backState.page);
-
-  return `/threads/${postSlug}?${params.toString()}`;
 }
 
 /** 客户端排序函数 (保持不变) */
@@ -63,7 +46,7 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
   return sorted;
 }
 
-export default function ThreadTree({ threads, activeNode, activeTag, backState }: Props) {
+export default function ThreadTree({ threads, activeNode, activeTag }: Props) { // ✅ 解构移除 backState
   const router = useRouter();
 
   const [allCollapsed, setAllCollapsed] = useState(false);
@@ -72,24 +55,20 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
 
   const effectiveSlug = activeNode?.slug;
 
-  // 排序逻辑本身较复杂，保留 useMemo 是正确的
   const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);
 
-  // 将纯逻辑函数提取出组件外部，避免每次渲染都重新创建
   const toggleAll = useCallback(() => setAllCollapsed((prev) => !prev), []);
 
-  // 修复 handleMarkAsRead 的依赖项问题
-  // 原代码依赖了 markingRead，导致每次 markingRead 变化时都会重新创建该函数
-  // 实际上函数内部通过 setMarkingRead(true) 已经更新了状态，无需将其作为依赖
+  // ✅ 依赖项移除 backState
   const handleMarkAsRead = useCallback(async () => {
     if (!effectiveSlug) {
-      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 Slug', { activeNode, backState });
+      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 Slug', { activeNode });
       return;
     }
 
     setMarkingRead(true);
     try {
-      await markNodeAsRead(effectiveSlug); 
+      await markNodeAsRead(effectiveSlug);
       toast.success('标记已读成功');
       router.refresh();
     } catch (err) {
@@ -98,15 +77,16 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
     } finally {
       setMarkingRead(false);
     }
-  }, [effectiveSlug, activeNode, backState, router]);
+  }, [effectiveSlug, activeNode, router]); // ✅ 依赖项精简
 
   const isMarkReadDisabled = markingRead || !effectiveSlug;
 
-  // 简化 headerTagData 的映射逻辑
-  // 原代码使用 useMemo 仅为了做简单的属性映射，开销大于收益，直接赋值即可
-  const headerTagData: HeaderDisplayData | null = activeTag 
-    ? { name: activeTag.tagName } 
+  const headerTagData: HeaderDisplayData | null = activeTag
+    ? { name: activeTag.tagName }
     : null;
+
+  // 版块页下 activeNode 存在 → 不显示；首页/标签页/我的 → 显示
+  const showNodeLink = !activeNode;
 
   return (
     <div className="thread-tree-container">
@@ -119,8 +99,8 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
             onClick={handleMarkAsRead}
             disabled={isMarkReadDisabled}
             aria-label="标记当前节点/标签为已读"
-            title={!effectiveSlug 
-              ? "当前无有效节点或标签，无法标记已读" 
+            title={!effectiveSlug
+              ? "当前无有效节点或标签，无法标记已读"
               : "将当前内容标记为已读"
             }
           >
@@ -167,7 +147,7 @@ export default function ThreadTree({ threads, activeNode, activeTag, backState }
             item={t}
             isRoot
             globalCollapsed={allCollapsed}
-            backState={backState}
+            showNodeLink={showNodeLink}
           />
         ))}
       </ul>

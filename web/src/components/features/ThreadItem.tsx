@@ -11,6 +11,7 @@ interface Props {
   isRoot?: boolean;
   currentPostSlug?: string;
   globalCollapsed?: boolean;
+  showNodeLink?: boolean;
 }
 
 export default function ThreadItem({
@@ -18,6 +19,7 @@ export default function ThreadItem({
   isRoot,
   currentPostSlug,
   globalCollapsed,
+  showNodeLink = false,
 }: Props) {
   const [userOverride, setUserOverride] = useState<boolean | null>(null);
   const folded = userOverride ?? globalCollapsed ?? false;
@@ -120,8 +122,14 @@ export default function ThreadItem({
           <span className="tail">
             <RelativeTime timestamp={item.date} />
           </span>
-          {isRoot && item.nodeName && (
-            <span className="category">({item.nodeName})</span>
+          {isRoot && showNodeLink && item.node && (
+            <Link
+              href={`/nodes/${item.node.slug}`}
+              className="category"
+              title={`查看版块: ${item.node.name}`}
+            >
+              ({item.node.name})
+            </Link>
           )}
 
           {isRoot && item.tags && item.tags.length > 0 && (

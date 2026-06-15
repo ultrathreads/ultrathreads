@@ -12,7 +12,7 @@ export interface ThreadViewItem {
   date: number;            // Unix timestamp (ms)
   lastCommentTime: number;
   isPinned?: boolean;
-  nodeName?: string;
+  node?: { slug: string; name: string; };
   tags?: { slug: string; name: string }[];
   replies?: ThreadViewItem[];
 }
