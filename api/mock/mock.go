@@ -27,6 +27,7 @@ func dropAndCreateTable(table interface{}) {
 // Mock 执行所有数据填充
 func Mock() {
 	UserTableSeeder(true, 10)
+	RbacTableSeeder(true)
 	NodeTableSeeder(true, 4)
 	PostTableSeeder(true, 200)
 	TagTableSeeder(true, 6)

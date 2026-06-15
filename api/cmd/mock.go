@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -14,10 +15,16 @@ import (
 )
 
 var CmdMock = &cli.Command{
-	Name:        "mock",
-	Usage:       "Mock Data",
-	Action:      runMock,
-	Flags:       []cli.Flag{},
+	Name:   "mock",
+	Usage:  "Mock Data",
+	Action: runMock,
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "yes",
+			Aliases: []string{"y"},
+			Usage:   "Skip confirmation prompt",
+		},
+	},
 }
 
 func runMock(c *cli.Context) error {
@@ -31,20 +38,31 @@ func runMock(c *cli.Context) error {
 
 	// 2. Set up configuration
 	viper.SetConfigFile(conf)
-	
+
 	content, err := os.ReadFile(conf)
 	if err != nil {
 		return fmt.Errorf("read conf file fail: %w", err)
 	}
 
-	// Replace environment variables
 	err = viper.ReadConfig(strings.NewReader(os.ExpandEnv(string(content))))
 	if err != nil {
 		return fmt.Errorf("parse conf file fail: %w", err)
 	}
 
 	dao.Setup()
-	
+
+	// ✅ 交互确认（支持 --yes / -y 跳过）
+	if !c.Bool("yes") {
+		fmt.Print("⚠️  This will overwrite existing mock data. Continue? [Y/n]: ")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		input := strings.ToLower(strings.TrimSpace(scanner.Text()))
+		if input != "" && input != "y" && input != "yes" {
+			fmt.Println("❌ Mock cancelled.")
+			return nil
+		}
+	}
+
 	log.Info("run mock\n")
 	mock.Mock()
 

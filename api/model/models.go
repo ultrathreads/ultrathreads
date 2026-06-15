@@ -1,10 +1,22 @@
 package model
 
 var Models = []interface{}{
-	&User{}, &Tag{}, &Article{}, &ArticleTag{}, &Favorite{},
-	&Post{}, &Node{}, &PostTag{}, &PostLike{}, &Notification{}, 
-	&Setting{}, &Link{}, &LoginSource{}, &Sitemap{}, 
+	// 用户与权限
+	&User{}, &Role{}, &Permission{}, &UserRole{}, &RolePermission{},
+
+	// 标签
+	&Tag{},
+
+	// 文章/帖子
+	&Article{}, &ArticleTag{},
+	&Post{}, &Node{}, &PostTag{}, &PostLike{},
+
+	// 用户行为
+	&Favorite{}, &Notification{},
 	&UserReadState{}, &UserWatch{}, &UserScore{}, &UserScoreLog{},
+
+	// 站点
+	&Setting{}, &Link{}, &LoginSource{}, &Sitemap{},
 }
 
 type Model struct {
