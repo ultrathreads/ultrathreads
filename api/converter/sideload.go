@@ -4,7 +4,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	//"ultrathreads/util"
-	"ultrathreads/service"
+	//"ultrathreads/service"
 	"ultrathreads/util/hashid"
 )
 
@@ -58,7 +58,8 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 		slug := hashid.Id2Slug[model.User](u.ID)
 		inc := model.UserIncluded{
 			Slug:   slug,
-			Name:   u.Nickname,
+			Username:   u.Username.String,
+			Nickname:   u.Nickname,
 			Avatar: u.Avatar,
 		}
 		userSlugMap[slug] = inc
@@ -91,16 +92,10 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 			UserSlug:   userSlug,
 			NodeSlug:   nodeSlug,
 			Title:      p.Title,
-			User:       ToUserDefaultIfNull(p.UserId),
 		}
 
 		rsp.LastCommentTime = p.LastCommentTime
 		rsp.CreateTime = p.CreateTime
-
-		if p.NodeId > 0 {
-			node := service.NodeService.Get(p.NodeId)
-			rsp.Node = ToNode(node)
-		}
 		respList = append(respList, rsp)
 	}
 

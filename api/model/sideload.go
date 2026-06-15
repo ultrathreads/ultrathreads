@@ -15,17 +15,16 @@ type PostItem struct {
 	LastCommentTime int64          `json:"lastCommentTime"`
 
 	//先考虑兼容
-	Node            *NodeResponse  `json:"node"`
 	Tags            []TagResponse  `json:"tags"`
-	User            *UserInfo      `json:"user"`
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 }
 
 // 侧载-用户（主key：slug）
 type UserIncluded struct {
-	Slug   string `json:"slug"` // 对外唯一key
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
+	Slug     string `json:"slug"` // 对外唯一key
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Avatar   string `json:"avatar"`
 }
 
 // 侧载-板块（主key：slug）

@@ -47,7 +47,7 @@ func (c *PostController) List(ctx *gin.Context) {
 }
 
 // ListThreads 帖子列表（含扁平化回帖）
-func (c *PostController) Sideload(ctx *gin.Context) {
+func (c *PostController) ListThreads(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
 	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
@@ -75,7 +75,7 @@ func (c *PostController) Sideload(ctx *gin.Context) {
 }
 
 // ListThreads 帖子列表（含扁平化回帖）
-func (c *PostController) ListThreads(ctx *gin.Context) {
+func (c *PostController) ListThreads_old(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
 	nodeSlug := util.ParamStringDefault(ctx, "slug", "")

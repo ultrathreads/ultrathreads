@@ -42,9 +42,6 @@ export function buildThreadTree(
       if (parentPost) {
         parentPost.children.push(currentPost);
       } else {
-        console.warn(
-          `[buildThreadTree] Parent ${post.parentSlug} not found for post ${post.slug}`,
-        );
         // 父节点缺失时降级为根节点，避免丢失数据
         roots.push(currentPost);
       }

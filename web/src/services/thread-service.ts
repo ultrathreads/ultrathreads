@@ -3,6 +3,8 @@ import { apiFetch } from '@/lib/api/client';
 import type { PostEntity, NodeEntity, UserEntity } from '@/types/domain';
 import type { PaginationMeta } from '@/types/api';
 import { DEFAULT_LIMIT } from '@/constants';
+import { assembleSideload } from '@/lib/utils/assemble-sideload';
+import type { IncludedData } from '@/lib/utils/assemble-sideload';
 
 // ==================== 传输层类型 ====================
 
@@ -19,8 +21,10 @@ export interface ThreadListItem {
   lastCommentTime: number;
   viewCount: number;
   commentCount: number;
-  user: Pick<UserEntity, 'slug' | 'username' | 'nickname' | 'avatar'>;
-  node: Pick<NodeEntity, 'slug' | 'name'>;
+
+  // Sideload 外键（新接口返回）
+  userSlug?: string;
+  nodeSlug?: string;
 }
 
 /** API 原始响应结构（不导出，仅内部使用） */
@@ -28,6 +32,7 @@ interface ThreadsApiResponse {
   results: ThreadListItem[];
   page: PaginationMeta;
   lastReadAtMap: Record<string, number>;
+  included?: IncludedData;
 }
 
 // ==================== 视图层类型 ====================
@@ -77,9 +82,9 @@ export async function getThreadPageData(
         // cacheStrategy: { next: { tags: cacheTags, revalidate: 60 } },
       },
     );
-
+    const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
     return {
-      posts: rsp.data ?? [],
+      posts: assembledPosts,
       paging: rsp.meta,
       lastReadAtMap: rsp.lastReadAtMap ?? {},
       error: null,
