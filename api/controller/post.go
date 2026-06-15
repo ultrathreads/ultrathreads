@@ -61,17 +61,18 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 		lastReadAtMap = c.GetLastReadStates(ctx)
 	}
 
-	results, incUsers, incNodes := converter.ToSimplePostsWithIncluded(posts)
+	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
 
-	resp := model.PostListWithIncluded{
-		Data:  results,
+	rsp := model.PostListWithIncluded{
+		Data:     results,
 		Meta:     *paging,
 		LastRead: lastReadAtMap,
 	}
-	resp.Included.Users = incUsers
-	resp.Included.Nodes = incNodes
+	rsp.Included.Users = incUsers
+	rsp.Included.Nodes = incNodes
+	rsp.Included.Tags = incTags
 
-	c.SuccessWithIncluded(ctx, resp)
+	c.SuccessWithIncluded(ctx, rsp)
 }
 
 // ListThreads 帖子列表（含扁平化回帖）

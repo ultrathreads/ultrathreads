@@ -9,13 +9,13 @@ type PostItem struct {
 	ParentSlug string `json:"parentSlug"`
 	NodeSlug string `json:"nodeSlug"`
 	UserSlug string `json:"userSlug"`
+	TagSlugs   []string `json:"tagSlugs"`
 	Title    string `json:"title"`
 
 	CreateTime      int64          `json:"createTime"`
 	LastCommentTime int64          `json:"lastCommentTime"`
 
 	//先考虑兼容
-	Tags            []TagResponse  `json:"tags"`
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 }
 
@@ -33,6 +33,13 @@ type NodeIncluded struct {
 	Name string `json:"name"`
 }
 
+// 侧载-标签（主key：slug）
+type TagIncluded struct {
+	Slug string `json:"slug"`
+	Name string `json:"name"`
+	// 如有其他字段如 Color, Icon 等可在此补充
+}
+
 // 最终返回体
 type PostListWithIncluded struct {
 	Data  []PostItem              `json:"data"`
@@ -41,5 +48,6 @@ type PostListWithIncluded struct {
 	Included struct {
 		Users []UserIncluded `json:"users"`
 		Nodes []NodeIncluded `json:"nodes"`
+		Tags  []TagIncluded  `json:"tags"`
 	} `json:"included"`
 }

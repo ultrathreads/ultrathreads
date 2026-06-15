@@ -13,6 +13,7 @@ export interface ThreadViewItem {
   lastCommentTime: number;
   isPinned?: boolean;
   nodeName?: string;
+  tags?: { slug: string; name: string }[];
   replies?: ThreadViewItem[];
 }
 

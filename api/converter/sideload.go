@@ -13,19 +13,22 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 	[]model.PostItem,
 	[]model.UserIncluded,
 	[]model.NodeIncluded,
+	[]model.TagIncluded,
 ) {
 	if len(posts) == 0 {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	// 1. 收集【数据库ID】（去重，用于批量查库）
 	var (
 		userIDs = make(map[int64]struct{})
 		nodeIDs = make(map[int64]struct{})
+		postIDs = make([]int64, 0, len(posts)) // 【关键】收集帖子ID用于查帖子和标签的关联表
 	)
 	for _, p := range posts {
 		userIDs[p.UserId] = struct{}{}
 		nodeIDs[p.NodeId] = struct{}{}
+		postIDs = append(postIDs, p.ID)
 
 		// 扁平化回帖 同理收集回帖人ID
 		// for _, reply := range p.Replies {
@@ -47,32 +50,41 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 	users := dao.UserDao.FindByIds(uidList)
 	nodes := dao.NodeDao.FindByIds(nidList)
 
-	// 3. 构建【slug 为 key】的内存索引（前端/侧载专用）
-	var (
-		userSlugMap = make(map[string]model.UserIncluded)
-		nodeSlugMap = make(map[string]model.NodeIncluded)
-	)
+	// 【关键】通过关联表批量查出 postId → tagIds 的映射
+	// 返回 map[int64][]int64 即 postId → []tagId
+	postTagMap := dao.TagDao.FindTagIdsByPostIds(postIDs)
 
-	// 用户映射：id → slug → 存入map
+	// 从映射中收集所有去重的 tagID，再批量查 Tag 详情
+	tagIDs := make(map[int64]struct{})
+	for _, tids := range postTagMap {
+		for _, tid := range tids {
+			tagIDs[tid] = struct{}{}
+		}
+	}
+	tags := dao.TagDao.FindByIds(mapKeys(tagIDs))
+
+	// ========== 3. 构建 slug 索引 ==========
+	userSlugMap := make(map[string]model.UserIncluded, len(users))
 	for _, u := range users {
 		slug := hashid.Id2Slug[model.User](u.ID)
-		inc := model.UserIncluded{
-			Slug:   slug,
-			Username:   u.Username.String,
-			Nickname:   u.Nickname,
-			Avatar: u.Avatar,
+		userSlugMap[slug] = model.UserIncluded{
+			Slug: slug, Username: u.Username.String,
+			Nickname: u.Nickname, Avatar: u.Avatar,
 		}
-		userSlugMap[slug] = inc
 	}
 
-	// 板块映射
+	nodeSlugMap := make(map[string]model.NodeIncluded, len(nodes))
 	for _, n := range nodes {
 		slug := hashid.Id2Slug[model.Node](n.ID)
-		inc := model.NodeIncluded{
-			Slug: slug,
-			Name: n.Name,
-		}
-		nodeSlugMap[slug] = inc
+		nodeSlugMap[slug] = model.NodeIncluded{Slug: slug, Name: n.Name}
+	}
+
+	tagSlugMap := make(map[string]model.TagIncluded, len(tags))
+	tagIdToSlug := make(map[int64]string, len(tags)) // 【新增】tagID→slug 反查
+	for _, t := range tags {
+		slug := hashid.Id2Slug[model.Tag](t.ID)
+		tagSlugMap[slug] = model.TagIncluded{Slug: slug, Name: t.Name}
+		tagIdToSlug[t.ID] = slug
 	}
 
 	// 4. 转换主列表 DTO
@@ -85,13 +97,29 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 		parentSlug := hashid.Id2Slug[model.Post](p.ParentId)
 		threadSlug := hashid.Id2Slug[model.Post](p.ThreadId)
 
+		// 通过 postTagMap + tagIdToSlug 组装该帖子的 TagSlugs
+		var tagSlugs []string
+		if tids, ok := postTagMap[p.ID]; ok {
+			tagSlugs = make([]string, 0, len(tids))
+			for _, tid := range tids {
+				if slug, exists := tagIdToSlug[tid]; exists {
+					tagSlugs = append(tagSlugs, slug)
+				}
+			}
+		} else {
+			tagSlugs = []string{} // 保证返回 [] 而非 null
+		}
+
 		rsp := model.PostItem{
 			Slug:       postSlug,
 			ParentSlug: parentSlug,
 			ThreadSlug: threadSlug,
 			UserSlug:   userSlug,
 			NodeSlug:   nodeSlug,
+			TagSlugs:        tagSlugs,
+			CreateTime:      p.CreateTime,
 			Title:      p.Title,
+			LastCommentTime: p.LastCommentTime,
 		}
 
 		rsp.LastCommentTime = p.LastCommentTime
@@ -100,14 +128,24 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 	}
 
 	// 5. slug map 转切片，作为 sideload included
-	incUsers := make([]model.UserIncluded, 0, len(userSlugMap))
-	for _, u := range userSlugMap {
-		incUsers = append(incUsers, u)
-	}
-	incNodes := make([]model.NodeIncluded, 0, len(nodeSlugMap))
-	for _, n := range nodeSlugMap {
-		incNodes = append(incNodes, n)
-	}
+	return respList,
+		mapValues(userSlugMap),
+		mapValues(nodeSlugMap),
+		mapValues(tagSlugMap)
+}
 
-	return respList, incUsers, incNodes
+func mapKeys(m map[int64]struct{}) []int64 {
+	keys := make([]int64, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func mapValues[T any](m map[string]T) []T {
+	vals := make([]T, 0, len(m))
+	for _, v := range m {
+		vals = append(vals, v)
+	}
+	return vals
 }

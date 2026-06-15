@@ -25,6 +25,7 @@ export interface ThreadListItem {
   // Sideload 外键（新接口返回）
   userSlug?: string;
   nodeSlug?: string;
+  tagSlugs?: string[]; // 标签slug列表，后端保证返回 [] 而非 null
 }
 
 /** API 原始响应结构（不导出，仅内部使用） */
@@ -67,7 +68,7 @@ export async function getThreadPageData(
   // 有值 → /nodes/:nodeSlug/threads（板块列表）
   const basePath = nodeSlug
     ? `/nodes/${encodeURIComponent(nodeSlug)}/threads`
-    : '/sideload';
+    : '/threads';
 
   // 缓存标签按节点隔离，避免切换板块时命中旧缓存
   const cacheTags = ['threads', ...(nodeSlug ? [`node-${nodeSlug}`] : [])];
@@ -83,6 +84,7 @@ export async function getThreadPageData(
       },
     );
     const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
+
     return {
       posts: assembledPosts,
       paging: rsp.meta,

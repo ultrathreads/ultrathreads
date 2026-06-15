@@ -613,6 +613,26 @@ a.subject.read { font-weight: 400; color: var(--text-regular); }
 .category { color: var(--text-muted); font-style: italic; }
 .category:hover { color: var(--color-primary); }
 
+.metadata .tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 2px; vertical-align: middle; }
+
+.metadata .tag-link {
+  display: inline-block;
+  padding: 0 8px;
+  font-size: 0.75rem;
+  line-height: 20px;
+  border-radius: 10px;
+  color: var(--color-primary);
+  background-color: var(--bg-tag);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.metadata .tag-link:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
 /* 悬浮预览按钮 */
 .icon-btn {
     display: inline-flex; align-items: center; justify-content: center;

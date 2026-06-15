@@ -113,6 +113,21 @@ export default function ThreadItem({
             <RelativeTime timestamp={item.date} />
           </span>
           {isRoot && item.nodeName && <span className="category">({item.nodeName})</span>}
+
+          {isRoot && item.tags && item.tags.length > 0 && (
+            <span className="tags">
+              {item.tags.map((tag) => (
+                <Link
+                  key={tag.slug}
+                  href={`/tags/${tag.slug}`}
+                  className="tag-link"
+                  title={`查看标签: ${tag.name}`}
+                >
+                  #{tag.name}
+                </Link>
+              ))}
+            </span>
+          )}
         </span>
         <button
           className="icon-btn preview-btn"

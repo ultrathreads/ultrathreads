@@ -56,6 +56,11 @@ export function adaptToThreadView(
     ? contentTime <= options.lastReadAt
     : false;
 
+  // 透传 tags，保持与 user/node 一致的三元兼容逻辑
+  const tags = isPostEntity
+    ? post.tags
+    : listItem.tags;
+
   return {
     slug: source.slug,
     threadSlug: source.threadSlug,
@@ -72,5 +77,6 @@ export function adaptToThreadView(
     nodeName: isPostEntity
       ? post.node?.name
       : listItem.node?.name,
+    tags,
   };
 }

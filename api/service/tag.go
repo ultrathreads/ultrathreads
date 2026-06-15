@@ -86,8 +86,8 @@ func (s *tagService) GetTags() []model.TagResponse {
 	return tags
 }
 
-func (s *tagService) GetTagInIds(tagIds []int64) []model.Tag {
-	return dao.TagDao.GetTagInIds(tagIds)
+func (s *tagService) FindByIds(tagIds []int64) []model.Tag {
+	return dao.TagDao.FindByIds(tagIds)
 }
 
 // 扫描

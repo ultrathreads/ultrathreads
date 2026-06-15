@@ -83,13 +83,38 @@ func (d *tagDao) Delete(id int64) {
 	db.Delete(&model.Tag{}, "id = ?", id)
 }
 
-func (d *tagDao) GetTagInIds(tagIds []int64) []model.Tag {
-	if len(tagIds) == 0 {
+func (d *tagDao) FindByIds(ids []int64) []model.Tag {
+	if len(ids) == 0 {
 		return nil
 	}
+
 	var tags []model.Tag
-	db.Where("id in (?)", tagIds).Find(&tags)
+	// GORM 的 Where("id IN ?", slice) 会自动处理空切片和单值情况
+	db.Where("id IN ?", ids).Find(&tags)
+
 	return tags
+}
+
+// FindTagIdsByPostIds 通过关联表批量查询
+// SELECT post_id, tag_id FROM post_tags WHERE post_id IN (?)
+func (d *tagDao) FindTagIdsByPostIds(postIds []int64) map[int64][]int64 {
+	if len(postIds) == 0 {
+		return nil
+	}
+
+	// ✅ 直接使用完整的 model.PostTag 结构体
+	// GORM 会根据结构体名自动映射到 post_tags 表
+	var rows []model.PostTag
+	
+	db.Select("post_id, tag_id").
+		Where("post_id IN ? AND status = ?", postIds, model.StatusOk). // ⚠️ 必须过滤有效状态
+		Find(&rows)
+
+	result := make(map[int64][]int64, len(rows))
+	for _, r := range rows {
+		result[r.PostId] = append(result[r.PostId], r.TagId)
+	}
+	return result
 }
 
 func (d *tagDao) GetByName(name string) *model.Tag {

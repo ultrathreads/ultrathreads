@@ -2,12 +2,27 @@
 
 import type { ThreadListItem } from '@/services/thread-service';
 
-interface SideloadUser { slug: string; username: string; nickname: string; avatar: string }
-interface SideloadNode { slug: string; name: string }
+interface SideloadUser {
+  slug: string;
+  username: string;
+  nickname: string;
+  avatar: string;
+}
+
+interface SideloadNode {
+  slug: string;
+  name: string;
+}
+
+interface SideloadTag {
+  slug: string;
+  name: string;
+}
 
 export interface IncludedData {
   users?: SideloadUser[];
   nodes?: SideloadNode[];
+  tags?: SideloadTag[];
 }
 
 const FALLBACK_USER: ThreadListItem['user'] = {
@@ -27,9 +42,11 @@ export function assembleSideload(
 ): ThreadListItem[] {
   const userMap = new Map<string, SideloadUser>();
   const nodeMap = new Map<string, SideloadNode>();
+  const tagMap = new Map<string, SideloadTag>();
 
   for (const u of included?.users ?? []) userMap.set(u.slug, u);
   for (const n of included?.nodes ?? []) nodeMap.set(n.slug, n);
+  for (const t of included?.tags ?? []) tagMap.set(t.slug, t);
 
   return posts.map((post) => {
     // --- User 解析（userSlug 优先 → fallback post.user → 兜底值）---
@@ -59,6 +76,23 @@ export function assembleSideload(
       node = FALLBACK_NODE;
     }
 
-    return { ...post, user, node };
+    // --- Tags 解析 ---
+    let tags: NonNullable<ThreadListItem['tags']>;
+    if (post.tagSlugs && post.tagSlugs.length > 0) {
+      // ✅ 优先从 sideload 组装，自动过滤 included 中缺失的脏数据
+      tags = post.tagSlugs
+        .filter((slug) => tagMap.has(slug))
+        .map((slug) => {
+          const raw = tagMap.get(slug)!;
+          return { slug: raw.slug, name: raw.name };
+        });
+    } else if (post.tags && post.tags.length > 0) {
+      // ✅ 【新增】兼容旧接口直接返回嵌套 tags 对象的场景
+      tags = post.tags;
+    } else {
+      tags = [];
+    }
+
+    return { ...post, user, node, tags };
   });
 }
