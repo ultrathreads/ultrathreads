@@ -7,6 +7,8 @@ import BackToTop from '@/components/ui/BackToTop';
 import PreviewPopover from '@/components/ui/PreviewPopover';
 import { fetchSiteConfig } from '@/services/site-service';
 
+import '@/styles/global.css';
+
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (

@@ -25,7 +25,7 @@ func (c *NodeController) Show(ctx *gin.Context) {
 			c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
 		}
-		c.Success(ctx, node)
+		c.SuccessWithIncluded(ctx, node)
 	}
 }
 
@@ -45,27 +45,44 @@ func (c *NodeController) Store(ctx *gin.Context) {
 
 // Update update a node
 func (c *NodeController) Update(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if !c.BindAndValidate(ctx, &gDto) {
-		return
-	}
-	node := service.NodeService.Get(gDto.ID)
-	if node == nil {
-		c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(gDto.ID, 10)))
-		return
-	}
-
 	var nodeForm form.NodeUpdateForm
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
-	nodeForm.ID = gDto.ID
-	err := service.NodeService.Update(nodeForm)
+	node := service.NodeService.Get(nodeForm.ID)
+	if node == nil {
+		c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(nodeForm.ID, 10)))
+		return
+	}
+
+	err := service.NodeService.Update(nodeForm.ID, nodeForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
 	c.Success(ctx, node)
+}
+
+func (c *NodeController) Sort(ctx *gin.Context) {
+    var req form.SortRequest
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        ctx.JSON(400, gin.H{"code": 40001, "message": "参数错误: " + err.Error()})
+        return
+    }
+
+    // 批量更新 sort_no
+    /*
+    for _, item := range req.Items {
+        if err := service.nodeService.UpdateSort(item.ID, item.SortNo); err != nil {
+            ctx.JSON(500, gin.H{"code": 50001, "message": "排序保存失败"})
+            return
+        }
+    }
+    */
+
+    ctx.JSON(200, gin.H{
+        "data": gin.H{"updated": len(req.Items)},
+    })
 }
 
 // Delete delete node
@@ -99,5 +116,5 @@ func (c *NodeController) List(ctx *gin.Context) {
 		results = append(results, item)
 	}
 
-	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
+	c.SuccessWithIncluded(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }

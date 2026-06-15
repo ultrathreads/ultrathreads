@@ -171,6 +171,7 @@ body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Ping
 
 /* Logo + 站点标题 */
 .header-title {
+  min-width: 240px;
   display: inline-flex;
   align-items: center;
   gap: 8px;

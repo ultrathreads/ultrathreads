@@ -7,8 +7,6 @@ import { getServerSession } from '@/lib/auth/session';
 import type { Metadata } from 'next';
 import { fetchSiteConfig } from '@/services/site-service';
 
-import './global.css';
-
 export async function generateMetadata(): Promise<Metadata> {
   const config = await fetchSiteConfig();
 

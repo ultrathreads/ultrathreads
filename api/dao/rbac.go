@@ -158,21 +158,44 @@ func (d *rbacDao) RevokePermissionFromRole(roleID, permID int64) error {
 
 func (d *rbacDao) GetRolePermissionCodes(roleID int64) []string {
 	var codes []string
-	db.Table("permissions").
-		Select("permissions.code").
-		Joins("JOIN role_permissions ON role_permissions.permission_id = permissions.id").
-		Where("role_permissions.role_id = ?", roleID).
+
+	// 通过 Statement 解析出带前缀的真实表名
+	permStmt := &gorm.Statement{DB: db}
+	_ = permStmt.Parse(&model.Permission{})
+	permTable := permStmt.Table
+
+	rpStmt := &gorm.Statement{DB: db}
+	_ = rpStmt.Parse(&model.RolePermission{})
+	rpTable := rpStmt.Table
+
+	db.Table(permTable).
+		Select(permTable + ".code").
+		Joins("JOIN "+rpTable+" ON "+rpTable+".permission_id = "+permTable+".id").
+		Where(rpTable+".role_id = ?", roleID).
 		Pluck("code", &codes)
 	return codes
 }
 
 func (d *rbacDao) GetUserPermissionCodes(userID int64) []string {
 	var codes []string
-	db.Table("permissions").
-		Select("DISTINCT permissions.code").
-		Joins("JOIN role_permissions ON role_permissions.permission_id = permissions.id").
-		Joins("JOIN user_roles ON user_roles.role_id = role_permissions.role_id").
-		Where("user_roles.user_id = ?", userID).
+
+	permStmt := &gorm.Statement{DB: db}
+	_ = permStmt.Parse(&model.Permission{})
+	permTable := permStmt.Table
+
+	rpStmt := &gorm.Statement{DB: db}
+	_ = rpStmt.Parse(&model.RolePermission{})
+	rpTable := rpStmt.Table
+
+	urStmt := &gorm.Statement{DB: db}
+	_ = urStmt.Parse(&model.UserRole{})
+	urTable := urStmt.Table
+
+	db.Table(permTable).
+		Select("DISTINCT "+permTable+".code").
+		Joins("JOIN "+rpTable+" ON "+rpTable+".permission_id = "+permTable+".id").
+		Joins("JOIN "+urTable+" ON "+urTable+".role_id = "+rpTable+".role_id").
+		Where(urTable+".user_id = ?", userID).
 		Pluck("code", &codes)
 	return codes
 }

@@ -20,6 +20,7 @@ func setupAdmin(e *gin.Engine) {
 	adminAPI.GET("/nodes", adminNodeController.List)
 	adminAPI.GET("/nodes/:id", adminNodeController.Show)
 	adminAPI.POST("/nodes", adminNodeController.Store)
+	adminAPI.PUT("/nodes/sort", adminNodeController.Sort)  // ✅ 固定路径优先
 	adminAPI.PUT("/nodes/:id", adminNodeController.Update)
 	adminAPI.DELETE("/nodes/:id", adminNodeController.Delete)
 
@@ -32,6 +33,13 @@ func setupAdmin(e *gin.Engine) {
 	adminAPI.POST("/posts/:id/recommend", adminPostController.Recommend)
 	adminAPI.POST("/posts/:id/unrecommend", adminPostController.Unrecommend)
 	adminAPI.POST("/posts/:id/undelete", adminPostController.Undelete)
+
+	// Tag
+	adminTagController := &admin.TagController{}
+	adminAPI.GET("/tags", adminTagController.List)
+	adminAPI.GET("/tags/:id", adminTagController.Show)
+	adminAPI.PUT("/tags/:id", adminTagController.Update)
+	adminAPI.DELETE("/tags/:id", adminTagController.Delete)
 
 	// Article
 	adminArticleController := &admin.ArticleController{}

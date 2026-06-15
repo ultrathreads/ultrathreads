@@ -2,10 +2,12 @@ package service
 
 import (
 	"strings"
+	"errors"
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/form"
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/hashid"
 )
@@ -46,15 +48,34 @@ func (s *tagService) List(cnd *querybuilder.QueryBuilder) (list []model.Tag, pag
 	return dao.TagDao.List(cnd)
 }
 
-func (s *tagService) Create(t *model.Tag) error {
-	return dao.TagDao.Create(t)
+func (s *tagService) Create(req form.TagCreateForm) (*model.Tag, error) {
+	tag := &model.Tag{
+		Name:        req.Name,
+		Description: req.Description,
+		Status:      req.Status,
+	}
+	if err := dao.TagDao.Create(tag); err != nil {
+		return nil, errors.New("创建标签失败")
+	}
+	return tag, nil
 }
 
-func (s *tagService) Update(t *model.Tag) error {
-	if err := dao.TagDao.Update(t); err != nil {
-		return err
+func (s *tagService) Update(int int64, req form.TagUpdateForm) error {
+	err := dao.TagDao.Updates(req.ID, map[string]interface{}{
+		"name":        req.Name,
+		"description": req.Description,
+		"status":      req.Status,
+	})
+	if err != nil {
+		return errors.New("更新标签失败")
 	}
-	cache.TagCache.Invalidate(t.ID)
+	return nil
+}
+
+func (s *tagService) Delete(id int64) error {
+	if err := dao.TagDao.Delete(id); err != nil {
+		return errors.New("删除标签失败")
+	}
 	return nil
 }
 

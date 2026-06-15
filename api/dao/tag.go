@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"ultrathreads/model"
-	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -79,8 +78,9 @@ func (d *tagDao) UpdateColumn(id int64, name string, value interface{}) (err err
 	return
 }
 
-func (d *tagDao) Delete(id int64) {
+func (d *tagDao) Delete(id int64) error {
 	db.Delete(&model.Tag{}, "id = ?", id)
+	return nil
 }
 
 func (d *tagDao) FindByIds(ids []int64) []model.Tag {
@@ -133,10 +133,8 @@ func (d *tagDao) GetOrCreate(name string) (*model.Tag, error) {
 		return tag, nil
 	} else {
 		tag = &model.Tag{
-			Name:       name,
-			Status:     model.StatusOk,
-			CreateTime: util.NowTimestamp(),
-			UpdateTime: util.NowTimestamp(),
+			Name:      name,
+			Status:    model.StatusOk,
 		}
 		err := d.Create(tag)
 		if err != nil {

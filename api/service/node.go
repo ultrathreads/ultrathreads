@@ -34,12 +34,13 @@ func (s *nodeService) List(cnd *querybuilder.QueryBuilder) (list []model.Node, p
 	return dao.NodeDao.List(cnd)
 }
 
-func (s *nodeService) Create(dto form.NodeCreateForm) (*model.Node, error) {
+func (s *nodeService) Create(req form.NodeCreateForm) (*model.Node, error) {
 	node := &model.Node{
-		Name:        dto.Name,
-		Description: dto.Description,
-		SortNo:      dto.SortNo,
-		Status:      dto.Status,
+		Name:        req.Name,
+		Description: req.Description,
+		Icon:        req.Icon,
+		SortNo:      req.SortNo,
+		Status:      req.Status,
 		CreateTime:  util.NowTimestamp(),
 	}
 	if err := dao.NodeDao.Create(node); err != nil {
@@ -49,13 +50,13 @@ func (s *nodeService) Create(dto form.NodeCreateForm) (*model.Node, error) {
 	return node, nil
 }
 
-func (s *nodeService) Update(dto form.NodeUpdateForm) error {
-	err := dao.NodeDao.Updates(dto.ID, map[string]interface{}{
-		"name":        dto.Name,
-		"description": dto.Description,
-		"sort_no":     dto.SortNo,
-		"status":      dto.Status,
-		"update_time": util.NowTimestamp(),
+func (s *nodeService) Update(int int64, req form.NodeUpdateForm) error {
+	err := dao.NodeDao.Updates(req.ID, map[string]interface{}{
+		"name":        req.Name,
+		"description": req.Description,
+		"icon": 	   req.Icon,
+		"sort_no":     req.SortNo,
+		"status":      req.Status,
 	})
 	if err != nil {
 		return errors.New("更新节点失败")

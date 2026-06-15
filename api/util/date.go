@@ -26,6 +26,11 @@ const (
 	Year   = 12 * Month
 )
 
+// Now 设置为当前时间
+func Now() time.Time {
+	return time.Now()
+}
+
 // 秒时间戳
 func NowUnix() int64 {
 	return time.Now().Unix()

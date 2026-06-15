@@ -44,4 +44,7 @@ export interface CurrentUser {
   passwordSet: boolean;
   status: number;
   createTime: number; // Unix 毫秒时间戳
+
+  roles?: string[];
+  permissions?: string[];
 }

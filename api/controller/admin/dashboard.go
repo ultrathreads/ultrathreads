@@ -21,14 +21,17 @@ type DashboardController struct {
 // GetSysteminfo get system info
 func (c *DashboardController) Systeminfo(ctx *gin.Context) {
 	c.Success(ctx, gin.H{
-		"appName":     config.AppName,
-		"appVersion":  config.AppVersion,
-		"buildTime":   config.BuildTime,
-		"buildCommit": config.BuildCommit,
-		"upTime":      util.TimeSincePro(initTime),
-		"os":          runtime.GOOS,
-		"arch":        runtime.GOARCH,
-		"numCpu":      runtime.NumCPU(),
-		"goversion":   runtime.Version(),
+		"registerUserCount": 100,
+		"postTotalCount":    200,
+		"todayNewPostCount": 30,
+		"appName":     		 config.AppName,
+		"appVersion":  		 config.AppVersion,
+		"buildTime":   		 config.BuildTime,
+		"buildCommit": 		 config.BuildCommit,
+		"upTime":      		 util.TimeSincePro(initTime),
+		"os":          		 runtime.GOOS,
+		"arch":        		 runtime.GOARCH,
+		"numCpu":      		 runtime.NumCPU(),
+		"goversion":         runtime.Version(),
 	})
 }

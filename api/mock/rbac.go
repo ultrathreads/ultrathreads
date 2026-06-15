@@ -17,6 +17,7 @@ var seedRoles = []model.Role{
 // 预置权限定义（按模块划分）
 var seedPermissions = []model.Permission{
 	// system 模块
+	{Code: "admin:panel:access", Name: "后台管理准入", Module: "system", Description: "允许进入后台管理面板"}, // ✅ 新增
 	{Code: "dashboard:view", Name: "查看仪表盘", Module: "system", Description: "访问后台首页"},
 	{Code: "site:config", Name: "站点配置", Module: "system", Description: "修改站点基础设置"},
 	// post 模块
@@ -30,6 +31,7 @@ var seedPermissions = []model.Permission{
 // rolePermMapping 定义每个角色拥有的权限 Code
 var rolePermMapping = map[string][]string{
 	"admin": {
+		"admin:panel:access",
 		"dashboard:view", "site:config",
 		"post:create", "post:edit", "post:delete",
 		"user:manage",
