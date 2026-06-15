@@ -43,7 +43,7 @@ export default function Pagination({
   };
 
   // 防止 totalPages 为 0 或 NaN 时 UI 异常
-  const safeTotalPages = Math.max(1, totalPages);
+  const safeTotalPages = Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1;
 
   return (
     <div className="pagination-wrapper">

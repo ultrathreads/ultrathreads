@@ -127,7 +127,7 @@ export default function Sidebar() {
                     className={clsx('tag-item', { active: isActive })}
                     onClick={() => handleTagClick(tag.slug)}
                   >
-                    {tag.tagName}
+                    {tag.name}
                   </span>
                 );
               })}

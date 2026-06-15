@@ -49,7 +49,7 @@ export interface UserEntity {
 
 export interface TagEntity {
   slug: string;
-  tagName: string;
+  name: string;
 }
 
 /** 主帖与回帖同构别名 */

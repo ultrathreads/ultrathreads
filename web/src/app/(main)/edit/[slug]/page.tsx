@@ -38,7 +38,7 @@ export default async function EditPostPage({ params }: Props) {
     rawContent: postDetail.rawContent ?? '',
     nodeSlug: postDetail.node?.slug ?? '',
     tags: Array.isArray(postDetail.tags)
-      ? postDetail.tags.map((t: any) => t.tagName || t.name || t).join(', ')
+      ? postDetail.tags.map((t: any) => t.name || t).join(', ')
       : '',
   };
 

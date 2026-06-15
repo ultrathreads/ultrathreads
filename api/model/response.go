@@ -24,7 +24,7 @@ type UserInfo struct {
 
 type TagResponse struct {
 	Slug 	string `json:"slug"`
-	TagName string `json:"tagName"`
+	TagName string `json:"name"`
 }
 
 type LastReadAtMapResponse struct {

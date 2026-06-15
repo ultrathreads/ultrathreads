@@ -73,9 +73,8 @@ export default async function MyPostsPage({ searchParams }: Props) {
 }
 
 // 主帖内容组件
-async function RootPostsContent({ userSlug, currentPage, t, tab }: { userSlug: string; currentPage: number; t: any; tab: 'root' | 'replies' }) {
-  const { posts, paging, error } = await getUserRootPostsPageData(userSlug, currentPage);
-
+async function RootPostsContent({ userSlug, page, t, tab }: { userSlug: string; page: number; t: any; tab: 'root' | 'replies' }) {
+  const { posts, paging, error } = await getUserRootPostsPageData(userSlug, page);
   if (error) {
     return <EmptyTip text={t('common:loadFailed')} variant="error" />;
   }

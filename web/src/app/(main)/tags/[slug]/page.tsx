@@ -32,7 +32,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   if (slug) {
     const { tag } = await getTagDetail(slug);
-    if (tag) title = `${tag.tagName} - ${title}`;
+    if (tag) title = `${tag.name} - ${title}`;
   }
   return { title };
 }

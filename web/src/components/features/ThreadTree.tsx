@@ -82,7 +82,7 @@ export default function ThreadTree({ threads, activeNode, activeTag }: Props) { 
   const isMarkReadDisabled = markingRead || !effectiveSlug;
 
   const headerTagData: HeaderDisplayData | null = activeTag
-    ? { name: activeTag.tagName }
+    ? { name: activeTag.name }
     : null;
 
   // 版块页下 activeNode 存在 → 不显示；首页/标签页/我的 → 显示

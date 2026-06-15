@@ -61,8 +61,8 @@ export function TagInput({
   // ---------- 核心操作 ----------
 
   const addTag = useCallback(
-    (tagName: string) => {
-      const normalized = tagName.trim().replace(/^[,;]+|[,;]+$/g, '');
+    (name: string) => {
+      const normalized = name.trim().replace(/^[,;]+|[,;]+$/g, '');
       if (
         !normalized ||
         normalized.length > maxTagLength ||
@@ -80,8 +80,8 @@ export function TagInput({
   );
 
   const removeTag = useCallback(
-    (tagName: string) => {
-      onChange(value.filter((t) => t !== tagName));
+    (name: string) => {
+      onChange(value.filter((t) => t !== name));
     },
     [value, onChange]
   );

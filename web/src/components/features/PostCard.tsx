@@ -140,7 +140,7 @@ export default function PostCard({
                     href={`/tags/${tag.slug}`}
                     className="detail-tag"
                   >
-                    #{tag.tagName}
+                    #{tag.name}
                   </Link>
                 ))}
               </>
