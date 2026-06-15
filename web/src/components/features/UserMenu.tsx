@@ -39,7 +39,7 @@ export default function UserMenu() {
       <div className={`user-dropdown ${isOpen ? 'show' : ''}`} id="userDropdown">
         <div className="dropdown-header">
           <AuthorLink 
-            author={user.username} 
+            author={`@${user.username}`} 
             authorSlug={user.slug} 
             className="user-username" 
             onClick={close}
