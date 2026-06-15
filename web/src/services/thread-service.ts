@@ -62,25 +62,26 @@ export async function getThreadPageData(
   // 有值 → /nodes/:nodeSlug/threads（板块列表）
   const basePath = nodeSlug
     ? `/nodes/${encodeURIComponent(nodeSlug)}/threads`
-    : '/threads';
+    : '/sideload';
 
   // 缓存标签按节点隔离，避免切换板块时命中旧缓存
   const cacheTags = ['threads', ...(nodeSlug ? [`node-${nodeSlug}`] : [])];
 
   try {
-    const data = await apiFetch<ThreadsApiResponse>(
+    const rsp = await apiFetch<ThreadsApiResponse>(
       `${basePath}?${params.toString()}`,
       {
         auth: true,
+        skipDataUnwrap: true,
         cacheStrategy: { next: { tags: cacheTags } },
         // cacheStrategy: { next: { tags: cacheTags, revalidate: 60 } },
       },
     );
 
     return {
-      posts: data.results ?? [],
-      paging: data.page,
-      lastReadAtMap: data.lastReadAtMap ?? {},
+      posts: rsp.data ?? [],
+      paging: rsp.meta,
+      lastReadAtMap: rsp.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {

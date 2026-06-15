@@ -4,6 +4,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	//"ultrathreads/util"
+	"ultrathreads/service"
 	"ultrathreads/util/hashid"
 )
 
@@ -80,13 +81,27 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 		userSlug := hashid.Id2Slug[model.User](p.UserId)
 		nodeSlug := hashid.Id2Slug[model.Node](p.NodeId)
 
-		resp := model.PostItem{
-			Slug:     postSlug,
-			UserSlug: userSlug,
-			NodeSlug: nodeSlug,
-			Title:    p.Title,
+		parentSlug := hashid.Id2Slug[model.Post](p.ParentId)
+		threadSlug := hashid.Id2Slug[model.Post](p.ThreadId)
+
+		rsp := model.PostItem{
+			Slug:       postSlug,
+			ParentSlug: parentSlug,
+			ThreadSlug: threadSlug,
+			UserSlug:   userSlug,
+			NodeSlug:   nodeSlug,
+			Title:      p.Title,
+			User:       ToUserDefaultIfNull(p.UserId),
 		}
-		respList = append(respList, resp)
+
+		rsp.LastCommentTime = p.LastCommentTime
+		rsp.CreateTime = p.CreateTime
+
+		if p.NodeId > 0 {
+			node := service.NodeService.Get(p.NodeId)
+			rsp.Node = ToNode(node)
+		}
+		respList = append(respList, rsp)
 	}
 
 	// 5. slug map 转切片，作为 sideload included

@@ -89,12 +89,19 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 		lastReadAtMap = c.GetLastReadStates(ctx)
 	}
 
+	/*
 	data := map[string]interface{}{
 		"results": 		 converter.ToSimplePosts(posts),
 		"page":    		 paging,
 		"lastReadAtMap": lastReadAtMap,
 	}
-	c.Success(ctx, data)
+	*/
+	c.SuccessWithIncluded(ctx, gin.H{
+		"data": converter.ToSimplePosts(posts),
+		"meta": paging,
+		"lastReadAtMap": lastReadAtMap,
+		"included": nil,
+	})
 }
 
 // ListTagThreads 标签帖子列表

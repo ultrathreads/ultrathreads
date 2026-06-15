@@ -75,7 +75,7 @@ type PostSimpleResponse struct {
 	//sideload
 	NodeSlug        string         `json:"nodeSlug"`
 	
-	//Node            *NodeResponse  `json:"node"`
+	Node            *NodeResponse  `json:"node"`
 	Tags            []TagResponse  `json:"tags"`
 	User            *UserInfo      `json:"user"`
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
