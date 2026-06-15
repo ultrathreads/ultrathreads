@@ -46,7 +46,7 @@ export default async function MyPostsPage({ searchParams }: Props) {
 
   const currentUser = await getCurrentUser();
   if (!currentUser?.slug) {
-    redirect('/login?callback=/my');
+    redirect('/auth/login?callback=/my');
   }
 
   // 根据当前 Tab 渲染不同的内容

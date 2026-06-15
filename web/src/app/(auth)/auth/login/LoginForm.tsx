@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
 import { loginClient } from '@/services/auth.client';
@@ -33,7 +33,18 @@ const LOGIN_FIELDS: AuthFieldConfig[] = [
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
+
+  // 安全获取 callback 参数，防止开放重定向漏洞
+  const getSafeRedirectUrl = () => {
+    const callback = searchParams.get('callback');
+    // 仅允许站内相对路径，禁止外部链接或协议注入
+    if (callback && callback.startsWith('/') && !callback.startsWith('//')) {
+      return callback;
+    }
+    return '/';
+  };
 
   const handleSubmit = async (values: Record<string, string>) => {
     await loginClient({
@@ -47,7 +58,7 @@ export default function LoginForm() {
 
     refreshUser(); 
 
-    router.replace('/');
+    router.replace(getSafeRedirectUrl());
   };
 
   return (

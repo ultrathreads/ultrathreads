@@ -1,6 +1,7 @@
 // src/services/auth.server.ts
 
 import { apiFetch } from '@/lib/api/client';
+import { ApiError } from '@/lib/api/client'; 
 import type { ApiResponse } from '@/types/api';
 import type {
   LoginParams,
@@ -11,14 +12,23 @@ import type {
 
 /**
  * 获取当前登录用户信息（服务端/客户端均可调用）
- * ✅ 必须带 auth: true 自动注入 Cookie 中的 Token
+ * ✅ 未登录或 Token 无效时返回 null，而非抛出 401 异常
  */
-export async function getCurrentUser(): Promise<CurrentUser> {
-  return apiFetch<CurrentUser>('/user/current', {
-    method: 'GET',
-    auth: true,
-    cacheStrategy: { next: { revalidate: 60 } },
-  });
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  try {
+    return await apiFetch<CurrentUser>('/user/current', {
+      method: 'GET',
+      auth: true,
+      cacheStrategy: { next: { revalidate: 60 } },
+    });
+  } catch (err) {
+    // 401 = 未登录 / Token 过期 / Cookie 为空 → 安全返回 null
+    if (err instanceof ApiError && err.status === 401) {
+      return null;
+    }
+    // 其他错误（500、网络故障等）继续向上抛出，不吞掉真正的异常
+    throw err;
+  }
 }
 
 /**

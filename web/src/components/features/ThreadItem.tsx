@@ -41,34 +41,43 @@ export default function ThreadItem({
   return (
     <li className={folded ? 'folded' : ''}>
       <div className={`entry ${isActive ? 'active' : ''}`}>
-        {/* 折叠按钮 */}
+        {/* 折叠按钮 / 无回帖占位横线 */}
         {isRoot ? (
-          <span className="fold-expand">
-            <a onClick={handleToggleFold} role="button" tabIndex={0}>
-              <svg width="12" height="12" viewBox="0 0 12 12">
-                <path
-                  d={folded ? 'M4 2l4 4-4 4' : 'M2 4l4 4 4-4'}
-                  fill="none"
-                  stroke="#7f8c8d"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </a>
-          </span>
-        ) : (
-          isRoot && (
+          hasReplies ? (
+            // ✅ 有回帖：显示可点击的折叠/展开箭头
             <span className="fold-expand">
-              <svg
-                className="fold-thread"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="#7f8c8d"
-              >
-                <rect x="2" y="2" width="6" height="6" />
+              <a onClick={handleToggleFold} role="button" tabIndex={0}>
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                  <path
+                    d={folded ? 'M4 2l4 4-4 4' : 'M2 4l4 4 4-4'}
+                    fill="none"
+                    stroke="#7f8c8d"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              </a>
+            </span>
+          ) : (
+            // ✅ 无回帖：显示不可交互的横线占位符
+            <span className="fold-expand fold-expand-empty">
+              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                <line x1="2" y1="6" x2="10" y2="6" stroke="#7f8c8d" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </span>
           )
+        ) : (
+          // ✅ 非根节点：显示回复标识方块（已清除永远为 false 的 isRoot 判断）
+          <span className="fold-expand">
+            <svg
+              className="fold-thread"
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="#7f8c8d"
+            >
+              <rect x="2" y="2" width="6" height="6" />
+            </svg>
+          </span>
         )}
 
         {isRoot ? (
