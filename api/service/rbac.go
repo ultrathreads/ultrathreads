@@ -21,6 +21,7 @@ func newRbacService() *rbacService {
 
 type permCacheEntry struct {
 	codes     map[string]struct{}
+	roles     map[string]struct{}
 	expiredAt time.Time
 }
 
@@ -42,7 +43,17 @@ func (s *rbacService) HasPermission(userID int64, code string) bool {
 	return ok
 }
 
-// GetUserPermissions 获取用户所有权限码（带缓存）
+// GetUserRoles 获取用户所有角色标识
+func (s *rbacService) GetUserRoles(userID int64) []string {
+	roles := s.getUserRoles(userID)
+	result := make([]string, 0, len(roles))
+	for role := range roles {
+		result = append(result, role)
+	}
+	return result
+}
+
+// GetUserPermissions 获取用户所有权限码
 func (s *rbacService) GetUserPermissions(userID int64) []string {
 	codes := s.getUserPermCodes(userID)
 	result := make([]string, 0, len(codes))
@@ -59,9 +70,34 @@ func (s *rbacService) InvalidateUserCache(userID int64) {
 	s.mu.Unlock()
 }
 
+// loadUserRbac 统一从 DB 加载权限和角色，并原子性写入缓存
+func (s *rbacService) loadUserRbac(userID int64) (map[string]struct{}, map[string]struct{}) {
+	codeList := dao.RbacDao.GetUserPermissionCodes(userID)
+	roleList := dao.RbacDao.GetUserRoleCodes(userID)
+
+	codeSet := make(map[string]struct{}, len(codeList))
+	for _, c := range codeList {
+		codeSet[c] = struct{}{}
+	}
+
+	roleSet := make(map[string]struct{}, len(roleList))
+	for _, r := range roleList {
+		roleSet[r] = struct{}{}
+	}
+
+	s.mu.Lock()
+	s.cache[userID] = &permCacheEntry{
+		codes:     codeSet,
+		roles:     roleSet,
+		expiredAt: time.Now().Add(s.ttl),
+	}
+	s.mu.Unlock()
+
+	return codeSet, roleSet
+}
+
 // getUserPermCodes 从缓存或 DAO 获取用户权限码集合
 func (s *rbacService) getUserPermCodes(userID int64) map[string]struct{} {
-	// 读缓存
 	s.mu.RLock()
 	entry, ok := s.cache[userID]
 	if ok && time.Now().Before(entry.expiredAt) {
@@ -70,20 +106,20 @@ func (s *rbacService) getUserPermCodes(userID int64) map[string]struct{} {
 	}
 	s.mu.RUnlock()
 
-	// 缓存未命中，查库
-	codeList := dao.RbacDao.GetUserPermissionCodes(userID)
-	codeSet := make(map[string]struct{}, len(codeList))
-	for _, c := range codeList {
-		codeSet[c] = struct{}{}
-	}
+	codes, _ := s.loadUserRbac(userID)
+	return codes
+}
 
-	// 写缓存
-	s.mu.Lock()
-	s.cache[userID] = &permCacheEntry{
-		codes:     codeSet,
-		expiredAt: time.Now().Add(s.ttl),
+// getUserRoles 从缓存或 DAO 获取用户角色集合
+func (s *rbacService) getUserRoles(userID int64) map[string]struct{} {
+	s.mu.RLock()
+	entry, ok := s.cache[userID]
+	if ok && time.Now().Before(entry.expiredAt) {
+		s.mu.RUnlock()
+		return entry.roles
 	}
-	s.mu.Unlock()
+	s.mu.RUnlock()
 
-	return codeSet
+	_, roles := s.loadUserRbac(userID)
+	return roles
 }

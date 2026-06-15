@@ -35,8 +35,6 @@ export interface UserEntity {
   email: string;
   nickname: string;
   avatar: string;
-  level: number;
-  levelName: string;
   website: string;
   description: string;
   score: number;

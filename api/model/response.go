@@ -20,6 +20,9 @@ type UserInfo struct {
 	PasswordSet  bool   `json:"passwordSet"`
 	Status       int    `json:"status"`
 	CreateTime   int64  `json:"createTime"`
+
+    Roles       []string `json:"roles,omitempty"`
+    Permissions []string `json:"permissions,omitempty"`
 }
 
 type TagResponse struct {

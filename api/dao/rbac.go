@@ -78,6 +78,31 @@ func (d *rbacDao) DeleteRole(id int64) error {
 	})
 }
 
+// GetUserRoleCodes 获取用户所有角色标识（name）
+func (d *rbacDao) GetUserRoleCodes(userID int64) []string {
+	var codes []string
+
+	roleStmt := &gorm.Statement{DB: db}
+	_ = roleStmt.Parse(&model.Role{})
+	roleTable := roleStmt.Table
+
+	urStmt := &gorm.Statement{DB: db}
+	_ = urStmt.Parse(&model.UserRole{})
+	urTable := urStmt.Table
+
+	db.Table(roleTable).
+		Select("DISTINCT " + roleTable + ".name").
+		Joins("JOIN "+urTable+" ON "+urTable+".role_id = "+roleTable+".id").
+		Where(urTable+".user_id = ?", userID).
+		Pluck("name", &codes)
+
+	// ✅ 保证返回非 nil，与 GetUserPermissionCodes 行为一致
+	if codes == nil {
+		return []string{}
+	}
+	return codes
+}
+
 // ==================== Permission ====================
 
 func (d *rbacDao) GetPermission(id int64) *model.Permission {

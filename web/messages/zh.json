@@ -22,8 +22,13 @@
     "noThreads": "No threads.",
     "noPosts": "No posts.",
 
-
-    "lastOne": "lastOne"
+    "roles": {
+      "admin": "管理员",
+      "editor": "编辑",
+      "moderator": "版主",
+      "vip": "VIP会员",
+      "_fallback": "普通用户"
+    }
   },
   "home": {
     "title": "首页",

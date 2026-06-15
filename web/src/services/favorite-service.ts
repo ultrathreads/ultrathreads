@@ -12,7 +12,7 @@ export interface FavoriteItem {
   deleted: boolean;
   title: string;
   content: string;
-  user: Pick<UserEntity, 'id' | 'username' | 'nickname' | 'avatar' | 'level' | 'levelName' | 'createTime'>;
+  user: Pick<UserEntity, 'id' | 'username' | 'nickname' | 'avatar' | 'createTime'>;
   url: string;
   createTime: number;
 }

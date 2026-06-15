@@ -20,7 +20,11 @@ type UserController struct {
 func (c *UserController) GetCurrent(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	c.Success(ctx, converter.ToUser(user))
+	userInfo := converter.ToUser(user)
+	userInfo.Permissions = service.RbacService.GetUserPermissions(user.ID)
+	userInfo.Roles = service.RbacService.GetUserRoles(user.ID)
+
+	c.Success(ctx, userInfo)
 }
 
 // 用户详情
