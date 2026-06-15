@@ -4,14 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/converter"
-	"ultrathreads/cache"
 	"ultrathreads/bus/event"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	//"ultrathreads/util/log"
-	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -22,14 +20,16 @@ type PostController struct {
 // Show 话题详情
 func (c *PostController) Show(ctx *gin.Context) {
 	var gDto form.IdentifierDto
-	if c.BindAndValidate(ctx, &gDto) {
-		post := service.PostService.GetBySlug(gDto.Slug)
-		if post == nil || post.Status != model.StatusOk {
-			c.Fail(ctx, util.ErrorPostNotFound)
-			return
-		}
-		c.Success(ctx, converter.ToPost(post))
+	if !c.BindAndValidate(ctx, &gDto) {
+		return
 	}
+
+	post := service.PostService.GetBySlug(gDto.Slug)
+	if post == nil || post.Status != model.StatusOk {
+		c.Fail(ctx, util.ErrorPostNotFound)
+		return
+	}
+	c.Success(ctx, converter.ToPost(post))
 }
 
 // ListThreads 帖子列表（含扁平化回帖）
@@ -84,7 +84,7 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 	c.SuccessWithIncluded(ctx, rsp)
 }
 
-// GetPostWithThread 帖子详情（含扁平化回帖）
+// GetPostTree 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostTree(ctx *gin.Context) {
 
 	var gDto form.IdentifierDto
@@ -107,7 +107,7 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 }
 
 
-// GetPostWithFlat 帖子详情（含扁平化回帖）
+// GetPostFlat 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostFlat(ctx *gin.Context) {
 	var gDto form.IdentifierDto
 	if !c.BindAndValidate(ctx, &gDto) {
@@ -136,15 +136,13 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 		return // BindAndValidate 内部已写回错误响应
 	}
 
-	postForm.UserSlug = hashid.Id2Slug[model.User](user.ID)
-
-	post, err := service.PostService.CreateRootPost(postForm)
+	post, err := service.PostService.CreateRootPost(user.ID, postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
 
-	// ✅ IsRoot 恒为 true，无需运行时判断
+	// IsRoot 恒为 true，无需运行时判断
 	c.PublishEvent(ctx, event.PostCreated{
 		UserID: user.ID,
 		PostID: post.ID,
@@ -199,17 +197,16 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 		return
 	}
 
-	replyForm.UserSlug = hashid.Id2Slug[model.User](user.ID)
 	replyForm.ParentSlug = replyForm.Slug
 	replyForm.Title = util.ExtractReplyTitle(replyForm.Content, 20) // 从内容提取前20字符
 
-	post, err := service.PostService.CreateReply(replyForm)
+	post, err := service.PostService.CreateReply(user.ID, replyForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
 
-	// ✅ IsRoot 恒为 false
+	// IsRoot 恒为 false
 	c.PublishEvent(ctx, event.PostCreated{
 		UserID: user.ID,
 		PostID: post.ID,
@@ -268,70 +265,6 @@ func (c *PostController) GetRecentLikes(ctx *gin.Context) {
 		}
 		c.Success(ctx, users)
 	}
-}
-
-// 精华帖子
-func (c *PostController) GetPostsExcellent(ctx *gin.Context) {
-	posts := cache.PostCache.GetRecommendPosts()
-
-	var odd, even []model.Post
-	for i, post := range posts {
-		if i%2 == 1 {
-			odd = append(odd, post)
-		} else {
-			even = append(even, post)
-		}
-	}
-
-	data := make(map[string]interface{})
-	data["odd"] = converter.ToSimplePosts(odd)
-	data["even"] = converter.ToSimplePosts(even)
-
-	c.Success(ctx, data)
-}
-
-// 推荐帖子
-func (c *PostController) GetPostsRecommend(ctx *gin.Context) {
-	page := util.FormIntDefault(ctx, "page", 1)
-
-	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
-		Eq("recommend", true).
-		Eq("status", model.StatusOk).
-		Page(page, 20).Desc("last_comment_time"))
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	c.Success(ctx, data)
-}
-
-// 最新发布帖子列表
-func (c *PostController) GetPostsLast(ctx *gin.Context) {
-	page := util.FormIntDefault(ctx, "page", 1)
-
-	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
-		Eq("status", model.StatusOk).
-		Page(page, 20).Desc("id"))
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	c.Success(ctx, data)
-}
-
-// 无人问津帖子列表
-func (c *PostController) GetPostsNoreply(ctx *gin.Context) {
-	page := util.FormIntDefault(ctx, "page", 1)
-
-	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
-		Eq("status", model.StatusOk).
-		Eq("comment_count", 0).
-		Page(page, 20).Desc("last_comment_time"))
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	c.Success(ctx, data)
 }
 
 // GetUserRecent 用户最近的帖子

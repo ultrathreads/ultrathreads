@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { ThreadViewItem, BackState } from '@/types/view';
+import type { ThreadViewItem } from '@/types/view';
 import { RelativeTime } from '@/components/ui/RelativeTime';
 import AuthorLink from '@/components/ui/AuthorLink';
 
@@ -11,18 +11,6 @@ interface Props {
   isRoot?: boolean;
   currentPostSlug?: string;
   globalCollapsed?: boolean;
-  backState?: BackState;
-}
-
-function buildPostUrl(postSlug: string | string, backState?: BackState): string {
-  if (!backState || (!backState.nodeSlug && !backState.tagSlug && !backState.page)) {
-    return `/threads/${postSlug}`;
-  }
-  const params = new URLSearchParams();
-  if (backState.nodeSlug) params.set('nodeSlug', backState.nodeSlug);
-  if (backState.tagSlug) params.set('tagSlug', backState.tagSlug);
-  if (backState.page) params.set('page', backState.page);
-  return `/threads/${postSlug}?${params.toString()}`;
 }
 
 export default function ThreadItem({
@@ -30,13 +18,13 @@ export default function ThreadItem({
   isRoot,
   currentPostSlug,
   globalCollapsed,
-  backState,
 }: Props) {
   const [userOverride, setUserOverride] = useState<boolean | null>(null);
   const folded = userOverride ?? globalCollapsed ?? false;
 
   const hasReplies = item.replies && item.replies.length > 0;
-  const isActive = currentPostSlug !== undefined && String(item.slug) === String(currentPostSlug);
+  const isActive =
+    currentPostSlug !== undefined && String(item.slug) === String(currentPostSlug);
 
   useEffect(() => {
     setUserOverride(null);
@@ -68,7 +56,13 @@ export default function ThreadItem({
         ) : (
           isRoot && (
             <span className="fold-expand">
-              <svg className="fold-thread" width="12" height="12" viewBox="0 0 12 12" fill="#7f8c8d">
+              <svg
+                className="fold-thread"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="#7f8c8d"
+              >
                 <rect x="2" y="2" width="6" height="6" />
               </svg>
             </span>
@@ -77,42 +71,58 @@ export default function ThreadItem({
 
         {isRoot ? (
           item.isPinned ? (
-            <svg className="icon-pinned" width="14" height="14" viewBox="0 0 24 24" fill="#e74c3c">
+            <svg
+              className="icon-pinned"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="#e74c3c"
+            >
               <path d="M16 2H8a1 1 0 0 0-1 1v3.27l-3.88 3.88a1 1 0 0 0-.29.7V12a1 1 0 0 0 1 1h7v5l-2 2v1h6v-1l-2-2v-5h7a1 1 0 0 0 1-1v-1.15a1 1 0 0 0-.29-.7L17 5.27V3a1 1 0 0 0-1-1zM9 4h6v1.5l3.5 3.5H5.5L9 5.5V4z" />
             </svg>
           ) : (
-            <svg 
-              className={`icon-topic ${item.isRead ? 'is-read' : 'is-unread'}`} 
-              width="14" 
-              height="14" 
-              viewBox="0 0 14 14" 
+            <svg
+              className={`icon-topic ${item.isRead ? 'is-read' : 'is-unread'}`}
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
               fill="currentColor"
             >
               <circle cx="7" cy="7" r="5" />
             </svg>
           )
         ) : (
-          <svg className="icon-reply-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264 264" width="14" height="14">
+          <svg
+            className="icon-reply-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 264 264"
+            width="14"
+            height="14"
+          >
             <path d="M6,16 v108 a57 57,0 0 0 57,57 h92 v27 l45.5-45.5-45.5-45.5 v27 h-92 a20 20,0 0 1-20-20 v-108z" />
           </svg>
         )}
+
+        {/* ✅ 直接使用干净 URL，不再拼接 backState 参数 */}
         <Link
           className={`subject ${isRoot ? '' : 'read'} ${isActive ? 'active' : ''}`}
-          href={buildPostUrl(item.slug, backState)}
+          href={`/threads/${item.slug}`}
         >
-          {item.title} 
+          {item.title}
         </Link>
 
         <span className="metadata">
-          <AuthorLink 
-            author={item.author} 
-            authorSlug={item.authorSlug} 
-            className="author-name" 
+          <AuthorLink
+            author={item.author}
+            authorSlug={item.authorSlug}
+            className="author-name"
           />
           <span className="tail">
             <RelativeTime timestamp={item.date} />
           </span>
-          {isRoot && item.nodeName && <span className="category">({item.nodeName})</span>}
+          {isRoot && item.nodeName && (
+            <span className="category">({item.nodeName})</span>
+          )}
 
           {isRoot && item.tags && item.tags.length > 0 && (
             <span className="tags">
@@ -129,6 +139,7 @@ export default function ThreadItem({
             </span>
           )}
         </span>
+
         <button
           className="icon-btn preview-btn"
           data-post-slug={String(item.slug)}
@@ -136,10 +147,17 @@ export default function ThreadItem({
           aria-label={`回复 ${item.author}`}
           type="button"
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="#95a5a6" aria-hidden="true">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 16 16"
+            fill="#95a5a6"
+            aria-hidden="true"
+          >
             <path d="M8 3C4 3 1 8 1 8s3 5 7 5 7-5 7-5-3-5-7-5zm0 8a3 3 0 110-6 3 3 0 010 6z" />
           </svg>
         </button>
+
         {isRoot && (
           <Link
             className="icon-btn flat-view-btn"
@@ -162,7 +180,6 @@ export default function ThreadItem({
               item={r}
               currentPostSlug={currentPostSlug}
               globalCollapsed={globalCollapsed}
-              backState={backState}
             />
           ))}
         </ul>

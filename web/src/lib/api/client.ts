@@ -27,13 +27,27 @@ export class ApiError extends Error {
   }
 }
 
-// ✅ 成功响应：纯净业务数据
+/**
+ * 网络连接异常类（区别于 HTTP 业务错误）
+ * 用于 ECONNREFUSED / ENOTFOUND / ETIMEDOUT 等网络层故障
+ */
+export class ApiConnectionError extends Error {
+  constructor(
+    path: string,
+    public readonly originalError?: unknown
+  ) {
+    super('接口访问异常，服务暂时不可用，请稍后重试');
+    this.name = 'ApiConnectionError';
+  }
+}
+
+// 成功响应：纯净业务数据
 interface SuccessEnvelope<T> {
   data: T;
   meta?: unknown;
 }
 
-// ✅ 错误响应：包含 code + message
+// 错误响应：包含 code + message
 interface ErrorEnvelope {
   code?: number | string;
   message?: string;
@@ -100,20 +114,29 @@ export async function apiFetch<T>(
   }
 
   // --- 发起请求 ---
-  const res = await fetch(`${GO_API_BASE}${path}`, {
-    ...fetchOptions,
-    headers,
-    credentials,
-    ...finalCacheStrategy,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${GO_API_BASE}${path}`, {
+      ...fetchOptions,
+      headers,
+      credentials,
+      ...finalCacheStrategy,
+    });
+  } catch (err) {
+    // ✅ 仅捕获网络层异常，不吞掉 AbortError 等其他类型
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw err; // 请求被主动取消，原样抛出
+    }
+    throw new ApiConnectionError(path, err);
+  }
 
-  // ✅ 一次性读取原始文本
+  // 一次性读取原始文本
   let rawBodyText = '';
   try {
     rawBodyText = await res.text();
   } catch { /* ignore */ }
 
-  // ✅ 非 2xx：解析错误信封中的 code + message
+  // 非 2xx：解析错误信封中的 code + message
   if (!res.ok) {
     let errorMessage = `HTTP ${res.status} ${res.statusText}`;
     let errorCode: number | string | undefined;

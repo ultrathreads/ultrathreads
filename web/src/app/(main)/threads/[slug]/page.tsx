@@ -4,10 +4,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getPostTree, getPostFlat, getPostDetail } from '@/services/post-service';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
+import { getBackContext } from '@/lib/utils/back-context';
 import { ViewModeSwitcher } from '@/components/ui/ViewModeSwitcher';
 import { PostTree } from './PostTree';
 import { PostFlat } from './PostFlat';
-import type { BackState } from '@/types/view';
 import { ReadTracker } from '@/components/features/ReadTracker';
 
 export const dynamic = 'force-dynamic';
@@ -17,11 +17,12 @@ interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// 动态生成 SEO 元数据
+// ==================== SEO 元数据 ====================
+
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-    // 解析 searchParams 并提取刷新信号
+
     let forceRefresh = false;
     try {
       const resolvedSp = await searchParams;
@@ -29,12 +30,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     } catch {
       // ignore
     }
-    
-    const serviceOpts = { noCache: forceRefresh };
 
-    // 将 serviceOpts 透传给 getPostDetail
-    const detail = await getPostDetail(slug, serviceOpts);
-
+    const detail = await getPostDetail(slug, { noCache: forceRefresh });
     if (!detail) return {};
 
     const title = `${detail.title || '无标题'} - 讨论详情`;
@@ -51,7 +48,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         description,
         type: 'article',
         url: `/threads/${slug}`,
-        // 如果有封面图可在此添加: images: [detail.coverUrl],
       },
       twitter: {
         card: 'summary_large_image',
@@ -67,40 +63,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
 }
 
-function extractBackContext(searchParams: Record<string, string | string[] | undefined>): {
-  backUrl: string;
-  backState: BackState;
-} {
-  const nodeSlug = searchParams.nodeSlug;
-  const tagSlug = searchParams.tagSlug;
-  const page = searchParams.page;
+// ==================== JSON-LD 结构化数据 ====================
 
-  const backState: BackState = {};
-  if (nodeSlug) backState.nodeSlug = String(nodeSlug);
-  if (tagSlug) backState.tagSlug = String(tagSlug);
-  if (page) backState.page = String(page);
-
-  if (!backState.nodeSlug && !backState.tagSlug && !backState.page) {
-    return { backUrl: '/', backState: {} };
-  }
-
-  let basePath = '/';
-  if (backState.tagSlug) {
-    basePath = `/tags/${backState.tagSlug}`;
-  } else if (backState.nodeSlug) {
-    basePath = `/nodes/${backState.nodeSlug}`;
-  }
-
-  const urlParams = new URLSearchParams();
-  if (backState.page) urlParams.set('page', backState.page);
-
-  const queryString = urlParams.toString();
-  const backUrl = queryString ? `${basePath}?${queryString}` : basePath;
-
-  return { backUrl, backState };
-}
-
-// JSON-LD 结构化数据组件（帮助搜索引擎理解帖子内容）
 function JsonLd({ post, totalReplyCount }: { post: any; totalReplyCount: number }) {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -130,6 +94,8 @@ function JsonLd({ post, totalReplyCount }: { post: any; totalReplyCount: number 
   );
 }
 
+// ==================== 页面组件 ====================
+
 export default async function ReadPage({ params, searchParams }: Props) {
   let slug: string;
   try {
@@ -139,6 +105,7 @@ export default async function ReadPage({ params, searchParams }: Props) {
     notFound();
   }
 
+  // 仅保留 view 和 refresh 两个功能性 URL 参数
   let resolvedSp: Record<string, string | string[] | undefined> = {};
   try {
     resolvedSp = await searchParams;
@@ -147,10 +114,11 @@ export default async function ReadPage({ params, searchParams }: Props) {
   }
 
   const view = resolvedSp.view === 'flat' ? 'flat' : 'tree';
-  const { backUrl, backState } = extractBackContext(resolvedSp);
-
   const forceRefresh = resolvedSp.refresh === '1';
   const serviceOpts = { noCache: forceRefresh };
+
+  // ✅ 从 Referer 获取返回链接，URL 不再携带 backState 参数
+  const { backUrl } = await getBackContext();
 
   let currentPost = null;
   let viewData: any = null;
@@ -193,7 +161,6 @@ export default async function ReadPage({ params, searchParams }: Props) {
 
   return (
     <>
-      {/* ✅ SEO 结构化数据 */}
       <JsonLd post={currentPost} totalReplyCount={totalReplyCount} />
 
       <div className="detail-top-bar">
@@ -208,7 +175,6 @@ export default async function ReadPage({ params, searchParams }: Props) {
           post={currentPost}
           viewPosts={viewData}
           totalReplyCount={totalReplyCount}
-          backState={backState}
         />
       )}
       <ReadTracker postSlug={slug} nodeSlug={currentPost.node?.slug} />

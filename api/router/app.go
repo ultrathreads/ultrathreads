@@ -63,11 +63,7 @@ func setupApp(e *gin.Engine) {
 			postApi.GET("/:slug/tree", postController.GetPostTree)
 			postApi.GET("/:slug/flat", postController.GetPostFlat)
 		}
-		
-		optional.GET("/posts/excellent", postController.GetPostsExcellent)
-		optional.GET("/posts/recommend", postController.GetPostsRecommend)
-		optional.GET("/posts/noreply", postController.GetPostsNoreply)
-		optional.GET("/posts/last", postController.GetPostsLast)
+
 		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
 		optional.GET("/user/posts/:slug", postController.GetUserPosts)
 		optional.GET("/post/:slug/recentlikes", postController.GetRecentLikes)

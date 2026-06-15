@@ -7,9 +7,6 @@ type RootPostCreateForm struct {
 	Content   string   `json:"content" binding:"required"`
 	Tags      []string `json:"tags"`
 	ImageList string `json:"imageList"`
-
-	// 以下字段由 Controller 内部注入，不参与 JSON 绑定与校验
-	UserSlug  string   `json:"-"`
 }
 
 // RootPostUpdateForm root post update form
@@ -30,7 +27,6 @@ type ReplyCreateForm struct {
 	// 以下字段由 Controller 内部注入，不参与 JSON 绑定与校验
 	Title      string   `json:"-"`
 	ParentSlug string   `json:"-"`
-	UserSlug   string   `json:"-"`
 }
 
 // ReplyUpdateForm reply update form

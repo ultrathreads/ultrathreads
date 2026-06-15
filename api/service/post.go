@@ -244,9 +244,8 @@ func (s *postService) Undelete(id int64) error {
 }
 
 // CreateRootPost 创建根帖（主帖）
-func (s *postService) CreateRootPost(dto form.RootPostCreateForm) (*model.Post, error) {
+func (s *postService) CreateRootPost(userID int64, dto form.RootPostCreateForm) (*model.Post, error) {
 	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
-	userID := hashid.Slug2Id[model.User](dto.UserSlug)
 
 	// ✅ 节点校验（仅根帖需要）
 	if nodeID <= 0 {
@@ -317,9 +316,8 @@ func (s *postService) UpdateRootPost(dto form.RootPostUpdateForm) error {
 }
 
 // CreateReply 创建回复
-func (s *postService) CreateReply(dto form.ReplyCreateForm) (*model.Post, error) {
+func (s *postService) CreateReply(userID int64, dto form.ReplyCreateForm) (*model.Post, error) {
 	parentID := hashid.Slug2Id[model.Post](dto.ParentSlug)
-	userID := hashid.Slug2Id[model.User](dto.UserSlug)
 
 	if parentID <= 0 {
 		return nil, errors.New("无效的父级帖子")
