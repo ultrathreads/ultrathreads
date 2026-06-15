@@ -95,7 +95,7 @@ html.dark-theme {
    1. 基础全局样式 - 重置 & 根布局
    ============================================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body, html { height: 100%; font-family: sans-serif; overflow: hidden; background-color: var(--bg-page); color: var(--text-primary); }
+body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;; overflow: hidden; background-color: var(--bg-page); color: var(--text-primary); }
 
 /* 主应用外层布局骨架 */
 .app-layout { display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-page); }
@@ -337,7 +337,7 @@ body, html { height: 100%; font-family: sans-serif; overflow: hidden; background
 .forum-list { list-style: none; }
 .forum-item {
     display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px;
-    border-radius: 6px; cursor: pointer; font-size: 0.875rem; white-space: nowrap;
+    border-radius: 6px; cursor: pointer; font-size: 1rem; white-space: nowrap;
     text-decoration: none; transition: background-color 0.2s;
 }
 .forum-item:hover { background-color: var(--bg-hover-light); }
@@ -846,7 +846,6 @@ ul.reply .metadata {
     min-height: 320px;
     resize: vertical;
     line-height: 1.8;
-    font-family: 'Menlo', 'Consolas', monospace;
 }
 .form-row {
     display: flex;
@@ -1584,7 +1583,6 @@ ul.reply .metadata {
   background: transparent;
   font-size: 0.875rem;
   color: var(--text-primary);
-  font-family: inherit;
 }
 
 .tag-input-field::placeholder {
@@ -1624,7 +1622,6 @@ ul.reply .metadata {
   border-radius: 4px;
   cursor: pointer;
   text-align: left;
-  font-family: inherit;
   transition: background-color 0.15s;
 }
 
@@ -1690,7 +1687,6 @@ ul.reply .metadata {
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-family: inherit;
   transition: background-color 0.2s, color 0.2s;
 }
 
