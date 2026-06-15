@@ -47,8 +47,6 @@ func setupApp(e *gin.Engine) {
 		// Home
 		optional.GET("/threads", postController.ListThreads)
 
-		optional.GET("/sideload", postController.ListThreads)
-
 		// Nodes
 		nodeGroup := optional.Group("/nodes")
 		{

@@ -117,31 +117,17 @@ func (c *BaseController) GetLastReadStates(ctx *gin.Context, nodeSlugs ...string
 // Success output json data
 func (c *BaseController) Success(ctx *gin.Context, data interface{}) {
 	resp := SR{Data: data}
-
-	// 仅 debug 模式使用格式化JSON
-	if gin.Mode() == gin.DebugMode {
-		ctx.IndentedJSON(http.StatusOK, resp)
-	} else {
-		ctx.JSON(http.StatusOK, resp)
-	}
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (c *BaseController) SuccessWithIncluded(ctx *gin.Context, data interface{}) {
-	if gin.Mode() == gin.DebugMode {
-		ctx.IndentedJSON(http.StatusOK, data)
-	} else {
-		ctx.JSON(http.StatusOK, data)
-	}
+	ctx.JSON(http.StatusOK, data)
 }
 
 // Fail output error
 func (c *BaseController) Fail(ctx *gin.Context, error *util.CodeError) {
 	resp := FR{Code: error.Code, Message: error.Message}
 
-	if gin.Mode() == gin.DebugMode {
-		ctx.IndentedJSON(error.Code, resp)
-	} else {
-		ctx.JSON(error.Code, resp)
-	}
+	ctx.JSON(error.Code, resp)
 	ctx.Abort()
 }
