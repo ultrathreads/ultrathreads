@@ -32,20 +32,6 @@ func (c *PostController) Show(ctx *gin.Context) {
 	}
 }
 
-// List 帖子列表
-func (c *PostController) List(ctx *gin.Context) {
-	page := util.FormIntDefault(ctx, "page", 1)
-
-	posts, paging := service.PostService.List(querybuilder.NewQueryBuilder().
-		Eq("status", model.StatusOk).
-		Page(page, 20).Desc("last_comment_time"))
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	c.Success(ctx, data)
-}
-
 // ListThreads 帖子列表（含扁平化回帖）
 func (c *PostController) ListThreads(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)

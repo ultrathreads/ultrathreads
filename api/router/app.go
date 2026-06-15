@@ -59,7 +59,6 @@ func setupApp(e *gin.Engine) {
 
 		postApi := optional.Group("/posts")
 		{
-			postApi.GET("", postController.List)
 			postApi.GET("/:slug", postController.Show)
 			postApi.GET("/:slug/tree", postController.GetPostTree)
 			postApi.GET("/:slug/flat", postController.GetPostFlat)

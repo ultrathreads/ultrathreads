@@ -9,7 +9,8 @@ type PostItem struct {
 	ParentSlug string `json:"parentSlug"`
 	NodeSlug string `json:"nodeSlug"`
 	UserSlug string `json:"userSlug"`
-	TagSlugs   []string `json:"tagSlugs"`
+	TagSlugs []string `json:"tagSlugs,omitempty"`
+
 	Title    string `json:"title"`
 
 	IsPinned      bool         `json:"isPinned"`
