@@ -92,7 +92,7 @@ async function RootPostsContent({ userSlug, currentPage, t, tab }: { userSlug: s
         <TopicPagination
           totalItems={paging.totalItems}
           pageSize={paging.pageSize}
-          currentPage={paging.currentPage}
+          currentPage={paging.page}
         />
       )}
     </>

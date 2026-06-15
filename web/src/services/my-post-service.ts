@@ -3,6 +3,8 @@ import { apiFetch } from '@/lib/api/client';
 import type { UserEntity, NodeEntity } from '@/types/domain';
 import type { PaginationMeta } from '@/types/api';
 import { DEFAULT_LIMIT } from '@/constants';
+import { assembleSideload } from '@/lib/utils/assemble-sideload';
+import type { IncludedData } from '@/lib/utils/assemble-sideload';
 
 // ==================== 传输层类型 ====================
 
@@ -36,12 +38,10 @@ export interface MyReplyPostListItem {
  * 通用 API 响应结构（支持泛型）
  */
 interface UserPostsApiResponse<T> {
-  results: T[];
-  page: {
-    page: number;
-    pageSize: number;
-    total: number;
-  };
+  data: T[];
+  page: PaginationMeta;
+  lastReadAtMap: Record<string, number>;
+  included?: IncludedData;
 }
 
 // ==================== 视图层类型 ====================
@@ -73,21 +73,19 @@ async function fetchUserPostsByType<T>(
   });
 
   try {
-    const data = await apiFetch<UserPostsApiResponse<T>>(
+    const rsp = await apiFetch<UserPostsApiResponse<T>>(
       `/users/${userSlug}/posts?${params.toString()}`,
       {
         auth: true,
+        skipDataUnwrap: true,
         cacheStrategy: { next: { revalidate: 0 } },
       },
     );
 
+    const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
     return {
-      posts: data.results ?? [],
-      paging: {
-        currentPage: data.page?.page ?? safePage,
-        pageSize: data.page?.pageSize ?? pageSize,
-        totalItems: data.page?.total ?? 0,
-      },
+      posts: assembledPosts,
+      paging: rsp.meta,
       error: null,
     };
   } catch (err) {

@@ -127,6 +127,36 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 	c.Success(ctx, data)
 }
 
+func (c *PostController) GetUserPosts(ctx *gin.Context) {
+	// 1. 获取并验证基础参数（如 user_id）
+	var gDto form.IdentifierDto
+	if !c.BindAndValidate(ctx, &gDto) {
+		return 
+	}
+
+	// 2. 获取分页和类型参数
+	page := util.FormIntDefault(ctx, "page", 1)
+	postType := ctx.DefaultQuery("type", "root")
+
+	// 3. 调用 Service 层获取数据
+	posts, paging := service.PostService.GetUserPosts(gDto.Slug, postType, page, 20)
+
+	lastReadAtMap := c.GetLastReadStates(ctx)
+
+	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
+
+	rsp := model.PostListWithIncluded{
+		Data:     results,
+		Meta:     *paging,
+		LastRead: lastReadAtMap,
+	}
+	rsp.Included.Users = incUsers
+	rsp.Included.Nodes = incNodes
+	rsp.Included.Tags = incTags
+
+	c.SuccessWithIncluded(ctx, rsp)
+}
+
 // StoreRootPost 发表根帖
 func (c *PostController) StoreRootPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
@@ -275,28 +305,6 @@ func (c *PostController) GetUserRecent(ctx *gin.Context) {
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, converter.ToSimplePosts(posts))
 	}
-}
-
-func (c *PostController) GetUserPosts(ctx *gin.Context) {
-	// 1. 获取并验证基础参数（如 user_id）
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
-		return 
-	}
-
-	// 2. 获取分页和类型参数
-	page := util.FormIntDefault(ctx, "page", 1)
-	postType := ctx.DefaultQuery("type", "root")
-
-	// 3. 调用 Service 层获取数据
-	posts, paging := service.PostService.GetUserPosts(gDto.Slug, postType, page, 20)
-
-	data := map[string]interface{}{}
-	data["results"] = converter.ToSimplePosts(posts)
-	data["page"] = paging
-	//data["lastReadAtMap"] = c.GetLastReadStates(ctx)
-	// 4. 格式化并返回结果
-	c.Success(ctx, data)
 }
 
 // Like 点赞

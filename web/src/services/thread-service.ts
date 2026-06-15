@@ -30,7 +30,7 @@ export interface ThreadListItem {
 
 /** API 原始响应结构（不导出，仅内部使用） */
 interface ThreadsApiResponse {
-  results: ThreadListItem[];
+  data: ThreadListItem[];
   page: PaginationMeta;
   lastReadAtMap: Record<string, number>;
   included?: IncludedData;
