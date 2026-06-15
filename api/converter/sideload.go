@@ -111,14 +111,14 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 		}
 
 		rsp := model.PostItem{
-			Slug:       postSlug,
-			ParentSlug: parentSlug,
-			ThreadSlug: threadSlug,
-			UserSlug:   userSlug,
-			NodeSlug:   nodeSlug,
+			Slug:            postSlug,
+			ParentSlug:      parentSlug,
+			ThreadSlug:      threadSlug,
+			UserSlug:        userSlug,
+			NodeSlug:        nodeSlug,
 			TagSlugs:        tagSlugs,
 			CreateTime:      p.CreateTime,
-			Title:      p.Title,
+			Title:           p.Title,
 			LastCommentTime: p.LastCommentTime,
 
 			IsRoot:   p.IsRoot(),

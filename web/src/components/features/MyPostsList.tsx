@@ -22,7 +22,7 @@ export default function MyPostsList({ initialPosts, user, tab }: Props) {
   return (
     <div className="thread-tree-container">
       <div className="thread-tree-header">
-        <h1>{pageTitle}</h1>
+        <h3>{pageTitle}</h3>
       </div>
 
       <ul className="thread">
@@ -53,7 +53,15 @@ export default function MyPostsList({ initialPosts, user, tab }: Props) {
                       → {item.parentTitle}
                     </span>
                   )}
-                  {item.node && <span className="category">({item.node.name})</span>}
+                  {item.node && (
+                    <Link
+                    href={`/nodes/${item.node.slug}`}
+                    className="category"
+                    title={`查看版块: ${item.node.name}`}
+                  >
+                    ({item.node.name})
+                  </Link>
+                  )}
                   <span className="tail">
                     <RelativeTime timestamp={item.createTime} />
                   </span>

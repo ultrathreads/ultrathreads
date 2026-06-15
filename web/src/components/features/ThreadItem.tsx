@@ -41,7 +41,7 @@ export default function ThreadItem({
   return (
     <li className={folded ? 'folded' : ''}>
       <div className={`entry ${isActive ? 'active' : ''}`}>
-        {/* 折叠按钮 / 无回帖占位横线 */}
+        {/* 折叠按钮 / 无回帖占位横线（仅根节点需要） */}
         {isRoot ? (
           hasReplies ? (
             // ✅ 有回帖：显示可点击的折叠/展开箭头
@@ -65,21 +65,9 @@ export default function ThreadItem({
               </svg>
             </span>
           )
-        ) : (
-          // ✅ 非根节点：显示回复标识方块（已清除永远为 false 的 isRoot 判断）
-          <span className="fold-expand">
-            <svg
-              className="fold-thread"
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="#7f8c8d"
-            >
-              <rect x="2" y="2" width="6" height="6" />
-            </svg>
-          </span>
-        )}
+        ) : null}
 
+        {/* 帖子类型图标：根节点显示置顶/已读状态，非根节点统一显示回复箭头 */}
         {isRoot ? (
           item.isPinned ? (
             <svg
