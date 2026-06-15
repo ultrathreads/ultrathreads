@@ -50,13 +50,15 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
-		Data:     results,
-		Meta:     *paging,
-		LastRead: lastReadAtMap,
+	    Data:     results,
+	    Meta:     *paging,
+	    Context:  model.Context{LastReadAtMap: lastReadAtMap},
+	    Included: model.PostIncluded{
+	        Users: incUsers,
+	        Nodes: incNodes,
+	        Tags:  incTags,
+	    },
 	}
-	rsp.Included.Users = incUsers
-	rsp.Included.Nodes = incNodes
-	rsp.Included.Tags = incTags
 
 	c.SuccessWithIncluded(ctx, rsp)
 }
@@ -73,13 +75,15 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
-		Data:     results,
-		Meta:     *paging,
-		LastRead: lastReadAtMap,
+	    Data:     results,
+	    Meta:     *paging,
+	    Context:  model.Context{LastReadAtMap: lastReadAtMap},
+	    Included: model.PostIncluded{
+	        Users: incUsers,
+	        Nodes: incNodes,
+	        Tags:  incTags,
+	    },
 	}
-	rsp.Included.Users = incUsers
-	rsp.Included.Nodes = incNodes
-	rsp.Included.Tags = incTags
 
 	c.SuccessWithIncluded(ctx, rsp)
 }
@@ -146,13 +150,15 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
-		Data:     results,
-		Meta:     *paging,
-		LastRead: lastReadAtMap,
+	    Data:     results,
+	    Meta:     *paging,
+	    Context:  model.Context{LastReadAtMap: lastReadAtMap},
+	    Included: model.PostIncluded{
+	        Users: incUsers,
+	        Nodes: incNodes,
+	        Tags:  incTags,
+	    },
 	}
-	rsp.Included.Users = incUsers
-	rsp.Included.Nodes = incNodes
-	rsp.Included.Tags = incTags
 
 	c.SuccessWithIncluded(ctx, rsp)
 }

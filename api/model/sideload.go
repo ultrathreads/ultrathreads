@@ -23,6 +23,10 @@ type PostItem struct {
 	LastCommentUser *UserInfo      `json:"lastCommentUser"`
 }
 
+type Context struct {
+    LastReadAtMap map[string]int64 `json:"lastReadAtMap,omitempty"`
+}
+
 // 侧载-用户（主key：slug）
 type UserIncluded struct {
 	Slug     string `json:"slug"` // 对外唯一key
@@ -44,14 +48,17 @@ type TagIncluded struct {
 	// 如有其他字段如 Color, Icon 等可在此补充
 }
 
+type PostIncluded struct {
+    Users []UserIncluded `json:"users"`
+    Nodes []NodeIncluded `json:"nodes"`
+    Tags  []TagIncluded  `json:"tags"`
+}
+
 // 最终返回体
 type PostListWithIncluded struct {
-	Data  []PostItem              `json:"data"`
-	Meta     querybuilder.Paging  `json:"meta"`
-	LastRead map[string]int64     `json:"lastReadAtMap"`
-	Included struct {
-		Users []UserIncluded `json:"users"`
-		Nodes []NodeIncluded `json:"nodes"`
-		Tags  []TagIncluded  `json:"tags"`
-	} `json:"included"`
+	Data  []PostItem              `json:"data,omitempty"`
+	Meta     querybuilder.Paging  `json:"meta,omitempty"`
+	Context  Context `json:"context,omitempty"`
+	LastRead map[string]int64     `json:"lastReadAtMap,omitempty"`
+	Included PostIncluded `json:"included,omitempty"`
 }

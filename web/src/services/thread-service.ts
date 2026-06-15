@@ -88,7 +88,7 @@ export async function getThreadPageData(
     return {
       posts: assembledPosts,
       paging: rsp.meta,
-      lastReadAtMap: rsp.lastReadAtMap ?? {},
+      lastReadAtMap: rsp.context?.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {
@@ -135,7 +135,7 @@ export async function getTagPageData(
     return {
       posts: assembledPosts,
       paging: rsp.meta,
-      lastReadAtMap: rsp.lastReadAtMap ?? {},
+      lastReadAtMap: rsp.context?.lastReadAtMap ?? {},
       error: null,
     };
   } catch (err) {
