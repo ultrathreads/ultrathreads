@@ -20,7 +20,7 @@ type NodeController struct {
 func (c *NodeController) Show(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		node := service.NodeService.Get(gDto.ID)
+		node := service.Srv.NodeService.Get(gDto.ID)
 		if node == nil {
 			c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -35,7 +35,7 @@ func (c *NodeController) Store(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
-	node, err := service.NodeService.Create(nodeForm)
+	node, err := service.Srv.NodeService.Create(nodeForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -49,13 +49,13 @@ func (c *NodeController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
-	node := service.NodeService.Get(nodeForm.ID)
+	node := service.Srv.NodeService.Get(nodeForm.ID)
 	if node == nil {
 		c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(nodeForm.ID, 10)))
 		return
 	}
 
-	err := service.NodeService.Update(nodeForm.ID, nodeForm)
+	err := service.Srv.NodeService.Update(nodeForm.ID, nodeForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -91,7 +91,7 @@ func (c *NodeController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.NodeService.Delete(gDto.ID)
+	service.Srv.NodeService.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -109,7 +109,7 @@ func (c *NodeController) List(ctx *gin.Context) {
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
-	list, paging := service.NodeService.List(conditions.Page(page, limit).Asc("sort_no"))
+	list, paging := service.Srv.NodeService.List(conditions.Page(page, limit).Asc("sort_no"))
 	var results []map[string]interface{}
 	for _, node := range list {
 		item := util.StructToMap(node)

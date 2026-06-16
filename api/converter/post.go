@@ -51,7 +51,7 @@ func ToPost(post *model.Post) *model.PostResponse {
 	}
 
 	if post.NodeId > 0 {
-		node := service.NodeService.Get(post.NodeId)
+		node := service.Srv.NodeService.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
 

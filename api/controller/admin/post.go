@@ -112,7 +112,7 @@ func (c *PostController) List(ctx *gin.Context) {
 	for _, post := range list {
 		result := util.StructToMap(post, "content")
 		result["user"] = converter.ToUserDefaultIfNull(post.UserId)
-		result["node"] = service.NodeService.Get(post.NodeId)
+		result["node"] = service.Srv.NodeService.Get(post.NodeId)
 		result["tags"] = converter.ToTags(service.PostService.GetPostTags(post.ID))
 		// 简介
 		mr := markdown.NewMd().Run(post.Content)

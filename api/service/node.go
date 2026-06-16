@@ -13,8 +13,6 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var NodeService = newNodeService()
-
 func newNodeService() *nodeService {
 	return &nodeService{}
 }

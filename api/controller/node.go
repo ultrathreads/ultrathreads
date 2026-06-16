@@ -29,9 +29,9 @@ func (c *NodeController) Show(ctx *gin.Context) {
 	if c.BindAndValidate(ctx, &gDto) {
 		var node *model.Node
 		if id, parseErr := strconv.ParseInt(gDto.Slug, 10, 64); parseErr == nil {
-			node = service.NodeService.Get(id)
+			node = service.Srv.NodeService.Get(id)
 		} else {
-			node = service.NodeService.GetBySlug(gDto.Slug)
+			node = service.Srv.NodeService.GetBySlug(gDto.Slug)
 		}
 
 		c.Success(ctx, converter.ToNode(node))
