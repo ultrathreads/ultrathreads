@@ -241,6 +241,28 @@ body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Ping
 .post-btn:hover { background-color: var(--color-primary-dark); }
 .post-btn:active { transform: scale(0.96); }
 
+/* 工具栏内的发帖按钮：弱化实心背景，改为轮廓/文字风格 */
+.toolbar-post-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-primary-border, rgba(var(--primary-rgb), 0.3));
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.toolbar-post-btn:hover {
+  background: var(--color-primary-bg, rgba(var(--primary-rgb), 0.08));
+  border-color: var(--color-primary);
+}
+
 /* 用户菜单外层 */
 .user-menu-wrapper {
     position: relative; display: flex; align-items: center; gap: 10px;

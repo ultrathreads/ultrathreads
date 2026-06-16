@@ -1,8 +1,8 @@
 // src/components/features/PostForm.tsx
 'use client';
 
-import { useState, useRef, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation'; // ✅ 1. 引入 useSearchParams
 import MDEditor from '@uiw/react-md-editor';
 import { toast } from 'sonner';
 import { createRootPost, updateRootPost } from '@/services/post-service';
@@ -31,12 +31,24 @@ function buildPostDetailUrl(slug: string): string {
 
 export function PostForm({ nodes, initialData }: PostFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams(); // ✅ 2. 获取搜索参数实例
   const { recommendTags } = useSiteConfig();
 
   const isEditMode = Boolean(initialData);
 
+  // ✅ 3. 初始化时优先使用 initialData，其次尝试从 URL 读取 node 参数
   const [title, setTitle] = useState(initialData?.title ?? '');
-  const [nodeSlug, setNodeSlug] = useState(initialData?.nodeSlug ?? '');
+  const [nodeSlug, setNodeSlug] = useState(() => {
+    if (initialData?.nodeSlug) return initialData.nodeSlug;
+    // 仅在非编辑模式下读取 URL 参数
+    const urlNode = searchParams.get('node');
+    // 验证 URL 中的 node 是否在合法节点列表中
+    if (urlNode && nodes.some((n) => n.slug === urlNode)) {
+      return urlNode;
+    }
+    return '';
+  });
+
   const [tags, setTags] = useState<string[]>(
     initialData?.tags
       ? initialData.tags.split(',').map((t) => t.trim()).filter(Boolean)
@@ -45,6 +57,9 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
   const [content, setContent] = useState(initialData?.rawContent ?? '');
   const [attempted, setAttempted] = useState(false);
   const submittingRef = useRef(false);
+
+  // ✅ 4. 修复原代码中 targetSlug 未定义的 Bug
+  const targetSlug = initialData?.slug;
 
   const handleCancel = () => {
     if (isEditMode && initialData) {
@@ -78,12 +93,12 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
           : createRootPost(payload),
         {
           loading: isEditMode ? '保存中...' : '发布中...',
-          success: (result) => {
+          success: () => {
             submittingRef.current = false;
             setTimeout(() => {
+              // ✅ 使用修复后的 targetSlug
               router.push(targetSlug ? buildPostDetailUrl(targetSlug) : '/');
             }, 600);
-
             return isEditMode ? '主贴已更新 ✅' : '主贴发布成功 🎉';
           },
           error: (err) => {
@@ -111,6 +126,7 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
         {isEditMode ? '✏️ 编辑主帖' : '📝 发布新主贴'}
       </h1>
       <form id="postForm" onSubmit={handleSubmit} noValidate>
+        {/* ... 表单内容保持不变 ... */}
         <div className="form-group">
           <label className="form-label">
             帖子标题<span className="required">*</span>
@@ -125,6 +141,7 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
           />
           {errors.title && <p className="form-error-text">请输入帖子标题</p>}
         </div>
+
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">
@@ -148,9 +165,10 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
             </select>
             {errors.nodeSlug && <p className="form-error-text">请选择所属板块</p>}
           </div>
+
           <div className="form-group">
             <label className="form-label">
-              标签 <span className="form-hint">（选填，最多3个，帮助他人发现你的帖子）</span>
+              标签 <span className="form-hint">（选填，最多3个）</span>
             </label>
             <TagInput
               value={tags}
@@ -204,4 +222,4 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
       </form>
     </div>
   );
-} 
+}

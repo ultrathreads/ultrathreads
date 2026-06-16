@@ -8,6 +8,9 @@
     "mine": "👤 My...",
     "myPosts": "📋 My posts",
 
+    "all_threads": "All Threads",
+    "all_threads_desc": "Browse the latest discussions and trending topics across the site",
+
     "loading": "Loading...",
     "loadFailed": "Failed to load data.",
     "search_default_value":"Search...",

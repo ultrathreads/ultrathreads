@@ -3,90 +3,85 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n/i18n-client';
+import { useAuth } from '@/hooks/use-auth';
 import type { NodeEntity } from '@/types/domain';
 import type { ThreadViewItem } from '@/types/view';
 import { markNodeAsRead } from '@/services/node-service';
 
 import ThreadItem from '@/components/features/ThreadItem';
 import NodeHeader, { type HeaderDisplayData } from '@/components/features/NodeHeader';
+import EmptyTip from '@/components/ui/EmptyTip';
 
 interface Props {
   threads: ThreadViewItem[];
   activeNode: NodeEntity | null;
   activeTag?: HeaderDisplayData | null;
+  emptyText?: string;
 }
 
-/** 客户端排序函数 (保持不变) */
 function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewItem[] {
   const sorted = [...threads];
   sorted.sort((a, b) => {
     const pinA = a.isPinned ? 1 : 0;
     const pinB = b.isPinned ? 1 : 0;
     if (pinA !== pinB) return pinB - pinA;
-
     switch (sortType) {
-      case 'latest':
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      case 'latest': return new Date(b.date).getTime() - new Date(a.date).getTime();
       case 'reply': {
         const diff = b.lastCommentTime - a.lastCommentTime;
         return diff !== 0 ? diff : b.createTime - a.createTime;
       }
-      case 'most':
-        return (b.replies?.length || 0) - (a.replies?.length || 0);
+      case 'most': return (b.replies?.length || 0) - (a.replies?.length || 0);
       case 'hot': {
         const scoreA = (a.replies?.length || 0) * 10 - new Date(a.date).getTime() / 1e12;
         const scoreB = (b.replies?.length || 0) * 10 - new Date(b.date).getTime() / 1e12;
         return scoreB - scoreA;
       }
-      default:
-        return 0;
+      default: return 0;
     }
   });
   return sorted;
 }
 
-export default function ThreadTree({ threads, activeNode, activeTag }: Props) { // ✅ 解构移除 backState
+export default function ThreadTree({ threads, activeNode, activeTag, emptyText }: Props) {
   const router = useRouter();
+  const { t } = useTranslation(['common']);
+  const { isLoggedIn } = useAuth();
 
   const [allCollapsed, setAllCollapsed] = useState(false);
   const [sort, setSort] = useState('reply');
   const [markingRead, setMarkingRead] = useState(false);
 
   const effectiveSlug = activeNode?.slug;
-
   const tree = useMemo(() => sortThreads(threads, sort), [threads, sort]);
-
   const toggleAll = useCallback(() => setAllCollapsed((prev) => !prev), []);
 
-  // ✅ 依赖项移除 backState
   const handleMarkAsRead = useCallback(async () => {
-    if (!effectiveSlug) {
-      console.warn('[ThreadTree] 标记已读跳过: 无法获取有效 Slug', { activeNode });
-      return;
-    }
-
+    if (!effectiveSlug) return;
     setMarkingRead(true);
     try {
       await markNodeAsRead(effectiveSlug);
       toast.success('标记已读成功');
       router.refresh();
     } catch (err) {
-      console.error('标记已读失败:', err);
       toast.error('标记已读失败，请重试');
     } finally {
       setMarkingRead(false);
     }
-  }, [effectiveSlug, activeNode, router]); // ✅ 依赖项精简
+  }, [effectiveSlug, router]);
 
   const isMarkReadDisabled = markingRead || !effectiveSlug;
+  const showNodeLink = !activeNode;
 
   const headerTagData: HeaderDisplayData | null = activeTag
     ? { name: activeTag.name }
     : null;
 
-  // 版块页下 activeNode 存在 → 不显示；首页/标签页/我的 → 显示
-  const showNodeLink = !activeNode;
+  const showPostBtn = !!activeNode && !activeTag && isLoggedIn;
+  const createHref = activeNode ? `/create?node=${activeNode.slug}` : '/create';
 
   return (
     <div className="thread-tree-container">
@@ -94,15 +89,21 @@ export default function ThreadTree({ threads, activeNode, activeTag }: Props) { 
         <NodeHeader node={activeNode} tag={headerTagData} />
 
         <div className="thread-tree-actions">
+          {showPostBtn && (
+            <>
+              <Link href={createHref} className="toolbar-post-btn">
+                ✏️ {t('common:posting')}
+              </Link>
+              {/* 分隔线：区分主操作与辅助工具 */}
+              <div className="toolbar-divider" />
+            </>
+          )}
+
           <button
             className={`detail-action-btn ${isMarkReadDisabled ? 'is-disabled' : ''}`}
             onClick={handleMarkAsRead}
             disabled={isMarkReadDisabled}
-            aria-label="标记当前节点/标签为已读"
-            title={!effectiveSlug
-              ? "当前无有效节点或标签，无法标记已读"
-              : "将当前内容标记为已读"
-            }
+            aria-label="标记当前节点为已读"
           >
             {markingRead ? (
               <span className="mark-read-loading">处理中…</span>
@@ -116,11 +117,7 @@ export default function ThreadTree({ threads, activeNode, activeTag }: Props) { 
             )}
           </button>
 
-          <select
-            className="sort-select"
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-          >
+          <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
             <option value="latest">最新发布</option>
             <option value="reply">最新回复</option>
             <option value="most">最多回复</option>
@@ -140,17 +137,21 @@ export default function ThreadTree({ threads, activeNode, activeTag }: Props) { 
         </div>
       </div>
 
-      <ul className="thread">
-        {tree.map((t) => (
-          <ThreadItem
-            key={t.slug}
-            item={t}
-            isRoot
-            globalCollapsed={allCollapsed}
-            showNodeLink={showNodeLink}
-          />
-        ))}
-      </ul>
+      {tree.length > 0 ? (
+        <ul className="thread">
+          {tree.map((t) => (
+            <ThreadItem
+              key={t.slug}
+              item={t}
+              isRoot
+              globalCollapsed={allCollapsed}
+              showNodeLink={showNodeLink}
+            />
+          ))}
+        </ul>
+      ) : (
+        <EmptyTip text={emptyText || '暂无帖子'} />
+      )}
     </div>
   );
 }

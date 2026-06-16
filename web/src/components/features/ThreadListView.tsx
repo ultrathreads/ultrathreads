@@ -4,15 +4,10 @@ import TopicPagination from '@/components/features/TopicPagination';
 import EmptyTip from '@/components/ui/EmptyTip';
 import { buildThreadTree } from '@/lib/utils/thread-tree';
 
-interface BackState {
-  nodeSlug?: string;
-  page?: string;
-}
-
 interface Props {
-  t: Record<string, any>; // 根据你的 i18n 类型调整
-  threadResult: any;      // 根据实际类型调整
-  nodeResult: { node: any; error: any }; // 根据实际类型调整
+  t: Record<string, any>;
+  threadResult: any;
+  nodeResult: { node: any; error: any };
   currentPage: number;
   safeNodeSlug: string;
 }
@@ -27,18 +22,16 @@ export default function ThreadListView({ t, threadResult, nodeResult, currentPag
 
   const viewPosts = buildThreadTree(posts, { lastReadAtMap });
 
-  const backState: BackState = {};
-  if (safeNodeSlug) backState.nodeSlug = safeNodeSlug;
-  if (currentPage > 1) backState.page = String(currentPage);
-
   return (
     <>
-      {viewPosts.length > 0 ? (
-        <ThreadTree threads={viewPosts} activeNode={node} backState={backState} />
-      ) : (
-        <EmptyTip text={t('common:noThreads')} />
-      )}
+      {/* ✅ 直接传数据，空状态由 ThreadTree 内部处理 */}
+      <ThreadTree
+        threads={viewPosts}
+        activeNode={node}
+        emptyText={t('common:noThreads')}
+      />
 
+      {/* 分页仍然在外层控制，因为即使没帖子也可能需要显示"第1页" */}
       {viewPosts.length > 0 && (
         <TopicPagination
           totalItems={paging.total}

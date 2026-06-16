@@ -8,6 +8,9 @@
     "mine": "👤 我的...",
     "myPosts": "📋 我的帖子",
 
+    "all_threads": "全部帖子",
+    "all_threads_desc": "浏览全站最新讨论与热门话题",
+
     "loading": "加载中...",
     "loadFailed": "数据加载失败。",
     "search_default_value":"搜索帖子...",
@@ -19,8 +22,8 @@
     "hoursAgo": "{{n}} 小时前",
     "daysAgo": "{{n}} 天前",
 
-    "noThreads": "No threads.",
-    "noPosts": "No posts.",
+    "noThreads": "暂无主贴",
+    "noPosts": "暂无帖子",
 
     "roles": {
       "admin": "管理员",
