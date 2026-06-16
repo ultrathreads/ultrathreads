@@ -128,8 +128,8 @@ export default async function ReadPage({ params, searchParams }: Props) {
 
   try {
     if (view === 'flat') {
-      let result = await getPostFlat(slug);
-      let posts = result.posts ?? [];
+      let rsp = await getPostFlat(slug);
+      let posts = assembleSideload(rsp.data ?? [], rsp.included);
 
       const isNonRootFlat = posts.length === 0 || (posts[0] && !posts[0].isRoot);
 
@@ -139,8 +139,8 @@ export default async function ReadPage({ params, searchParams }: Props) {
           throw new Error(`Post ${slug} is missing threadSlug, cannot resolve flat view`);
         }
         const threadSlug = String(detail.threadSlug);
-        result = await getPostFlat(threadSlug);
-        posts = result.posts ?? [];
+        rsp = await getPostFlat(threadSlug);
+        posts = assembleSideload(rsp.data ?? [], rsp.included);
       }
 
       viewData = posts;

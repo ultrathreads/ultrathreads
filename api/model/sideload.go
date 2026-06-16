@@ -1,6 +1,9 @@
 package model
 
-import "ultrathreads/util/querybuilder"
+import (
+	"html/template"
+	"ultrathreads/util/querybuilder"
+)
 
 // 替换原 PostSimpleResponse
 type PostItem struct {
@@ -12,6 +15,7 @@ type PostItem struct {
 	TagSlugs []string `json:"tagSlugs,omitempty"`
 
 	Title    string `json:"title"`
+	Content    template.HTML `json:"content,omitempty"`
 
 	IsPinned      bool         `json:"isPinned"`
 	IsRoot        bool         `json:"isRoot"`

@@ -49,7 +49,9 @@ export async function getPostTree(
  */
 export async function getPostFlat(postSlug: string): Promise<PostWithFlat> {
   try {
-    return await apiFetch<PostWithFlat>(`/posts/${postSlug}/flat`);
+    return await apiFetch<PostWithFlat>(`/posts/${postSlug}/flat`, {
+      skipDataUnwrap: true,
+    });
   } catch (error) {
     if (error instanceof ApiError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);

@@ -8,7 +8,6 @@ import (
 
 	"ultrathreads/model"
 	"ultrathreads/util"
-	//"ultrathreads/util/avatar"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/urls"
 )

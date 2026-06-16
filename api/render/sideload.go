@@ -1,15 +1,19 @@
 package render
 
 import (
+	"html/template"
+
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	//"ultrathreads/util"
-	//"ultrathreads/service"
 	"ultrathreads/util/hashid"
+	"ultrathreads/util/markdown"
 )
 
 // ToSimplePostsWithIncluded 适配 slug 为主键的 sideload
-func ToSimplePostsWithIncluded(posts []model.Post) (
+func ToSimplePostsWithIncluded(
+	posts []model.Post,
+	opts ...PostRenderOption,
+) (
 	[]model.PostItem,
 	[]model.UserIncluded,
 	[]model.NodeIncluded,
@@ -18,6 +22,12 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 	if len(posts) == 0 {
 		return nil, nil, nil, nil
 	}
+
+	// 解析选项，得到最终配置
+    cfg := &postRenderConfig{}
+    for _, opt := range opts {
+        opt(cfg)
+    }
 
 	// 1. 收集【数据库ID】（去重，用于批量查库）
 	var (
@@ -107,7 +117,7 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 				}
 			}
 		} else {
-			tagSlugs = []string{} // 保证返回 [] 而非 null
+			tagSlugs = []string{}
 		}
 
 		rsp := model.PostItem{
@@ -123,6 +133,12 @@ func ToSimplePostsWithIncluded(posts []model.Post) (
 
 			IsRoot:   p.IsRoot(),
 			IsPinned: p.IsPinned,
+		}
+
+		// ✅ 根据配置按需赋值
+        if cfg.includeContent {
+			mr := markdown.NewMd(markdown.MdWithTOC()).Run(p.Content)
+			rsp.Content = template.HTML(ToHtmlContent(mr.ContentHtml))
 		}
 
 		rsp.LastCommentTime = p.LastCommentTime

@@ -3,9 +3,7 @@ package render
 import (
 	"html/template"
 
-	//"ultrathreads/cache"
 	"ultrathreads/model"
-	//"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"

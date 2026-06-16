@@ -111,7 +111,6 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 	currentPostRender := render.ToPost(currentPost)
 	user := service.Srv.User.Get(currentPost.UserId)
 	currentPostRender.User = render.ToUser(user)
-	log.Debug("renderPost.User=%v", currentPostRender.User)
 
 	//把render之后的currentPost压入extra，虽然有点怪异，但也算的上是巧思。
 	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts)
@@ -143,10 +142,19 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"posts": render.ToPosts(posts),
+	//把render之后的currentPost压入extra，虽然有点怪异，但也算的上是巧思。
+	//results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts, &render.PostRenderOption { Content: true, })
+
+	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts, render.WithContent())
+	rsp := model.PostListWithIncluded{
+	    Data:     results,
+	    Included: model.PostIncluded{
+	        Users: incUsers,
+	        Nodes: incNodes,
+	        Tags:  incTags,
+	    },
 	}
-	c.Success(ctx, data)
+	c.SuccessWithIncluded(ctx, rsp)
 }
 
 func (c *PostController) GetUserPosts(ctx *gin.Context) {

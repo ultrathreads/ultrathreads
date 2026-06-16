@@ -145,7 +145,7 @@ export default function PostCard({
                 ))}
               </>
             )}
-            <span>阅读 {post.viewCount.toLocaleString()}</span>
+            <span>阅读 {post.viewCount?.toLocaleString()}</span>
             <span>回复 {replyCount}</span>
           </>
         )}
