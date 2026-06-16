@@ -73,7 +73,7 @@ func runMock(c *cli.Context) error {
 	}
 
 	log.Info("run mock\n")
-	mock.Mock()
+	mock.Mock(db)
 
 	return nil
 }

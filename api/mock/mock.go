@@ -3,6 +3,7 @@ package mock
 import (
 	"math/rand"
 
+	"gorm.io/gorm"
 	"ultrathreads/dao"
 	"ultrathreads/util/log"
 )
@@ -25,10 +26,10 @@ func dropAndCreateTable(table interface{}) {
 }
 
 // Mock 执行所有数据填充
-func Mock() {
+func Mock(db *gorm.DB) {
 	UserTableSeeder(true, 10)
 	RbacTableSeeder(true)
-	NodeTableSeeder(true, 4)
+	NodeTableSeeder(db, true, 4)
 	PostTableSeeder(true, 200)
 	TagTableSeeder(true, 6)
 	LinkTableSeeder(true, 6)

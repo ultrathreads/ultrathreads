@@ -18,7 +18,7 @@ func NewServices(_repos *dao.Repositories, _caches *cache.Caches) *Services {
 	return &Services{
 		Node: NewNodeService(_repos.Node, _caches.Node), 
 
-		Post: NewPostService(_repos.Post), 
+		Post: NewPostService(_repos.Post, _repos.Node), 
 		User: NewUserService(_repos.User),
 	}
 }

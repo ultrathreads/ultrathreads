@@ -3,14 +3,22 @@ package mock
 import (
 	"fmt"
 
-	"ultrathreads/dao"
+	"gorm.io/gorm"
 	"ultrathreads/model"
 )
 
 // NodeTableSeeder 初始化节点数据
-func NodeTableSeeder(needCleanTable bool, totalNodes int) {
+func NodeTableSeeder(db *gorm.DB, needCleanTable bool, totalNodes int) {
 	if needCleanTable {
-		dropAndCreateTable(&model.Node{})
+		// 同样改为使用传入的 db 实例进行表重建
+		if err := db.Migrator().DropTable(&model.Node{}); err != nil {
+			fmt.Printf("mock node drop table error: %v\n", err)
+			return
+		}
+		if err := db.Migrator().CreateTable(&model.Node{}); err != nil {
+			fmt.Printf("mock node create table error: %v\n", err)
+			return
+		}
 	}
 
 	ns := []*model.Node{
@@ -73,11 +81,16 @@ func NodeTableSeeder(needCleanTable bool, totalNodes int) {
 	if totalNodes < len(ns) {
 		ns = ns[:totalNodes]
 	}
-	// 若 totalNodes >= len(ns)，则保持原样插入全部预设节点
 
-	for _, n := range ns {
-		if err := dao.NodeDao.Create(n); err != nil {
-			fmt.Printf("mock node error: %v\n", err)
+	// 使用事务批量插入，比循环单条 Create 性能更好且保证原子性
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		for _, n := range ns {
+			if err := tx.Create(n).Error; err != nil {
+				return fmt.Errorf("create node %q failed: %w", n.Name, err)
+			}
 		}
+		return nil
+	}); err != nil {
+		fmt.Printf("mock node seed error: %v\n", err)
 	}
 }

@@ -9,6 +9,10 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
+type PostRepository interface {
+    Get(id int64) *model.Post
+}
+
 func NewPostDao(db *gorm.DB) *postDao {
 	return &postDao{db: db}
 }

@@ -24,16 +24,13 @@ import (
 
 type ScanPostCallback func(posts []model.Post)
 
-type postRepository interface {
-    Get(id int64) *model.Post
-}
-
-func NewPostService(repo postRepository) *postService {
-    return &postService{repo: repo}
+func NewPostService(repo dao.PostRepository, nodeRepo dao.NodeRepository) *postService {
+    return &postService{repo: repo, nodeRepo: nodeRepo}
 }
 
 type postService struct{
-	repo postRepository
+	repo dao.PostRepository
+	nodeRepo dao.NodeRepository
 }
 
 func (s *postService) Get(id int64) *model.Post {
@@ -258,7 +255,7 @@ func (s *postService) CreateRootPost(userID int64, dto form.RootPostCreateForm) 
 	if nodeID <= 0 {
 		return nil, errors.New("请配置默认节点")
 	}
-	node := dao.NodeDao.Get(nodeID)
+	node := s.nodeRepo.Get(nodeID)
 	if node == nil || node.Status != model.StatusOk {
 		return nil, errors.New("节点不存在或已禁用")
 	}
@@ -298,7 +295,7 @@ func (s *postService) CreateRootPost(userID int64, dto form.RootPostCreateForm) 
 func (s *postService) UpdateRootPost(dto form.RootPostUpdateForm) error {
 	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
 	postID := hashid.Slug2Id[model.Post](dto.Slug)
-	node := dao.NodeDao.Get(nodeID)
+	node := s.nodeRepo.Get(nodeID)
 	if node == nil || node.Status != model.StatusOk {
 		return util.NewErrorMsg("节点不存在")
 	}
