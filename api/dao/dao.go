@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 // Daos 新版 DAO 聚合体（与老全局变量完全隔离）
 type Daos struct {
-    Node *nodeDao
+    Node NodeRepository
     Post *postDao
     User *userDao
 }
@@ -19,7 +19,7 @@ func NewDaos(db *gorm.DB) *Daos {
 
 var (
 	db              *gorm.DB
-	NodeDao         *nodeDao
+	NodeDao         NodeRepository
 	ArticleDao      *articleDao
 	ArticleTagDao   *articleTagDao
 	FavoriteDao     *favoriteDao
