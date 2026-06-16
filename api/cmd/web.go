@@ -20,6 +20,7 @@ import (
 	"ultrathreads/cron"
 	"ultrathreads/dao"
 	"ultrathreads/database"
+	"ultrathreads/service"
 	"ultrathreads/router"
 	"ultrathreads/util/hashid"
 )
@@ -69,6 +70,10 @@ func runWeb(c *cli.Context) error {
 
 	// 7. 初始化 DAO 聚合体（注入 db 实例）
 	dao.Setup(db)
+
+	// 8. 🆕 初始化 Service 并赋值给全局 Srv
+	// 过渡期暂不传参，内部仍读取 dao.XxxDao 全局变量
+	service.Srv = service.NewServices(&dao.Daos{})
 
 	// 8. 初始化缓存与定时任务
 	cache.Setup()
