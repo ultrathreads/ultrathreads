@@ -1,8 +1,8 @@
 'use client';
 import { useEffect } from 'react';
-import { apiFetch, ApiError } from '@/lib/api/client';
-import type { PostEntity } from '@/types/domain';
 import DOMPurify from 'dompurify';
+import { getPostDetail } from '@/services/post-service';
+import { ApiError } from '@/lib/api/client';
 
 export default function PreviewPopover() {
   useEffect(() => {
@@ -92,12 +92,9 @@ export default function PreviewPopover() {
       }
 
       try {
-        // 👇 复用 apiFetch + PostEntity 类型，路径 /post/{slug}
-        const data = await apiFetch<PostEntity>(`/post/${postSlug}`, {
-          signal: abortController.signal,
-          cacheStrategy: { cache: 'no-store' },
+        const data = await getPostDetail(postSlug, {
+          throwOnError: true,
         });
-
         if (abortController.signal.aborted) return;
 
         // 更新标题 & 元信息（安全访问可选字段）

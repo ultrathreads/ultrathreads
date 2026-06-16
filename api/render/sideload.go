@@ -141,6 +141,10 @@ func ToSimplePostsWithIncluded(
 			rsp.Content = template.HTML(ToHtmlContent(mr.ContentHtml))
 		}
 
+		if cfg.includeViewCount {
+			rsp.ViewCount = p.ViewCount
+		}
+
 		rsp.LastCommentTime = p.LastCommentTime
 		rsp.CreateTime = p.CreateTime
 		respList = append(respList, rsp)

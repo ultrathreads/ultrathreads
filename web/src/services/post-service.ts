@@ -6,6 +6,8 @@ import type { CreateRootPostPayload, UpdateRootPostPayload, CreateReplyPayload, 
 
 interface PostServiceOptions {
   noCache?: boolean;
+  /** 为 true 时，请求失败不会触发 notFound()，而是将错误重新抛出 */
+  throwOnError?: boolean;
 }
 
 export async function getPostDetail(
@@ -19,6 +21,10 @@ export async function getPostDetail(
   } catch (error) {
     if (error instanceof ApiError) {
       console.error(`[PostService] Biz Error: ${error.message} (code: ${error.code})`);
+    }
+    // 如果调用方选择自行处理错误，则重新抛出
+    if (options?.throwOnError) {
+      throw error;
     }
     notFound();
   }

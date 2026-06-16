@@ -142,10 +142,7 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 		return
 	}
 
-	//把render之后的currentPost压入extra，虽然有点怪异，但也算的上是巧思。
-	//results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts, &render.PostRenderOption { Content: true, })
-
-	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts, render.WithContent())
+	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts, render.WithContent(), render.WithViewCount())
 	rsp := model.PostListWithIncluded{
 	    Data:     results,
 	    Included: model.PostIncluded{

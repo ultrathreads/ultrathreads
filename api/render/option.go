@@ -2,7 +2,8 @@ package render
 
 // PostRenderConfig 渲染配置（不对外暴露）
 type postRenderConfig struct {
-    includeContent        bool
+    includeContent         bool
+    includeViewCount       bool
     includeLastCommentUser bool
     // 未来可继续扩展:
     // includeReplies      bool
@@ -16,6 +17,13 @@ type PostRenderOption func(*postRenderConfig)
 func WithContent() PostRenderOption {
     return func(c *postRenderConfig) {
         c.includeContent = true
+    }
+}
+
+// WithViewCount 启用 Content 字段渲染
+func WithViewCount() PostRenderOption {
+    return func(c *postRenderConfig) {
+        c.includeViewCount = true
     }
 }
 
