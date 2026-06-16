@@ -93,11 +93,17 @@ export function PostForm({ nodes, initialData }: PostFormProps) {
           : createRootPost(payload),
         {
           loading: isEditMode ? '保存中...' : '发布中...',
-          success: () => {
+          success: (result: CreatePostResponse) => {
             submittingRef.current = false;
+
+            const redirectSlug = isEditMode
+              ? initialData!.slug
+              : (result as { slug: string })?.slug;
+
             setTimeout(() => {
-              // ✅ 使用修复后的 targetSlug
-              router.push(targetSlug ? buildPostDetailUrl(targetSlug) : '/');
+              router.push(
+                redirectSlug ? buildPostDetailUrl(redirectSlug) : '/'
+              );
             }, 600);
             return isEditMode ? '主贴已更新 ✅' : '主贴发布成功 🎉';
           },

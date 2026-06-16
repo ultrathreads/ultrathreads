@@ -209,7 +209,7 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 		Tags:   postForm.Tags,
 	})
 
-	c.Success(ctx, render.ToSimplePost(post))
+	c.RespondOK(ctx, render.ToSimplePost(post))
 }
 
 // Update 更新主贴
@@ -244,7 +244,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		IsRoot: post.IsRoot(),
 	})
 
-	c.Success(ctx, render.ToSimplePost(post))
+	c.RespondOK(ctx, render.ToSimplePost(post))
 }
 
 // StoreReply 发表回复

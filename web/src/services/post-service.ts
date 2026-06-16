@@ -76,6 +76,7 @@ export async function createRootPost(
   return apiFetch<CreatePostResponse>('/posts', {
     method: 'POST',
     auth: true,
+    skipDataUnwrap: true,
     body: JSON.stringify(payload),
   });
 }
@@ -88,6 +89,7 @@ export async function updateRootPost(
   return apiFetch<CreatePostResponse>(`/posts/${slug}`, {
     method: 'POST',
     auth: true,
+    skipDataUnwrap: true,
     body: JSON.stringify(payload),
   });
 }

@@ -56,6 +56,9 @@
   --color-danger: #e53e3e;
   --color-gradient-start: #667eea;
   --color-gradient-end: #764ba2;
+
+  --color-primary-border: rgba(52, 152, 219, 0.3);
+  --color-primary-bg: rgba(52, 152, 219, 0.08);
 }
 
 /* 深色模式：仅重写变量，原有样式全部复用 */
@@ -89,6 +92,9 @@ html.dark-theme {
   --color-primary-dark: #2980b9;
   --color-primary-active: #3498db;
   --color-danger: #f87171;
+
+  --color-primary-border: rgba(52, 152, 219, 0.4);
+  --color-primary-bg: rgba(52, 152, 219, 0.15);
 }
 
 /* =============================================
@@ -251,7 +257,7 @@ body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Ping
   font-weight: 500;
   color: var(--color-primary);
   background: transparent;
-  border: 1px solid var(--color-primary-border, rgba(var(--primary-rgb), 0.3));
+  border: 1px solid var(--color-primary-border);
   border-radius: 6px;
   text-decoration: none;
   white-space: nowrap;
@@ -259,7 +265,7 @@ body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Ping
 }
 
 .toolbar-post-btn:hover {
-  background: var(--color-primary-bg, rgba(var(--primary-rgb), 0.08));
+  background: var(--color-primary-bg);
   border-color: var(--color-primary);
 }
 

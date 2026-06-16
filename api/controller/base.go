@@ -124,6 +124,10 @@ func (c *BaseController) SuccessWithIncluded(ctx *gin.Context, data interface{})
 	ctx.JSON(http.StatusOK, data)
 }
 
+func (c *BaseController) RespondOK(ctx *gin.Context, data interface{}) {
+	ctx.JSON(http.StatusOK, data)
+}
+
 // Fail output error
 func (c *BaseController) Fail(ctx *gin.Context, error *util.CodeError) {
 	resp := FR{Code: error.Code, Message: error.Message}
