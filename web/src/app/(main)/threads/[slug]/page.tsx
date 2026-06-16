@@ -10,7 +10,7 @@ import { PostTree } from './PostTree';
 import { PostFlat } from './PostFlat';
 import { ReadTracker } from '@/components/features/ReadTracker';
 import { assembleSideload } from '@/lib/utils/assemble-sideload';
-import type { IncludedData } from '@/lib/utils/assemble-sideload';
+import type { IncludedData, AssembledPost } from '@/lib/utils/assemble-sideload';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,18 +20,11 @@ interface Props {
 }
 
 // ==================== SEO 元数据 ====================
-
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-
-    let forceRefresh = false;
-    try {
-      const resolvedSp = await searchParams;
-      forceRefresh = resolvedSp?.refresh === '1';
-    } catch {
-      // ignore
-    }
+    const resolvedSp = await searchParams;
+    const forceRefresh = resolvedSp?.refresh === '1';
 
     const detail = await getPostDetail(slug, { noCache: forceRefresh });
     if (!detail) return {};
@@ -45,44 +38,32 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title,
       description,
-      openGraph: {
-        title,
-        description,
-        type: 'article',
-        url: `/threads/${slug}`,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-      },
-      alternates: {
-        canonical: `/threads/${slug}`,
-      },
+      openGraph: { title, description, type: 'article', url: `/threads/${slug}` },
+      twitter: { card: 'summary_large_image', title, description },
+      alternates: { canonical: `/threads/${slug}` },
     };
-  } catch {
+  } catch (error) {
+    // ✅ 不再静默吞错，便于排查 SEO 问题
+    console.warn(`[generateMetadata] Failed for ${params}:`, error);
     return {};
   }
 }
 
 // ==================== JSON-LD 结构化数据 ====================
-
-function JsonLd({ post, totalReplyCount }: { post: any; totalReplyCount: number }) {
+function JsonLd({ post, totalReplyCount }: { post: AssembledPost; totalReplyCount: number }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'DiscussionForumPosting',
     headline: post.title || '无标题',
     articleBody: post.content?.slice(0, 5000),
-    datePublished: post.createdAt,
-    dateModified: post.updatedAt,
+    // ✅ 兼容 createTime/createdAt 两种命名
+    datePublished: post.createdAt ?? post.createTime,
+    dateModified: post.updatedAt ?? post.lastCommentTime,
     author: post.user
-      ? {
-          '@type': 'Person',
-          name: post.user.nickname || post.user.username,
-        }
+      ? { '@type': 'Person' as const, name: post.user.nickname || post.user.username }
       : undefined,
     interactionStatistic: {
-      '@type': 'InteractionCounter',
+      '@type': 'InteractionCounter' as const,
       interactionType: 'https://schema.org/CommentAction',
       userInteractionCount: totalReplyCount,
     },
@@ -97,7 +78,6 @@ function JsonLd({ post, totalReplyCount }: { post: any; totalReplyCount: number 
 }
 
 // ==================== 页面组件 ====================
-
 export default async function ReadPage({ params, searchParams }: Props) {
   let slug: string;
   try {
@@ -107,58 +87,57 @@ export default async function ReadPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // 仅保留 view 和 refresh 两个功能性 URL 参数
   let resolvedSp: Record<string, string | string[] | undefined> = {};
   try {
     resolvedSp = await searchParams;
-  } catch {
-    // ignore
-  }
+  } catch { /* ignore */ }
 
   const view = resolvedSp.view === 'flat' ? 'flat' : 'tree';
   const forceRefresh = resolvedSp.refresh === '1';
   const serviceOpts = { noCache: forceRefresh };
-
-  // ✅ 从 Referer 获取返回链接，URL 不再携带 backState 参数
   const { backUrl } = await getBackContext();
 
-  let currentPost = null;
+  let currentPost: AssembledPost | null = null;
   let viewData: any = null;
   let totalReplyCount = 0;
+  let includedNodes: IncludedData['nodes'] = [];
 
   try {
     if (view === 'flat') {
       let rsp = await getPostFlat(slug);
       let posts = assembleSideload(rsp.data ?? [], rsp.included);
 
-      const isNonRootFlat = posts.length === 0 || (posts[0] && !posts[0].isRoot);
-
+      const isNonRootFlat = posts.length === 0 || !posts[0]?.isRoot;
       if (isNonRootFlat) {
         const detail = await getPostDetail(slug, serviceOpts);
         if (!detail.threadSlug) {
           throw new Error(`Post ${slug} is missing threadSlug, cannot resolve flat view`);
         }
-        const threadSlug = String(detail.threadSlug);
-        rsp = await getPostFlat(threadSlug);
+        rsp = await getPostFlat(String(detail.threadSlug));
         posts = assembleSideload(rsp.data ?? [], rsp.included);
       }
 
       viewData = posts;
       totalReplyCount = Math.max(0, posts.length - 1);
-      currentPost = posts[0];
+      currentPost = posts[0] ?? null;
+      includedNodes = rsp.included?.nodes ?? [];
     } else {
       const rsp = await getPostTree(slug, serviceOpts);
-      currentPost = rsp.extra;
+      currentPost = rsp.extra as AssembledPost | null;
       const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
       viewData = buildThreadTree(assembledPosts);
       totalReplyCount = assembledPosts.length > 0 ? assembledPosts.length - 1 : 0;
+      includedNodes = rsp.included?.nodes ?? [];
     }
   } catch (error) {
-    console.error(`[ReadPage] Failed to fetch currentPost ${slug} (${view}):`, error);
+    console.error(`[ReadPage] Failed to fetch ${slug} (${view}):`, error);
   }
 
-  if (!currentPost) {
-    notFound();
+  if (!currentPost) notFound();
+
+  // 统一补全 node
+  if (!currentPost.node) {
+    currentPost.node = includedNodes[0] ?? null;
   }
 
   return (
@@ -173,12 +152,9 @@ export default async function ReadPage({ params, searchParams }: Props) {
       {view === 'flat' ? (
         <PostFlat posts={viewData} totalReplyCount={totalReplyCount} />
       ) : (
-        <PostTree
-          post={currentPost}
-          viewPosts={viewData}
-          totalReplyCount={totalReplyCount}
-        />
+        <PostTree post={currentPost} viewPosts={viewData} totalReplyCount={totalReplyCount} />
       )}
+
       <ReadTracker postSlug={slug} nodeSlug={currentPost.node?.slug} />
     </>
   );

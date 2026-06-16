@@ -127,7 +127,7 @@ export default function PostCard({
         {isRoot && (
           <>
             {post.node && (
-              <Link href={`/nodes/${post.node.nodeSlug}`} className="detail-node">
+              <Link href={`/nodes/${post.node.slug}`} className="detail-node">
                 {post.node.name}
               </Link>
             )}
