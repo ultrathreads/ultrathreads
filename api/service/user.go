@@ -5,8 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
 
@@ -91,26 +89,12 @@ func (s *userService) UpdateColumn(id int64, name string, value interface{}) err
 }
 
 // Delete 删除用户
-func (s *userService) Delete(id int64) error { // ✅ 补充 error 返回值
+func (s *userService) Delete(id int64) error {
 	if err := dao.UserDao.Delete(id); err != nil {
 		return err
 	}
 	cache.UserCache.Invalidate(id)
 	return nil
-}
-
-// GetCurrent 获取当前登录用户
-func (s *userService) GetCurrent(ctx *gin.Context) *model.User {
-	userTmp, _ := ctx.Get(viper.GetString("jwt.identity_key"))
-	if userTmp == nil {
-		return nil
-	}
-
-	user := cache.UserCache.Get(userTmp.(model.UserClaims).ID)
-	if user == nil || user.Status != model.StatusOk {
-		return nil
-	}
-	return user
 }
 
 // Scan 游标分页扫描全表

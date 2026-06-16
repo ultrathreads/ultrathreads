@@ -3,13 +3,12 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"ultrathreads/service"
 	"ultrathreads/util"
 )
 
 // SigninRequired signin required
 func SigninRequired(ctx *gin.Context) {
-	user := service.Srv.UserService.GetCurrent(ctx)
+	user := GetCurrent(ctx)
 	if user == nil {
 		err := util.ErrorNotLogin
 		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{

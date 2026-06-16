@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/viper"
 
 	"ultrathreads/model"
-	"ultrathreads/service"
 )
 
 const (
@@ -43,7 +42,7 @@ func OptionalAuth(auth *jwt.GinJWTMiddleware) gin.HandlerFunc {
 		c.Set(ContextKeyUserClaims, *userClaims)
 
 		// 获取完整用户对象并注入 Context
-		if user := service.Srv.UserService.GetCurrent(c); user != nil {
+		if user := GetCurrent(c); user != nil {
 			c.Set(ContextKeyCurrentUser, user)
 		}
 

@@ -19,7 +19,6 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/cron"
 	"ultrathreads/dao"
-	"ultrathreads/middleware"
 	"ultrathreads/router"
 )
 
@@ -72,9 +71,6 @@ func runWeb(c *cli.Context) error {
 
 	// 6. Set up cron
 	cron.Setup()
-
-	// 7. Initialize language
-	middleware.InitLang()
 
 	engine := gin.Default()
 	router.Setup(engine, mgr)
