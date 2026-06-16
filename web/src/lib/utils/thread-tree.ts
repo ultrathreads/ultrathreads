@@ -52,7 +52,7 @@ export function buildThreadTree(
   function toThreadView(treeItem: PostTreeItem): ThreadViewItem {
     treeItem.children.sort((a, b) => a.createTime - b.createTime);
 
-    const lookupKey = String(treeItem.node.slug);
+    const lookupKey = String(treeItem.nodeSlug);
 
     const lastReadAt =
     lastReadAtMap !== undefined ? lastReadAtMap[lookupKey] : undefined;

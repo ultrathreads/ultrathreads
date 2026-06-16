@@ -61,4 +61,5 @@ type PostListWithIncluded struct {
 	Context  Context `json:"context,omitempty"`
 	LastRead map[string]int64     `json:"lastReadAtMap,omitempty"`
 	Included PostIncluded `json:"included,omitempty"`
+	Extra any `json:"extra,omitempty"`
 }

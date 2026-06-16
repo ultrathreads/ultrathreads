@@ -41,7 +41,7 @@ export default function PostCard({
   const [actionLoading, setActionLoading] = useState<'like' | 'favorite' | null>(null);
 
   const { user } = useAuth();
-  const canEdit = user?.slug === post.user.slug;
+  const canEdit = user?.slug === post.user?.slug;
 
   useEffect(() => setLikeCount(post.likeCount), [post.likeCount]);
   useEffect(() => setFavCount(post.favoriteCount ?? 0), [post.favoriteCount]);

@@ -24,18 +24,10 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.IsRoot = post.IsRoot()
 	rsp.Title = post.Title
 	rsp.IsPinned = post.IsPinned
-	//rsp.User = ToDefaultUser(post.UserId)
 	rsp.LastCommentTime = post.LastCommentTime
 	rsp.CreateTime = post.CreateTime
 	rsp.ViewCount = post.ViewCount
 	rsp.LikeCount = post.LikeCount
-
-	/*
-	if post.IsRoot() {
-		tags := service.Srv.Post.GetPostTags(post.ID)
-		rsp.Tags = ToTags(tags)
-	}
-	*/
 }
 
 func ToPost(post *model.Post) *model.PostResponse {
@@ -52,14 +44,7 @@ func ToPost(post *model.Post) *model.PostResponse {
 		}
 	}
 
-	/*
-	if post.NodeId > 0 {
-		node := service.Srv.Node.Get(post.NodeId)
-		rsp.Node = ToNode(node)
-	}
-	*/
-
-	rsp.RawContent = post.Content // 供编辑使用
+	rsp.RawContent = post.Content
 	mr := markdown.NewMd(markdown.MdWithTOC()).Run(post.Content)
 	rsp.Content = template.HTML(ToHtmlContent(mr.ContentHtml))
 	rsp.Toc = template.HTML(mr.TocHtml)
@@ -75,21 +60,12 @@ func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
 	rsp := &model.PostSimpleResponse{}
 	basePostFields(rsp, post)
 
-	// 列表页特有：LastCommentUser
-	rsp.LastCommentUser = ToDefaultUser(post.LastCommentUserId)
 	rsp.NodeSlug = hashid.Id2Slug[model.Node](post.NodeId)
 
-	// 列表页特有：Node 走 Cache（高性能）
-	/*
-	if post.NodeId > 0 {
-		node := cache.NodeCache.Get(post.NodeId)
-		rsp.Node = ToNode(node)
-	}
-	*/
 	return rsp
 }
 
-// ToSimplePosts 返回列表页帖子切片
+// ToSimplePosts
 func ToSimplePosts(posts []model.Post) []model.PostSimpleResponse {
 	if len(posts) == 0 {
 		return []model.PostSimpleResponse{}
@@ -103,7 +79,7 @@ func ToSimplePosts(posts []model.Post) []model.PostSimpleResponse {
 	return responses
 }
 
-// ToPosts 返回详情页帖子切片（注意性能警告 ⚠️）
+// ToPosts 返回详情页帖子切片
 func ToPosts(posts []model.Post) []model.PostResponse {
 	if len(posts) == 0 {
 		return []model.PostResponse{}

@@ -33,7 +33,8 @@ export async function getPostTree(
   ): Promise<PostWithTree> {
   try {
     return await apiFetch<PostWithTree>(`/posts/${postSlug}/tree`, {
-      noCache: options?.noCache
+      noCache: options?.noCache,
+      skipDataUnwrap: true,
     });
   } catch (error) {
     if (error instanceof ApiError) {

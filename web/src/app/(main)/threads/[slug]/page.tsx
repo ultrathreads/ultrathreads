@@ -9,6 +9,8 @@ import { ViewModeSwitcher } from '@/components/ui/ViewModeSwitcher';
 import { PostTree } from './PostTree';
 import { PostFlat } from './PostFlat';
 import { ReadTracker } from '@/components/features/ReadTracker';
+import { assembleSideload } from '@/lib/utils/assemble-sideload';
+import type { IncludedData } from '@/lib/utils/assemble-sideload';
 
 export const dynamic = 'force-dynamic';
 
@@ -145,11 +147,11 @@ export default async function ReadPage({ params, searchParams }: Props) {
       totalReplyCount = Math.max(0, posts.length - 1);
       currentPost = posts[0];
     } else {
-      const result = await getPostTree(slug, serviceOpts);
-      currentPost = result.currentPost;
-      const posts = result.posts ?? [];
-      viewData = buildThreadTree(posts);
-      totalReplyCount = posts.length > 0 ? posts.length - 1 : 0;
+      const rsp = await getPostTree(slug, serviceOpts);
+      currentPost = rsp.extra;
+      const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
+      viewData = buildThreadTree(assembledPosts);
+      totalReplyCount = assembledPosts.length > 0 ? assembledPosts.length - 1 : 0;
     }
   } catch (error) {
     console.error(`[ReadPage] Failed to fetch currentPost ${slug} (${view}):`, error);

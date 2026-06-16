@@ -9,7 +9,7 @@ import (
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
-	//"ultrathreads/util/log"
+	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -29,7 +29,12 @@ func (c *PostController) Show(ctx *gin.Context) {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
-	c.Success(ctx, render.ToPost(post))
+	renderPost := render.ToPost(post)
+	user := service.Srv.User.Get(post.UserId)
+	renderPost.User = render.ToUser(user)
+	log.Debug("renderPost.User=%v", renderPost.User)
+
+	c.Success(ctx, renderPost)
 }
 
 // ListThreads 帖子列表（含扁平化回帖）
@@ -103,11 +108,24 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"currentPost": render.ToPost(currentPost),
-		"posts":       render.ToSimplePosts(posts),
+	currentPostRender := render.ToPost(currentPost)
+	user := service.Srv.User.Get(currentPost.UserId)
+	currentPostRender.User = render.ToUser(user)
+	log.Debug("renderPost.User=%v", currentPostRender.User)
+
+	//把render之后的currentPost压入extra，虽然有点怪异，但也算的上是巧思。
+	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts)
+
+	rsp := model.PostListWithIncluded{
+	    Data:     results,
+	    Included: model.PostIncluded{
+	        Users: incUsers,
+	        Nodes: incNodes,
+	        Tags:  incTags,
+	    },
+	    Extra: currentPostRender,
 	}
-	c.Success(ctx, data)
+	c.SuccessWithIncluded(ctx, rsp)
 }
 
 
