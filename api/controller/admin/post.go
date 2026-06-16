@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/controller"
 	"ultrathreads/form"
 	"ultrathreads/service"
@@ -111,9 +111,9 @@ func (c *PostController) List(ctx *gin.Context) {
 	var results []map[string]interface{}
 	for _, post := range list {
 		result := util.StructToMap(post, "content")
-		result["user"] = converter.ToUserDefaultIfNull(post.UserId)
+		result["user"] = render.ToDefaultUser(post.UserId)
 		result["node"] = service.Srv.Node.Get(post.NodeId)
-		result["tags"] = converter.ToTags(service.Srv.Post.GetPostTags(post.ID))
+		result["tags"] = render.ToTags(service.Srv.Post.GetPostTags(post.ID))
 		// 简介
 		mr := markdown.NewMd().Run(post.Content)
 		result["summary"] = mr.SummaryText

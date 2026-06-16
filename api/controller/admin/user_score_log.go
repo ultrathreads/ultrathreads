@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/controller"
 	"ultrathreads/form"
 	"ultrathreads/service"
@@ -58,7 +58,7 @@ func (c *UserScoreLogController) List(ctx *gin.Context) {
 	var results []map[string]interface{}
 	for _, userScoreLog := range list {
 		item := util.StructToMap(userScoreLog)
-		item["user"] = converter.ToUserDefaultIfNull(userScoreLog.UserId)
+		item["user"] = render.ToDefaultUser(userScoreLog.UserId)
 		results = append(results, item)
 	}
 

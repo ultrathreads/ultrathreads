@@ -1,4 +1,4 @@
-package converter
+package render
 
 import (
 	"strings"
@@ -7,24 +7,11 @@ import (
 	"github.com/tidwall/gjson"
 
 	"ultrathreads/model"
-	"ultrathreads/service"
 	"ultrathreads/util"
-	"ultrathreads/util/avatar"
+	//"ultrathreads/util/avatar"
 	"ultrathreads/util/hashid"
-	"ultrathreads/util/strtrim"
 	"ultrathreads/util/urls"
 )
-
-func ToFavorites(favorites []model.Favorite) []model.FavoriteResponse {
-	if favorites == nil || len(favorites) == 0 {
-		return nil
-	}
-	var responses []model.FavoriteResponse
-	for _, favorite := range favorites {
-		responses = append(responses, *ToFavorite(&favorite))
-	}
-	return responses
-}
 
 func ToNotification(notification *model.Notification) *model.NotificationResponse {
 	if notification == nil {
@@ -53,15 +40,17 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 		detailUrl = urls.UserUrl(entityId.Int())
 		icon = "eye"
 	}
+	/*
 	from := ToUserDefaultIfNull(notification.FromId)
 	if notification.FromId <= 0 {
 		from.Nickname = "系统通知"
 		from.Avatar = avatar.DefaultAvatar
 	}
+	*/
 
 	return &model.NotificationResponse{
 		MessageId:    notification.ID,
-		From:         from,
+		//From:         from,
 		UserId:       notification.UserId,
 		Content:      notification.Content,
 		QuoteContent: notification.QuoteContent,
@@ -72,47 +61,6 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 		Status:       notification.Status,
 		CreateTime:   notification.CreateTime,
 	}
-}
-
-func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
-	rsp := &model.FavoriteResponse{}
-	slug := hashid.Id2Slug[model.Favorite](favorite.ID)
-	rsp.Slug = slug
-	rsp.EntityType = favorite.EntityType
-	rsp.EntityId = favorite.EntityId
-	rsp.CreateTime = favorite.CreateTime
-
-	if favorite.EntityType == model.EntityTypeArticle {
-		article := service.ArticleService.Get(favorite.EntityId)
-		if article == nil || article.Status != model.StatusOk {
-			rsp.Deleted = true
-		} else {
-			rsp.Url = urls.ArticleUrl(article.ID)
-			rsp.User = ToUserById(article.UserId)
-			rsp.Title = article.Title
-			if article.ContentType == model.ContentTypeMarkdown {
-				rsp.Content = util.GetMarkdownSummary(article.Content)
-			} else {
-				doc, err := goquery.NewDocumentFromReader(strings.NewReader(article.Content))
-				if err == nil {
-					text := doc.Text()
-					rsp.Content = strtrim.GetTextSummary(text, 256)
-				}
-			}
-		}
-	} else {
-		post := service.Srv.Post.Get(favorite.EntityId)
-		if post == nil || post.Status != model.StatusOk {
-			rsp.Deleted = true
-		} else {
-			posSlug := hashid.Id2Slug[model.Post](post.ID)
-			rsp.Url = urls.PostUrl(posSlug)
-			rsp.User = ToUserById(post.UserId)
-			rsp.Title = post.Title
-			rsp.Content = util.GetMarkdownSummary(post.Content)
-		}
-	}
-	return rsp
 }
 
 func ToNotifications(notifications []model.Notification) []model.NotificationResponse {

@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/cache"
 	"ultrathreads/form"
 	"ultrathreads/model"
@@ -25,7 +25,7 @@ func (c *TagController) Show(ctx *gin.Context) {
 			c.Fail(ctx, util.ErrorTagNotFound)
 			return
 		}
-		c.Success(ctx, converter.ToTag(tag))
+		c.Success(ctx, render.ToTag(tag))
 	}
 }
 
@@ -38,7 +38,7 @@ func (c *TagController) List(ctx *gin.Context) {
 		Page(page, 200).Desc("id"))
 
 	data := map[string]interface{}{}
-	data["results"] = converter.ToTags(tags)
+	data["results"] = render.ToTags(tags)
 	data["page"] = paging
 	c.Success(ctx, data)
 }
@@ -54,5 +54,5 @@ func (c *TagController) AutoComplete(ctx *gin.Context) {
 func (c *TagController) HotTags(ctx *gin.Context) {
 	tags := cache.TagCache.GetHot()
 
-	c.Success(ctx, converter.ToTags(tags))
+	c.Success(ctx, render.ToTags(tags))
 }

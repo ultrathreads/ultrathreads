@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -24,7 +24,7 @@ func NewNodeController(svc service.NodeServicer) *NodeController {
 func (c *NodeController) List(ctx *gin.Context) {
 	nodes := c.nodeSvc.GetNodes()
 
-	c.Success(ctx, converter.ToNodes(nodes))
+	c.Success(ctx, render.ToNodes(nodes))
 }
 
 // Show 显示单个节点
@@ -38,7 +38,7 @@ func (c *NodeController) Show(ctx *gin.Context) {
 			node = c.nodeSvc.GetBySlug(gDto.Slug)
 		}
 
-		c.Success(ctx, converter.ToNode(node))
+		c.Success(ctx, render.ToNode(node))
 	}
 }
 

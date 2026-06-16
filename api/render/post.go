@@ -1,11 +1,11 @@
-package converter
+package render
 
 import (
 	"html/template"
 
-	"ultrathreads/cache"
+	//"ultrathreads/cache"
 	"ultrathreads/model"
-	"ultrathreads/service"
+	//"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
@@ -24,16 +24,18 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.IsRoot = post.IsRoot()
 	rsp.Title = post.Title
 	rsp.IsPinned = post.IsPinned
-	rsp.User = ToUserDefaultIfNull(post.UserId)
+	//rsp.User = ToDefaultUser(post.UserId)
 	rsp.LastCommentTime = post.LastCommentTime
 	rsp.CreateTime = post.CreateTime
 	rsp.ViewCount = post.ViewCount
 	rsp.LikeCount = post.LikeCount
 
+	/*
 	if post.IsRoot() {
 		tags := service.Srv.Post.GetPostTags(post.ID)
 		rsp.Tags = ToTags(tags)
 	}
+	*/
 }
 
 func ToPost(post *model.Post) *model.PostResponse {
@@ -50,10 +52,12 @@ func ToPost(post *model.Post) *model.PostResponse {
 		}
 	}
 
+	/*
 	if post.NodeId > 0 {
 		node := service.Srv.Node.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
+	*/
 
 	rsp.RawContent = post.Content // 供编辑使用
 	mr := markdown.NewMd(markdown.MdWithTOC()).Run(post.Content)
@@ -72,15 +76,16 @@ func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
 	basePostFields(rsp, post)
 
 	// 列表页特有：LastCommentUser
-	rsp.LastCommentUser = ToUserDefaultIfNull(post.LastCommentUserId)
+	rsp.LastCommentUser = ToDefaultUser(post.LastCommentUserId)
 	rsp.NodeSlug = hashid.Id2Slug[model.Node](post.NodeId)
 
 	// 列表页特有：Node 走 Cache（高性能）
+	/*
 	if post.NodeId > 0 {
 		node := cache.NodeCache.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
-
+	*/
 	return rsp
 }
 

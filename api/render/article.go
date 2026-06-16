@@ -1,4 +1,4 @@
-package converter
+package render
 
 import (
 	"html/template"
@@ -24,7 +24,7 @@ func ToArticle(article *model.Article) *model.ArticleResponse {
 	rsp.ViewCount = article.ViewCount
 	rsp.CreateTime = article.CreateTime
 
-	rsp.User = ToUserDefaultIfNull(article.UserId)
+	//rsp.User = ToUserDefaultIfNull(article.UserId)
 
 	tagIds := cache.ArticleTagCache.Get(article.ID)
 	tags := cache.TagCache.GetList(tagIds)
@@ -73,7 +73,7 @@ func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
 	rsp.ViewCount = article.ViewCount
 	rsp.CreateTime = article.CreateTime
 
-	rsp.User = ToUserDefaultIfNull(article.UserId)
+	//rsp.User = ToUserDefaultIfNull(article.UserId)
 
 	tagIds := cache.ArticleTagCache.Get(article.ID)
 	tags := cache.TagCache.GetList(tagIds)

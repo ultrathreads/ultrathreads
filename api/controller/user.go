@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strings"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -20,7 +20,7 @@ type UserController struct {
 func (c *UserController) GetCurrent(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	userInfo := converter.ToUser(user)
+	userInfo := render.ToUser(user)
 	userInfo.Permissions = service.RbacService.GetUserPermissions(user.ID)
 	userInfo.Roles = service.RbacService.GetUserRoles(user.ID)
 
@@ -33,7 +33,7 @@ func (c *UserController) Show(ctx *gin.Context) {
 	if c.BindAndValidate(ctx, &gDto) {
 		user := service.Srv.User.GetBySlug(gDto.Slug)
 		if user != nil && user.Status != model.StatusDeleted {
-			c.Success(ctx, converter.ToUser(user))
+			c.Success(ctx, render.ToUser(user))
 		} else {
 			c.Fail(ctx, util.NewErrorMsg("用户不存在"))
 		}
@@ -73,7 +73,7 @@ func (c *UserController) GetScoreRank(ctx *gin.Context) {
 	userScores := service.UserScoreService.Find(querybuilder.NewQueryBuilder().Desc("score").Limit(10))
 	var results []*model.UserInfo
 	for _, userScore := range userScores {
-		results = append(results, converter.ToUserDefaultIfNull(userScore.UserId))
+		results = append(results, render.ToDefaultUser(userScore.UserId))
 	}
 	c.Success(ctx, results)
 }
@@ -104,7 +104,7 @@ func (c *UserController) GetNotificationsRecent(ctx *gin.Context) {
 	}
 	data := make(map[string]interface{})
 	data["count"] = count
-	data["notifications"] = converter.ToNotifications(notifications)
+	data["notifications"] = render.ToNotifications(notifications)
 	c.Success(ctx, data)
 }
 
@@ -121,7 +121,7 @@ func (c *UserController) GetNotifications(ctx *gin.Context) {
 	service.NotificationService.MarkRead(user.ID)
 
 	c.Success(ctx, gin.H{
-		"results": converter.ToNotifications(messages),
+		"results": render.ToNotifications(messages),
 		"paging":  paging,
 	})
 }
@@ -129,39 +129,85 @@ func (c *UserController) GetNotifications(ctx *gin.Context) {
 // GetFavorites get favorites
 func (c *UserController) GetFavorites(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-
-	// 1. 获取分页参数
 	page := util.FormIntDefault(ctx, "page", 1)
 
-	// 2. 构建查询条件（使用 Page 方法代替手动的 Limit/Offset）
+	// 1. 查询收藏列表
 	qb := querybuilder.NewQueryBuilder().
 		Eq("user_id", user.ID).
 		Page(page, 20).
 		Desc("id")
-
-	// 3. 执行查询并返回结果
 	favorites, paging := service.FavoriteService.List(qb)
 
-	c.Success(ctx, gin.H{
-		"results": converter.ToFavorites(favorites),
-		"page":    paging,
-	})
-}
+	// 2. 收集需要预加载的实体 ID
+	var articleIDs, postIDs []int64
+	for _, fav := range favorites {
+		switch fav.EntityType {
+		case model.EntityTypeArticle:
+			articleIDs = append(articleIDs, fav.EntityId)
+		case model.EntityTypePost:
+			postIDs = append(postIDs, fav.EntityId)
+		}
+	}
 
-// GetRecentWatchers 关注该用户的人
-func (c *UserController) GetRecentWatchers(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		userWatchers := service.UserWatchService.Recent(gDto.ID, 10)
-		var users []model.UserInfo
-		for _, userWatcher := range userWatchers {
-			userInfo := converter.ToUserById(userWatcher.WatcherID)
-			if userInfo != nil {
-				users = append(users, *userInfo)
+	// 3. 批量查询文章（返回切片，需手动转指针Map）
+	articles := service.ArticleService.GetArticleInIds(articleIDs)
+	articleMap := make(map[int64]*model.Article, len(articles))
+	for i := range articles {
+		articleMap[articles[i].ID] = &articles[i]
+	}
+
+	// 4. ✅ 批量查询帖子（返回值类型Map，需转换为指针Map）
+	rawPostMap := service.Srv.Post.GetPostInIds(postIDs)
+	postMap := make(map[int64]*model.Post, len(rawPostMap))
+	for id, pst := range rawPostMap {
+		// ⚠️ 关键：必须用临时变量接收值再取地址，不能在 range value 上直接 &pst
+		tmp := pst 
+		postMap[id] = &tmp
+	}
+
+	// 5. 提取 Author ID，使用现有 Find + QueryBuilder.In 批量查用户
+	var userIDs []int64
+	for _, art := range articleMap {
+		userIDs = append(userIDs, art.UserId)
+	}
+	for _, pst := range postMap {
+		userIDs = append(userIDs, pst.UserId)
+	}
+
+	userMap := make(map[int64]*model.User)
+	if len(userIDs) > 0 {
+		users := service.Srv.User.Find(
+			querybuilder.NewQueryBuilder().In("id", userIDs),
+		)
+		for i := range users {
+			userMap[users[i].ID] = &users[i]
+		}
+	}
+
+	// 6. 组装 Context 切片
+	contexts := make([]*render.FavoriteContext, len(favorites))
+	for i, fav := range favorites {
+		favCtx := &render.FavoriteContext{}
+		switch fav.EntityType {
+		case model.EntityTypeArticle:
+			if art, ok := articleMap[fav.EntityId]; ok {
+				favCtx.Article = art
+				favCtx.User = userMap[art.UserId]
+			}
+		case model.EntityTypePost:
+			if pst, ok := postMap[fav.EntityId]; ok {
+				favCtx.Post = pst
+				favCtx.User = userMap[pst.UserId]
 			}
 		}
-		c.Success(ctx, users)
+		contexts[i] = favCtx
 	}
+
+	// 7. 纯渲染
+	c.Success(ctx, gin.H{
+		"results": render.ToFavorites(favorites, contexts),
+		"page":    paging,
+	})
 }
 
 // Watch 关注

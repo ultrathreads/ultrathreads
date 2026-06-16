@@ -65,7 +65,6 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 
 		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
 		optional.GET("/user/posts/:slug", postController.GetUserPosts)
-		optional.GET("/post/:slug/recentlikes", postController.GetRecentLikes)
 
 		// Tags
 		tagGroup := optional.Group("/tags")
@@ -95,7 +94,6 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 		// Users（公开资料）
 		optional.GET("/profile/:slug", userController.Show)
 		optional.GET("/user/score/rank", userController.GetScoreRank)
-		optional.GET("/users/:slug/recentwatchers", userController.GetRecentWatchers)
 
 		// Links
 		optional.GET("/links/top", linkController.GetToplinks)

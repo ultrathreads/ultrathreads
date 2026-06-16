@@ -110,7 +110,6 @@ func (s *articleService) GetArticleInIds(articleIds []int64) []model.Article {
 		return nil
 	}
 	var articles []model.Article
-	// ✅ v2 必须处理错误；Find 即使无结果也不返回 ErrRecordNotFound
 	if err := dao.DB().Where("id IN (?)", articleIds).Find(&articles).Error; err != nil {
 		log.Error("GetArticleInIds failed: %v", err)
 		return nil

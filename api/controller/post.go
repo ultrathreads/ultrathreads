@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/bus/event"
 	"ultrathreads/form"
 	"ultrathreads/model"
@@ -29,7 +29,7 @@ func (c *PostController) Show(ctx *gin.Context) {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
-	c.Success(ctx, converter.ToPost(post))
+	c.Success(ctx, render.ToPost(post))
 }
 
 // ListThreads 帖子列表（含扁平化回帖）
@@ -47,7 +47,7 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 		lastReadAtMap = c.GetLastReadStates(ctx)
 	}
 
-	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
+	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
 	    Data:     results,
@@ -72,7 +72,7 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
-	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
+	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
 	    Data:     results,
@@ -104,8 +104,8 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 	}
 
 	data := map[string]interface{}{
-		"currentPost": converter.ToPost(currentPost),
-		"posts":       converter.ToSimplePosts(posts),
+		"currentPost": render.ToPost(currentPost),
+		"posts":       render.ToSimplePosts(posts),
 	}
 	c.Success(ctx, data)
 }
@@ -126,7 +126,7 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 	}
 
 	data := map[string]interface{}{
-		"posts": converter.ToPosts(posts),
+		"posts": render.ToPosts(posts),
 	}
 	c.Success(ctx, data)
 }
@@ -147,7 +147,7 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
-	results, incUsers, incNodes, incTags := converter.ToSimplePostsWithIncluded(posts)
+	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
 	    Data:     results,
@@ -186,7 +186,7 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 		Tags:   postForm.Tags,
 	})
 
-	c.Success(ctx, converter.ToSimplePost(post))
+	c.Success(ctx, render.ToSimplePost(post))
 }
 
 // Update 更新主贴
@@ -221,7 +221,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		IsRoot: post.IsRoot(),
 	})
 
-	c.Success(ctx, converter.ToSimplePost(post))
+	c.Success(ctx, render.ToSimplePost(post))
 }
 
 // StoreReply 发表回复
@@ -249,7 +249,7 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 		IsRoot: false,
 	})
 
-	c.Success(ctx, converter.ToSimplePost(post))
+	c.Success(ctx, render.ToSimplePost(post))
 }
 
 func (c *PostController) UpdateReply(ctx *gin.Context) {
@@ -284,23 +284,7 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 		IsRoot: post.IsRoot(),
 	})
 
-	c.Success(ctx, converter.ToSimplePost(post))
-}
-
-// GetRecentLikes 点赞用户
-func (c *PostController) GetRecentLikes(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		postLikes := service.PostLikeService.Recent(gDto.ID, 10)
-		var users []model.UserInfo
-		for _, postLike := range postLikes {
-			userInfo := converter.ToUserById(postLike.UserId)
-			if userInfo != nil {
-				users = append(users, *userInfo)
-			}
-		}
-		c.Success(ctx, users)
-	}
+	c.Success(ctx, render.ToSimplePost(post))
 }
 
 // GetUserRecent 用户最近的帖子
@@ -309,7 +293,7 @@ func (c *PostController) GetUserRecent(ctx *gin.Context) {
 	if c.BindAndValidate(ctx, &gDto) {
 		posts := service.Srv.Post.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
-		c.Success(ctx, converter.ToSimplePosts(posts))
+		c.Success(ctx, render.ToSimplePosts(posts))
 	}
 }
 

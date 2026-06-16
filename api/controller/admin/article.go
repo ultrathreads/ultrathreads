@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"ultrathreads/converter"
+	"ultrathreads/render"
 	"ultrathreads/cache"
 	"ultrathreads/controller"
 	"ultrathreads/form"
@@ -86,7 +86,7 @@ func (c *ArticleController) List(ctx *gin.Context) {
 	var results []map[string]interface{}
 	for _, article := range list {
 		item := util.StructToMap(article, "content")
-		item["user"] = converter.ToUserDefaultIfNull(article.UserId)
+		item["user"] = render.ToDefaultUser(article.UserId)
 
 		// 简介
 		if article.ContentType == model.ContentTypeMarkdown {
@@ -105,7 +105,7 @@ func (c *ArticleController) List(ctx *gin.Context) {
 		// 标签
 		tagIds := cache.ArticleTagCache.Get(article.ID)
 		tags := cache.TagCache.GetList(tagIds)
-		item["tags"] = converter.ToTags(tags)
+		item["tags"] = render.ToTags(tags)
 
 		results = append(results, item)
 	}

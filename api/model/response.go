@@ -14,7 +14,6 @@ type UserInfo struct {
 	LevelName    string `json:"levelName"`
 	Website      string `json:"website"`
 	Description  string `json:"description"`
-	Score        int    `json:"score"`
 	TopicCount   int64  `json:"topicCount"`
 	CommentCount int64  `json:"commentCount"`
 	PasswordSet  bool   `json:"passwordSet"`
