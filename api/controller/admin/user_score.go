@@ -21,7 +21,7 @@ type UserScoreController struct {
 func (c *UserScoreController) Show(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		userScore := service.UserService.Get(gDto.ID)
+		userScore := service.Srv.UserService.Get(gDto.ID)
 		if userScore == nil {
 			c.Fail(ctx, util.NewErrorMsg("User score not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return

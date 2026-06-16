@@ -25,7 +25,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 			return
 		}
 
-		user, err := service.UserService.Create(dto.Username, dto.Email, dto.Nickname, dto.Password, dto.RePassword)
+		user, err := service.Srv.UserService.Create(dto.Username, dto.Email, dto.Nickname, dto.Password, dto.RePassword)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
 			return

@@ -35,7 +35,7 @@ func OptionalAuth(auth *jwt.GinJWTMiddleware) gin.HandlerFunc {
 			return
 		}
 
-		// 写入 identityKey 供 gin-jwt 生态及 service.UserService.GetCurrent 使用
+		// 写入 identityKey 供 gin-jwt 生态及 service.Srv.UserService.GetCurrent 使用
 		identityKey := viper.GetString("jwt.identity_key")
 		c.Set(identityKey, *userClaims)
 
@@ -43,7 +43,7 @@ func OptionalAuth(auth *jwt.GinJWTMiddleware) gin.HandlerFunc {
 		c.Set(ContextKeyUserClaims, *userClaims)
 
 		// 获取完整用户对象并注入 Context
-		if user := service.UserService.GetCurrent(c); user != nil {
+		if user := service.Srv.UserService.GetCurrent(c); user != nil {
 			c.Set(ContextKeyCurrentUser, user)
 		}
 

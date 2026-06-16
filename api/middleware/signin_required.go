@@ -9,7 +9,7 @@ import (
 
 // SigninRequired signin required
 func SigninRequired(ctx *gin.Context) {
-	user := service.UserService.GetCurrent(ctx)
+	user := service.Srv.UserService.GetCurrent(ctx)
 	if user == nil {
 		err := util.ErrorNotLogin
 		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{

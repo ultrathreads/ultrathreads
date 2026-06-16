@@ -31,7 +31,7 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.LikeCount = post.LikeCount
 
 	if post.IsRoot() {
-		tags := service.PostService.GetPostTags(post.ID)
+		tags := service.Srv.PostService.GetPostTags(post.ID)
 		rsp.Tags = ToTags(tags)
 	}
 }

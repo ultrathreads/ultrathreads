@@ -3,8 +3,8 @@ package service
 // Services 聚合所有服务实例，作为统一的服务访问入口
 type Services struct {
 	NodeService *nodeService
-	// Post *postService
-	// User  *userService
+	PostService *postService
+	UserService  *userService
 }
 
 // NewServices 集中初始化所有服务
@@ -12,6 +12,8 @@ type Services struct {
 func NewServices() *Services {
 	return &Services{
 		NodeService: newNodeService(),
+		PostService: newPostService(),
+		UserService: newUserService(),
 	}
 }
 

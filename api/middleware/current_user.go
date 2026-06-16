@@ -7,6 +7,6 @@ import (
 )
 
 func CurrentUser(ctx *gin.Context) {
-	ctx.Set("CurrentUser", service.UserService.GetCurrent(ctx))
+	ctx.Set("CurrentUser", service.Srv.UserService.GetCurrent(ctx))
 	ctx.Next()
 }

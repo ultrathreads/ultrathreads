@@ -24,7 +24,7 @@ type PostController struct {
 func (c *PostController) Show(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		post := service.PostService.Get(gDto.ID)
+		post := service.Srv.PostService.Get(gDto.ID)
 		if post == nil {
 			c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -40,7 +40,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 	postID := hashid.Slug2Id[model.Post](gDto.Slug)
-	post := service.PostService.Get(postID)
+	post := service.Srv.PostService.Get(postID)
 	if post == nil {
 		c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(postID, 10)))
 		return
@@ -51,7 +51,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 	postForm.Slug = gDto.Slug
-	err := service.PostService.UpdateRootPost(postForm)
+	err := service.Srv.PostService.UpdateRootPost(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -65,7 +65,7 @@ func (c *PostController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.PostService.Delete(gDto.ID)
+	service.Srv.PostService.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -75,7 +75,7 @@ func (c *PostController) Undelete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.PostService.Undelete(gDto.ID)
+	service.Srv.PostService.Undelete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -106,14 +106,14 @@ func (c *PostController) List(ctx *gin.Context) {
 		conditions.Like("title", title)
 	}
 
-	list, paging := service.PostService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := service.Srv.PostService.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, post := range list {
 		result := util.StructToMap(post, "content")
 		result["user"] = converter.ToUserDefaultIfNull(post.UserId)
 		result["node"] = service.Srv.NodeService.Get(post.NodeId)
-		result["tags"] = converter.ToTags(service.PostService.GetPostTags(post.ID))
+		result["tags"] = converter.ToTags(service.Srv.PostService.GetPostTags(post.ID))
 		// 简介
 		mr := markdown.NewMd().Run(post.Content)
 		result["summary"] = mr.SummaryText
@@ -130,7 +130,7 @@ func (c *PostController) Recommend(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	err := service.PostService.SetRecommend(gDto.ID, true)
+	err := service.Srv.PostService.SetRecommend(gDto.ID, true)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -144,7 +144,7 @@ func (c *PostController) Unrecommend(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	err := service.PostService.SetRecommend(gDto.ID, false)
+	err := service.Srv.PostService.SetRecommend(gDto.ID, false)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return

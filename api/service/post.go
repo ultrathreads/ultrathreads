@@ -24,8 +24,6 @@ import (
 
 type ScanPostCallback func(posts []model.Post)
 
-var PostService = newPostService()
-
 func newPostService() *postService {
 	return &postService{}
 }

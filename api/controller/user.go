@@ -31,7 +31,7 @@ func (c *UserController) GetCurrent(ctx *gin.Context) {
 func (c *UserController) Show(ctx *gin.Context) {
 	var gDto form.IdentifierDto
 	if c.BindAndValidate(ctx, &gDto) {
-		user := service.UserService.GetBySlug(gDto.Slug)
+		user := service.Srv.UserService.GetBySlug(gDto.Slug)
 		if user != nil && user.Status != model.StatusDeleted {
 			c.Success(ctx, converter.ToUser(user))
 		} else {
@@ -54,7 +54,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 			c.Fail(ctx, util.NewErrorMsg("个人主页地址错误"))
 			return
 		}
-		err := service.UserService.Updates(user.ID, map[string]interface{}{
+		err := service.Srv.UserService.Updates(user.ID, map[string]interface{}{
 			"nickname":    dto.Nickname,
 			"avatar":      dto.Avatar,
 			"website":     dto.Website,
@@ -212,7 +212,7 @@ func (c *UserController) UpdateAvatar(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	avatar := strings.TrimSpace(ctx.Request.FormValue("avatar"))
 
-	err := service.UserService.UpdateAvatar(user.ID, avatar)
+	err := service.Srv.UserService.UpdateAvatar(user.ID, avatar)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -225,7 +225,7 @@ func (c *UserController) SetUsername(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	username := strings.TrimSpace(ctx.Request.FormValue("username"))
 
-	err := service.UserService.SetUsername(user.ID, username)
+	err := service.Srv.UserService.SetUsername(user.ID, username)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -238,7 +238,7 @@ func (c *UserController) SetEmail(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	email := strings.TrimSpace(ctx.Request.FormValue("email"))
 
-	err := service.UserService.SetEmail(user.ID, email)
+	err := service.Srv.UserService.SetEmail(user.ID, email)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -255,7 +255,7 @@ func (c *UserController) SetPassword(ctx *gin.Context) {
 		rePassword = strings.TrimSpace(ctx.Request.FormValue("rePassword"))
 	)
 
-	err := service.UserService.SetPassword(user.ID, password, rePassword)
+	err := service.Srv.UserService.SetPassword(user.ID, password, rePassword)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -271,7 +271,7 @@ func (c *UserController) ChangePassword(ctx *gin.Context) {
 		password    = ctx.Request.FormValue("password")
 		rePassword  = ctx.Request.FormValue("rePassword")
 	)
-	err := service.UserService.UpdatePassword(user.ID, oldPassword, password, rePassword)
+	err := service.Srv.UserService.UpdatePassword(user.ID, oldPassword, password, rePassword)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return

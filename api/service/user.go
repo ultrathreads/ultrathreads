@@ -24,8 +24,6 @@ import (
 
 type ScanUserCallback func(users []model.User)
 
-var UserService = newUserService()
-
 func newUserService() *userService {
 	return &userService{}
 }

@@ -134,7 +134,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 	log.Info("loginDto.Username: %s", loginDto.Username)
 
-	ok, err, u := service.UserService.VerifyAndReturnUserInfo(loginDto.Username, loginDto.Password)
+	ok, err, u := service.Srv.UserService.VerifyAndReturnUserInfo(loginDto.Username, loginDto.Password)
 	if ok {
 		return model.UserClaims{
 			ID:   u.ID,
@@ -158,7 +158,7 @@ func AuthenticatorOAuth(c *gin.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	u, err := service.UserService.SignInByLoginSource(account)
+	u, err := service.Srv.UserService.SignInByLoginSource(account)
 	if err == nil {
 		return model.UserClaims{
 			ID:   u.ID,
