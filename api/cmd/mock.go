@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
+	"ultrathreads/database"
 	"ultrathreads/dao"
 	"ultrathreads/mock"
 	"ultrathreads/util/log"
@@ -49,7 +50,15 @@ func runMock(c *cli.Context) error {
 		return fmt.Errorf("parse conf file fail: %w", err)
 	}
 
-	dao.Setup()
+	// 6. 初始化数据库（返回实例，不再使用全局变量）
+	db, err := database.Setup()
+	if err != nil {
+		return fmt.Errorf("setup database failed: %w", err)
+	}
+
+	// 7. 初始化 DAO 聚合体（注入 db 实例）
+	dao.Setup(db)
+
 
 	// ✅ 交互确认（支持 --yes / -y 跳过）
 	if !c.Bool("yes") {
