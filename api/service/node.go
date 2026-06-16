@@ -26,21 +26,28 @@ type NodeServicer interface {
     GetNodes() []model.Node
 }
 
-func NewNodeService(repo dao.NodeRepository) *nodeService {
-    return &nodeService{repo: repo}
+func NewNodeService(repo dao.NodeRepository, nodeCache cache.NodeCacheInterface) *nodeService {
+    return &nodeService{
+    	repo: repo,
+    	nodeCache: nodeCache,
+    }
 }
 
 type nodeService struct{
 	repo dao.NodeRepository
+	nodeCache cache.NodeCacheInterface
 }
 
 func (s *nodeService) Get(id int64) *model.Node {
+	if node := s.nodeCache.Get(id); node != nil {
+		return node
+	}
 	return s.repo.Get(id)
 }
 
 func (s *nodeService) GetBySlug(slug string) *model.Node {
 	id := hashid.Slug2Id[model.Node](slug)
-	return s.repo.Get(id)
+	return s.Get(id)
 }
 
 func (s *nodeService) List(cnd *querybuilder.QueryBuilder) (list []model.Node, paging *querybuilder.Paging) {
@@ -59,7 +66,7 @@ func (s *nodeService) Create(req form.NodeCreateForm) (*model.Node, error) {
 	if err := s.repo.Create(node); err != nil {
 		return nil, errors.New("创建节点失败")
 	}
-	cache.NodeCache.InvalidateAll()
+	s.nodeCache.InvalidateAll()
 	return node, nil
 }
 
@@ -74,7 +81,7 @@ func (s *nodeService) Update(id int64, req form.NodeUpdateForm) error {
 	if err != nil {
 		return errors.New("更新节点失败")
 	}
-	cache.NodeCache.InvalidateAll()
+	s.nodeCache.InvalidateAll()
 	return nil
 }
 
@@ -82,7 +89,7 @@ func (s *nodeService) Delete(id int64) error {
 	if err := s.repo.Delete(id); err != nil {
 		return errors.New("删除节点失败")
 	}
-	cache.NodeCache.InvalidateAll()
+	s.nodeCache.InvalidateAll()
 	return nil
 }
 
@@ -92,7 +99,7 @@ func (s *nodeService) IncrTopicCount(nodeId int64) {
 		log.Error("IncrTopicCount failed: nodeId=%d, err=%v", nodeId, err)
 		return
 	}
-	cache.NodeCache.Invalidate(nodeId)
+	s.nodeCache.Invalidate(nodeId)
 }
 
 func (s *nodeService) GetRecommendNodes() []model.Node {

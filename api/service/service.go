@@ -1,6 +1,9 @@
 package service
 
-import "ultrathreads/dao"
+import (
+	"ultrathreads/cache"
+	"ultrathreads/dao"
+)
 
 // Services 聚合所有服务实例，作为统一的服务访问入口
 type Services struct {
@@ -11,9 +14,9 @@ type Services struct {
 
 // NewServices 集中初始化所有服务
 // 当前阶段仍返回具体类型，后续重构 DI 时只需修改此函数的签名和内部实现
-func NewServices(_daos *dao.Daos) *Services {
+func NewServices(_daos *dao.Daos, _caches *cache.Caches) *Services {
 	return &Services{
-		Node: NewNodeService(_daos.Node), 
+		Node: NewNodeService(_daos.Node, _caches.Node), 
 
 		Post: NewPostService(_daos.Post), 
 		User: NewUserService(_daos.User),

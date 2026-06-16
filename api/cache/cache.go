@@ -3,8 +3,25 @@ package cache
 import (
 	"github.com/goburrow/cache"
 
+	"ultrathreads/dao"
 	"ultrathreads/util/log"
 )
+
+type Caches struct {
+	Node NodeCacheInterface
+}
+
+func NewCaches(repos *dao.Daos) *Caches {
+	// ✅ 创建真实实例
+	nodeCache := NewNodeCache(repos.Node)
+	
+	// ✅ 同时将实例注入全局变量，让旧代码继续能用 cache.NodeCache
+	InitNodeCache(repos.Node)
+	
+	return &Caches{
+		Node: nodeCache,
+	}
+}
 
 func key2Int64(key cache.Key) int64 {
 	return key.(int64)
