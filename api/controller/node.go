@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/converter"
-	"ultrathreads/cache"
 	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -23,7 +22,7 @@ func NewNodeController(svc service.NodeServicer) *NodeController {
 
 // List 节点列表
 func (c *NodeController) List(ctx *gin.Context) {
-	nodes := cache.NodeCache.GetAll()
+	nodes := c.nodeSvc.GetNodes()
 
 	c.Success(ctx, converter.ToNodes(nodes))
 }

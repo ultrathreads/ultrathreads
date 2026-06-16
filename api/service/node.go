@@ -113,6 +113,11 @@ func (s *nodeService) GetRecommendNodes() []model.Node {
 }
 
 func (s *nodeService) GetNodes() []model.Node {
+	// 获取全量节点可以走 GetAll 缓存
+	if nodes := s.nodeCache.GetAll(); len(nodes) > 0 {
+		return nodes
+	}
+
 	return s.repo.Find(
 		querybuilder.NewQueryBuilder().
 			Eq("status", model.StatusOk).
