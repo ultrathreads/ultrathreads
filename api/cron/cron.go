@@ -30,11 +30,6 @@ func startSchedule() {
 		service.PostService.GenerateRss()
 	})
 
-	// Generate sitemap
-	addCronFunc(c, "@every 45m", func() {
-		service.SitemapService.GenerateToday()
-	})
-
 	c.Start()
 }
 

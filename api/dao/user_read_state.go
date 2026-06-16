@@ -6,21 +6,22 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
 	"ultrathreads/model"
 )
 
-var UserReadStateDao = newUserReadStateDao()
-
-func newUserReadStateDao() *userReadStateDao {
-	return &userReadStateDao{}
+func NewUserReadStateDao(db *gorm.DB) *userReadStateDao {
+	return &userReadStateDao{db: db}
 }
 
-type userReadStateDao struct{}
+type userReadStateDao struct {
+	db *gorm.DB
+}
 
 // GetLastReadAt 获取用户在指定节点的已读时间戳
 func (d *userReadStateDao) GetLastReadAt(userID, nodeID int64) int64 {
 	var record model.UserReadState
-	err := db.Where("user_id = ? AND node_id = ?", userID, nodeID).First(&record).Error
+	err := d.db.Where("user_id = ? AND node_id = ?", userID, nodeID).First(&record).Error
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			// TODO: 建议接入日志框架记录真实 DB 错误
@@ -41,7 +42,7 @@ func (d *userReadStateDao) Upsert(userID, nodeID int64, readAt int64) error {
 	}
 
 	// GREATEST + COALESCE 确保游标只增不减，且兼容 last_read_at 为 NULL 的情况
-	result := db.Clauses(clause.OnConflict{
+	result := d.db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "user_id"}, {Name: "node_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
 			"last_read_at": gorm.Expr("GREATEST(COALESCE(last_read_at, 0), ?)", readAt),
@@ -58,7 +59,7 @@ func (d *userReadStateDao) Upsert(userID, nodeID int64, readAt int64) error {
 // 未找到记录时返回空 map（非 nil），便于上层缓存直接使用
 func (d *userReadStateDao) GetAllReadStates(userID int64) map[int64]int64 {
 	var records []model.UserReadState
-	if err := db.Where("user_id = ?", userID).Find(&records).Error; err != nil {
+	if err := d.db.Where("user_id = ?", userID).Find(&records).Error; err != nil {
 		// TODO: 建议接入日志框架记录真实 DB 错误
 		// log.Error("GetAllReadStates failed: userId=%d, err=%v", userID, err)
 		return make(map[int64]int64)
@@ -73,7 +74,7 @@ func (d *userReadStateDao) GetAllReadStates(userID int64) map[int64]int64 {
 
 // DeleteByUser 清除用户所有已读状态（注销/重置时使用）
 func (d *userReadStateDao) DeleteByUser(userID int64) error {
-	if err := db.Where("user_id = ?", userID).Delete(&model.UserReadState{}).Error; err != nil {
+	if err := d.db.Where("user_id = ?", userID).Delete(&model.UserReadState{}).Error; err != nil {
 		return fmt.Errorf("delete user read state failed: %w", err)
 	}
 	return nil
@@ -86,7 +87,7 @@ func (d *userReadStateDao) GetUnreadNodeIDs(userID int64, nodeIDs []int64, postC
 	}
 
 	var records []model.UserReadState
-	if err := db.Where("user_id = ? AND node_id IN (?)", userID, nodeIDs).Find(&records).Error; err != nil {
+	if err := d.db.Where("user_id = ? AND node_id IN (?)", userID, nodeIDs).Find(&records).Error; err != nil {
 		return nil, fmt.Errorf("query user read states failed: %w", err)
 	}
 

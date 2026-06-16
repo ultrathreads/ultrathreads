@@ -1,23 +1,24 @@
 package dao
 
 import (
+	"gorm.io/gorm"
+
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
-var ArticleTagDao = newArticleTagDao()
-
-func newArticleTagDao() *articleTagDao {
-	return &articleTagDao{}
+func NewArticleTagDao(db *gorm.DB) *articleTagDao {
+	return &articleTagDao{db: db}
 }
 
 type articleTagDao struct {
+	db *gorm.DB
 }
 
 func (d *articleTagDao) Get(id int64) *model.ArticleTag {
 	ret := &model.ArticleTag{}
-	if err := db.First(ret, "id = ?", id).Error; err != nil {
+	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
@@ -25,51 +26,51 @@ func (d *articleTagDao) Get(id int64) *model.ArticleTag {
 
 func (d *articleTagDao) Take(where ...interface{}) *model.ArticleTag {
 	ret := &model.ArticleTag{}
-	if err := db.Take(ret, where...).Error; err != nil {
+	if err := d.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
 func (d *articleTagDao) Find(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag) {
-	cnd.Find(db, &list)
+	cnd.Find(d.db, &list)
 	return
 }
 
 func (d *articleTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag, paging *querybuilder.Paging) {
-	cnd.Find(db, &list)
-	count := cnd.Count(db, &model.ArticleTag{})
+	cnd.Find(d.db, &list)
+	count := cnd.Count(d.db, &model.ArticleTag{})
 
 	paging = &querybuilder.Paging{
-		Page:  cnd.Paging.Page,
+		Page:     cnd.Paging.Page,
 		PageSize: cnd.Paging.PageSize,
-		Total: count,
+		Total:    count,
 	}
 	return
 }
 
 func (d *articleTagDao) Create(t *model.ArticleTag) (err error) {
-	err = db.Create(t).Error
+	err = d.db.Create(t).Error
 	return
 }
 
 func (d *articleTagDao) Update(t *model.ArticleTag) (err error) {
-	err = db.Save(t).Error
+	err = d.db.Save(t).Error
 	return
 }
 
 func (d *articleTagDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = db.Model(&model.ArticleTag{}).Where("id = ?", id).Updates(columns).Error
+	err = d.db.Model(&model.ArticleTag{}).Where("id = ?", id).Updates(columns).Error
 	return
 }
 
 func (d *articleTagDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = db.Model(&model.ArticleTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
+	err = d.db.Model(&model.ArticleTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
 	return
 }
 
 func (d *articleTagDao) Delete(id int64) {
-	db.Delete(&model.ArticleTag{}, "id = ?", id)
+	d.db.Delete(&model.ArticleTag{}, "id = ?", id)
 }
 
 func (d *articleTagDao) AddArticleTags(articleId int64, tagIds []int64) {
@@ -90,7 +91,7 @@ func (d *articleTagDao) DeleteArticleTags(articleId int64) {
 	if articleId <= 0 {
 		return
 	}
-	db.Where("article_id = ?", articleId).Delete(model.ArticleTag{})
+	d.db.Where("article_id = ?", articleId).Delete(model.ArticleTag{})
 }
 
 func (d *articleTagDao) FindByArticleId(articleId int64) []model.ArticleTag {

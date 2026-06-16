@@ -9,18 +9,18 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var UserDao = newUserDao()
-
-func newUserDao() *userDao {
-	return &userDao{}
+func NewUserDao(db *gorm.DB) *userDao {
+	return &userDao{db: db}
 }
 
-type userDao struct{}
+type userDao struct {
+	db *gorm.DB
+}
 
 // Get 根据 ID 获取用户，未找到返回 nil
 func (d *userDao) Get(id int64) *model.User {
 	ret := &model.User{}
-	if err := db.First(ret, "id = ?", id).Error; err != nil {
+	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -40,7 +40,7 @@ func (d *userDao) FindByIds(ids []int64) []model.User {
 // Take 按条件获取单条记录（无排序保证），未找到返回 nil
 func (d *userDao) Take(where ...interface{}) *model.User {
 	ret := &model.User{}
-	if err := db.Take(ret, where...).Error; err != nil {
+	if err := d.db.Take(ret, where...).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -50,14 +50,14 @@ func (d *userDao) Take(where ...interface{}) *model.User {
 }
 
 func (d *userDao) Find(cnd *querybuilder.QueryBuilder) (list []model.User) {
-	cnd.Find(db, &list)
+	cnd.Find(d.db, &list)
 	return
 }
 
 // FindOne 通过 QueryBuilder 查询单条记录
 func (d *userDao) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
 	ret := &model.User{}
-	if err := cnd.FindOne(db, ret); err != nil {
+	if err := cnd.FindOne(d.db, ret); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -67,41 +67,41 @@ func (d *userDao) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
 }
 
 func (d *userDao) List(cnd *querybuilder.QueryBuilder) (list []model.User, paging *querybuilder.Paging) {
-	cnd.Find(db, &list)
-	count := cnd.Count(db, &model.User{})
+	cnd.Find(d.db, &list)
+	count := cnd.Count(d.db, &model.User{})
 
 	paging = &querybuilder.Paging{
-		Page:  cnd.Paging.Page,
+		Page:     cnd.Paging.Page,
 		PageSize: cnd.Paging.PageSize,
-		Total: count,
+		Total:    count,
 	}
 	return
 }
 
 // Count 统计数量
 func (d *userDao) Count(cnd *querybuilder.QueryBuilder) int64 {
-	return cnd.Count(db, &model.User{})
+	return cnd.Count(d.db, &model.User{})
 }
 
 func (d *userDao) Create(t *model.User) error {
-	return db.Create(t).Error
+	return d.db.Create(t).Error
 }
 
 func (d *userDao) Update(t *model.User) error {
-	return db.Save(t).Error
+	return d.db.Save(t).Error
 }
 
 func (d *userDao) Updates(id int64, columns map[string]interface{}) error {
-	return db.Model(&model.User{}).Where("id = ?", id).Updates(columns).Error
+	return d.db.Model(&model.User{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (d *userDao) UpdateColumn(id int64, name string, value interface{}) error {
-	return db.Model(&model.User{}).Where("id = ?", id).UpdateColumn(name, value).Error
+	return d.db.Model(&model.User{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
 // Delete 根据 ID 删除
-func (d *userDao) Delete(id int64) error { // ✅ 补充 error 返回值
-	return db.Delete(&model.User{}, "id = ?", id).Error
+func (d *userDao) Delete(id int64) error {
+	return d.db.Delete(&model.User{}, "id = ?", id).Error
 }
 
 // GetByEmail 根据邮箱获取用户
