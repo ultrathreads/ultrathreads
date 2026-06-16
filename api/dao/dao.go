@@ -2,15 +2,18 @@ package dao
 
 import "gorm.io/gorm"
 
-// Daos 新版 DAO 聚合体（与老全局变量完全隔离）
-type Daos struct {
+// Repositories 新版 DAO 聚合体（与老全局变量完全隔离）
+type Repositories struct {
     Node NodeRepository
     Post *postDao
     User *userDao
 }
 
-func NewDaos(db *gorm.DB) *Daos {
-    return &Daos{
+func NewRepositories(db *gorm.DB) *Repositories {
+	// 最终目标是不要调用setup(db)
+	setup(db)
+
+    return &Repositories{
         Node: NewNodeDao(db),
         Post: NewPostDao(db),
         User: NewUserDao(db),
@@ -39,8 +42,8 @@ var (
 	UserWatchDao    *userWatchDao
 )
 
-// Setup 创建所有 DAO 实例，接收外部注入的 *gorm.DB
-func Setup(gormDB *gorm.DB) {
+// setup 创建所有 DAO 实例，接收外部注入的 *gorm.DB
+func setup(gormDB *gorm.DB) {
 	// ⚠️ 关键修复：必须将传入的实例赋值给包级变量 db
 	// 否则后续 DB() 返回 nil，且无法正确关闭连接
 	db = gormDB 

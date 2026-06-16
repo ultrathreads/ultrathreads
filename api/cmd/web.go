@@ -32,10 +32,10 @@ var CmdWeb = &cli.Command{
 }
 
 func runWeb(c *cli.Context) error {
-	// 1. 初始化日志
+	// 1. 初始化日志（TODO: 改为从 viper 读取 log.level，避免生产环境硬编码 Debug）
 	zerolog.SetGlobalLevel(zerolog.Level(0))
 
-	// 2. 加载配置
+	// 2. 加载配置（支持 ${ENV_VAR} 环境变量展开）
 	conf := "./app.yaml"
 	if c.IsSet("conf") {
 		conf = c.String("conf")
@@ -57,11 +57,11 @@ func runWeb(c *cli.Context) error {
 	mgr := bus.NewManager()
 	bus.RegisterHandlers(mgr)
 
-	// 5. 设置 Gin 模式
+	// 5. 设置 Gin 运行模式
 	gin.SetMode(viper.GetString("mode"))
 
-	// ========== 🆕 核心改动：显式依赖注入与资源获取 ==========
-	
+	// ========== 核心依赖链构建（显式 DI） ==========
+
 	// 6. 初始化数据库（返回实例，不再使用全局变量）
 	db, err := database.Setup()
 	if err != nil {
@@ -69,27 +69,27 @@ func runWeb(c *cli.Context) error {
 	}
 
 	// 7. 初始化 DAO 聚合体（注入 db 实例）
-	dao.Setup(db)
+	repos := dao.NewRepositories(db)
 
-	repos := dao.NewDaos(db)
-
+	// 8. 初始化缓存层（注入 repos 作为缓存 Miss 时的降级数据源）
 	caches := cache.NewCaches(repos)
 
-	// 8. 🆕 初始化 Service 并赋值给全局 Srv
-	// 过渡期暂不传参，内部仍读取 dao.XxxDao 全局变量
+	// 9. 初始化 Service 层
+	// ⚠️ 过渡期：暂保留全局 Srv 赋值，供 bus handler / cron job 等未完成 DI 改造的模块使用
+	// TODO: 所有消费者改为构造注入后，删除 service.Srv 全局变量
 	service.Srv = service.NewServices(repos, caches)
 
-	// 8. 初始化缓存与定时任务
+	// 10. 启动定时任务
 	cron.Setup()
 
-	// 9. 路由注册
+	// 11. 路由注册（通过参数接收服务实例，路由层不再直接 import service 包）
 	engine := gin.Default()
-	router.Setup(engine, mgr, service.Srv) // 🔄 router.Setup 签名需同步调整以接收 daos
+	router.Setup(engine, mgr, service.Srv)
 
 	port := viper.GetString("base.port")
 	addr := ":" + port
 
-	// ========== 优雅退出逻辑（保持原有优秀设计） ==========
+	// ========== 优雅退出逻辑 ==========
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: engine,
@@ -121,14 +121,14 @@ func runWeb(c *cli.Context) error {
 		fmt.Println("✅ HTTP server stopped gracefully")
 	}
 
-	// ========== 🆕 按依赖逆序关闭资源 ==========
+	// ========== 按依赖逆序关闭资源 ==========
 	cron.Stop()
 	fmt.Println("✅ Cron jobs stopped")
 
+	// ⚠️ 过渡期：仍为全局函数调用，后续应改为 caches.Shutdown()
 	cache.Shutdown()
 	fmt.Println("✅ Cache closed")
 
-	// 使用新的 database.Close 并传入 db 实例
 	if err := database.Close(db); err != nil {
 		fmt.Printf("❌ Database close failed: %v\n", err)
 	} else {

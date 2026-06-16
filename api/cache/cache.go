@@ -11,7 +11,7 @@ type Caches struct {
 	Node NodeCacheInterface
 }
 
-func NewCaches(repos *dao.Daos) *Caches {
+func NewCaches(repos *dao.Repositories) *Caches {
 	// ✅ 创建真实实例
 	nodeCache := NewNodeCache(repos.Node)
 	
