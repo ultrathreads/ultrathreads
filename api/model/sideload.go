@@ -7,25 +7,25 @@ import (
 
 // 替换原 PostSimpleResponse
 type PostItem struct {
-	Slug     string `json:"slug"`
-	ThreadSlug string `json:"threadSlug"`
-	ParentSlug string `json:"parentSlug"`
-	NodeSlug string `json:"nodeSlug"`
-	UserSlug string `json:"userSlug"`
-	TagSlugs []string `json:"tagSlugs,omitempty"`
+	Slug           string   `json:"slug"`
+	ThreadSlug     string   `json:"threadSlug"`
+	ParentSlug     string   `json:"parentSlug"`
+	NodeSlug       string   `json:"nodeSlug"`
+	UserSlug       string   `json:"userSlug"`
+	TagSlugs       []string `json:"tagSlugs,omitempty"`
 
-	Title    string `json:"title"`
-	Content    template.HTML `json:"content,omitempty"`
+	Title          string        `json:"title"`
+	Content        template.HTML `json:"content,omitempty"`
 
-	IsPinned      bool        `json:"isPinned"`
-	IsRoot        bool        `json:"isRoot"`
+	IsPinned        bool        `json:"isPinned"`
+	IsRoot          bool        `json:"isRoot"`
 
-	CreateTime      int64     `json:"createTime"`
-	LastCommentTime int64     `json:"lastCommentTime"`
+	CreateTime      int64     	`json:"createTime"`
+	LastCommentTime int64     	`json:"lastCommentTime"`
 
-	ViewCount        int64    `json:"viewCount,omitempty"`
+	ViewCount        int64    	`json:"viewCount,omitempty"`
 	//先考虑兼容
-	LastCommentUser *UserInfo `json:"lastCommentUser"`
+	LastCommentUser  *UserInfo	`json:"lastCommentUser"`
 }
 
 type Context struct {
