@@ -31,7 +31,7 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.LikeCount = post.LikeCount
 
 	if post.IsRoot() {
-		tags := service.Srv.PostService.GetPostTags(post.ID)
+		tags := service.Srv.Post.GetPostTags(post.ID)
 		rsp.Tags = ToTags(tags)
 	}
 }
@@ -51,7 +51,7 @@ func ToPost(post *model.Post) *model.PostResponse {
 	}
 
 	if post.NodeId > 0 {
-		node := service.Srv.NodeService.Get(post.NodeId)
+		node := service.Srv.Node.Get(post.NodeId)
 		rsp.Node = ToNode(node)
 	}
 

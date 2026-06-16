@@ -22,11 +22,17 @@ import (
 
 type ScanUserCallback func(users []model.User)
 
-func newUserService() *userService {
-	return &userService{}
+type userRepository interface {
+    Get(id int64) *model.User
 }
 
-type userService struct{}
+func NewUserService(repo userRepository) *userService {
+    return &userService{repo: repo}
+}
+
+type userService struct{
+	repo userRepository
+}
 
 func (s *userService) Get(id int64) *model.User {
 	return dao.UserDao.Get(id)

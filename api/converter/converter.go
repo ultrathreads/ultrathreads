@@ -101,7 +101,7 @@ func ToFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 			}
 		}
 	} else {
-		post := service.Srv.PostService.Get(favorite.EntityId)
+		post := service.Srv.Post.Get(favorite.EntityId)
 		if post == nil || post.Status != model.StatusOk {
 			rsp.Deleted = true
 		} else {

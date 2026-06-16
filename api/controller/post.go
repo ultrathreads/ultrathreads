@@ -24,7 +24,7 @@ func (c *PostController) Show(ctx *gin.Context) {
 		return
 	}
 
-	post := service.Srv.PostService.GetBySlug(gDto.Slug)
+	post := service.Srv.Post.GetBySlug(gDto.Slug)
 	if post == nil || post.Status != model.StatusOk {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -38,7 +38,7 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
 	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
 
-	posts, paging := service.Srv.PostService.GetNodeThreadsFull(page, pageSize, nodeSlug)
+	posts, paging := service.Srv.Post.GetNodeThreadsFull(page, pageSize, nodeSlug)
 
 	var lastReadAtMap map[string]int64
 	if nodeSlug != "" {
@@ -68,7 +68,7 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 	tagSlug := util.ParamStringDefault(ctx, "slug", "")
 	page := util.FormIntDefault(ctx, "page", 1)
 
-	posts, paging := service.Srv.PostService.GetTagThreadsFull(tagSlug, page)
+	posts, paging := service.Srv.Post.GetTagThreadsFull(tagSlug, page)
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
@@ -97,7 +97,7 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 		return
 	}
 
-	currentPost, posts, err := service.Srv.PostService.GetPostTree(gDto.Slug)
+	currentPost, posts, err := service.Srv.Post.GetPostTree(gDto.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -119,7 +119,7 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 		return
 	}
 
-	posts, err := service.Srv.PostService.GetPostsByThreadId(gDto.Slug)
+	posts, err := service.Srv.Post.GetPostsByThreadId(gDto.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -143,7 +143,7 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 	postType := ctx.DefaultQuery("type", "root")
 
 	// 3. 调用 Service 层获取数据
-	posts, paging := service.Srv.PostService.GetUserPosts(gDto.Slug, postType, page, 20)
+	posts, paging := service.Srv.Post.GetUserPosts(gDto.Slug, postType, page, 20)
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
@@ -172,7 +172,7 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 		return // BindAndValidate 内部已写回错误响应
 	}
 
-	post, err := service.Srv.PostService.CreateRootPost(user.ID, postForm)
+	post, err := service.Srv.Post.CreateRootPost(user.ID, postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -197,7 +197,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		return
 	}
 
-	post := service.Srv.PostService.GetBySlug(postForm.Slug)
+	post := service.Srv.Post.GetBySlug(postForm.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -208,7 +208,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		return
 	}
 
-	err := service.Srv.PostService.UpdateRootPost(postForm)
+	err := service.Srv.Post.UpdateRootPost(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -236,7 +236,7 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 	replyForm.ParentSlug = replyForm.Slug
 	replyForm.Title = util.ExtractReplyTitle(replyForm.Content, 20) // 从内容提取前20字符
 
-	post, err := service.Srv.PostService.CreateReply(user.ID, replyForm)
+	post, err := service.Srv.Post.CreateReply(user.ID, replyForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -259,7 +259,7 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 		return
 	}
 
-	post := service.Srv.PostService.GetBySlug(postForm.Slug)
+	post := service.Srv.Post.GetBySlug(postForm.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -272,7 +272,7 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 
 	postForm.Title = util.ExtractReplyTitle(postForm.Content, 20) // 从内容提取前20字符
 
-	err := service.Srv.PostService.UpdateReply(postForm)
+	err := service.Srv.Post.UpdateReply(postForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -307,7 +307,7 @@ func (c *PostController) GetRecentLikes(ctx *gin.Context) {
 func (c *PostController) GetUserRecent(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		posts := service.Srv.PostService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
+		posts := service.Srv.Post.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, converter.ToSimplePosts(posts))
 	}

@@ -24,11 +24,17 @@ import (
 
 type ScanPostCallback func(posts []model.Post)
 
-func newPostService() *postService {
-	return &postService{}
+type postRepository interface {
+    Get(id int64) *model.Post
 }
 
-type postService struct{}
+func NewPostService(repo postRepository) *postService {
+    return &postService{repo: repo}
+}
+
+type postService struct{
+	repo postRepository
+}
 
 func (s *postService) Get(id int64) *model.Post {
 	return dao.PostDao.Get(id)

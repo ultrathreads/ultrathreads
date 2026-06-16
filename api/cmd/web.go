@@ -73,7 +73,7 @@ func runWeb(c *cli.Context) error {
 
 	// 8. 🆕 初始化 Service 并赋值给全局 Srv
 	// 过渡期暂不传参，内部仍读取 dao.XxxDao 全局变量
-	service.Srv = service.NewServices(&dao.Daos{})
+	service.Srv = service.NewServices(dao.NewDaos(db))
 
 	// 8. 初始化缓存与定时任务
 	cache.Setup()
@@ -81,7 +81,7 @@ func runWeb(c *cli.Context) error {
 
 	// 9. 路由注册
 	engine := gin.Default()
-	router.Setup(engine, mgr) // 🔄 router.Setup 签名需同步调整以接收 daos
+	router.Setup(engine, mgr, service.Srv) // 🔄 router.Setup 签名需同步调整以接收 daos
 
 	port := viper.GetString("base.port")
 	addr := ":" + port

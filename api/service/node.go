@@ -13,23 +13,38 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func newNodeService() *nodeService {
-	return &nodeService{}
+// Controller 层依赖的业务接口
+type NodeServicer interface {
+    Get(id int64) *model.Node
+    GetBySlug(slug string) *model.Node
+    List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
+    Create(req form.NodeCreateForm) (*model.Node, error)
+    Update(id int64, req form.NodeUpdateForm) error
+    Delete(id int64) error
+    IncrTopicCount(nodeId int64)
+    GetRecommendNodes() []model.Node
+    GetNodes() []model.Node
 }
 
-type nodeService struct{}
+func NewNodeService(repo dao.NodeRepository) *nodeService {
+    return &nodeService{repo: repo}
+}
+
+type nodeService struct{
+	repo dao.NodeRepository
+}
 
 func (s *nodeService) Get(id int64) *model.Node {
-	return dao.NodeDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *nodeService) GetBySlug(slug string) *model.Node {
 	id := hashid.Slug2Id[model.Node](slug)
-	return dao.NodeDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *nodeService) List(cnd *querybuilder.QueryBuilder) (list []model.Node, paging *querybuilder.Paging) {
-	return dao.NodeDao.List(cnd)
+	return s.repo.List(cnd)
 }
 
 func (s *nodeService) Create(req form.NodeCreateForm) (*model.Node, error) {
@@ -41,15 +56,15 @@ func (s *nodeService) Create(req form.NodeCreateForm) (*model.Node, error) {
 		Status:      req.Status,
 		CreateTime:  util.NowTimestamp(),
 	}
-	if err := dao.NodeDao.Create(node); err != nil {
+	if err := s.repo.Create(node); err != nil {
 		return nil, errors.New("创建节点失败")
 	}
 	cache.NodeCache.InvalidateAll()
 	return node, nil
 }
 
-func (s *nodeService) Update(int int64, req form.NodeUpdateForm) error {
-	err := dao.NodeDao.Updates(req.ID, map[string]interface{}{
+func (s *nodeService) Update(id int64, req form.NodeUpdateForm) error {
+	err := s.repo.Updates(id, map[string]interface{}{
 		"name":        req.Name,
 		"description": req.Description,
 		"icon": 	   req.Icon,
@@ -64,7 +79,7 @@ func (s *nodeService) Update(int int64, req form.NodeUpdateForm) error {
 }
 
 func (s *nodeService) Delete(id int64) error {
-	if err := dao.NodeDao.Delete(id); err != nil {
+	if err := s.repo.Delete(id); err != nil {
 		return errors.New("删除节点失败")
 	}
 	cache.NodeCache.InvalidateAll()
@@ -73,7 +88,7 @@ func (s *nodeService) Delete(id int64) error {
 
 // IncrTopicCount 主题数+1（高频写操作，仅失效单条缓存）
 func (s *nodeService) IncrTopicCount(nodeId int64) {
-	if err := dao.NodeDao.IncrField(nodeId, "topic_count", 1); err != nil {
+	if err := s.repo.IncrField(nodeId, "topic_count", 1); err != nil {
 		log.Error("IncrTopicCount failed: nodeId=%d, err=%v", nodeId, err)
 		return
 	}
@@ -81,7 +96,7 @@ func (s *nodeService) IncrTopicCount(nodeId int64) {
 }
 
 func (s *nodeService) GetRecommendNodes() []model.Node {
-	return dao.NodeDao.Find(
+	return s.repo.Find(
 		querybuilder.NewQueryBuilder().
 			Eq("status", model.StatusOk).
 			Asc("sort_no").
@@ -91,7 +106,7 @@ func (s *nodeService) GetRecommendNodes() []model.Node {
 }
 
 func (s *nodeService) GetNodes() []model.Node {
-	return dao.NodeDao.Find(
+	return s.repo.Find(
 		querybuilder.NewQueryBuilder().
 			Eq("status", model.StatusOk).
 			Asc("sort_no").

@@ -14,6 +14,11 @@ import (
 
 type NodeController struct {
 	BaseController
+	nodeSvc service.NodeServicer 
+}
+
+func NewNodeController(svc service.NodeServicer) *NodeController {
+    return &NodeController{nodeSvc: svc}
 }
 
 // List 节点列表
@@ -29,9 +34,9 @@ func (c *NodeController) Show(ctx *gin.Context) {
 	if c.BindAndValidate(ctx, &gDto) {
 		var node *model.Node
 		if id, parseErr := strconv.ParseInt(gDto.Slug, 10, 64); parseErr == nil {
-			node = service.Srv.NodeService.Get(id)
+			node = c.nodeSvc.Get(id)
 		} else {
-			node = service.Srv.NodeService.GetBySlug(gDto.Slug)
+			node = c.nodeSvc.GetBySlug(gDto.Slug)
 		}
 
 		c.Success(ctx, converter.ToNode(node))

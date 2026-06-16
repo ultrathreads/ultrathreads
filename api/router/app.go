@@ -5,9 +5,10 @@ import (
 
 	"ultrathreads/controller"
 	"ultrathreads/middleware"
+	"ultrathreads/service"
 )
 
-func setupApp(e *gin.Engine) {
+func setupApp(e *gin.Engine, srv *service.Services) {
 	api := e.Group("/api")
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
@@ -38,7 +39,7 @@ func setupApp(e *gin.Engine) {
 	optional.Use(middleware.CurrentUserReadState())
 	{
 		postController := &controller.PostController{}
-		nodeController := &controller.NodeController{}
+		nodeController := controller.NewNodeController(srv.Node)
 		tagController := &controller.TagController{}
 		articleController := &controller.ArticleController{}
 		userController := &controller.UserController{}

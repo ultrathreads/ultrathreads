@@ -7,6 +7,16 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
+type NodeRepository interface {
+    Get(id int64) *model.Node
+    List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
+    Create(node *model.Node) error
+    Updates(id int64, fields map[string]interface{}) error
+    Delete(id int64) error
+    IncrField(id int64, field string, delta int) error
+    Find(cnd *querybuilder.QueryBuilder) []model.Node
+}
+
 type nodeDao struct {
     db *gorm.DB
 }

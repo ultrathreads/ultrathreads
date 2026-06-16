@@ -2,7 +2,20 @@ package dao
 
 import "gorm.io/gorm"
 
-type Daos struct{}
+// Daos 新版 DAO 聚合体（与老全局变量完全隔离）
+type Daos struct {
+    Node *nodeDao
+    Post *postDao
+    User *userDao
+}
+
+func NewDaos(db *gorm.DB) *Daos {
+    return &Daos{
+        Node: NewNodeDao(db),
+        Post: NewPostDao(db),
+        User: NewUserDao(db),
+    }
+}
 
 var (
 	db              *gorm.DB

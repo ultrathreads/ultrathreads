@@ -27,7 +27,7 @@ func startSchedule() {
 	// Generate RSS
 	addCronFunc(c, "@every 30m", func() {
 		service.ArticleService.GenerateRss()
-		service.Srv.PostService.GenerateRss()
+		service.Srv.Post.GenerateRss()
 	})
 
 	c.Start()

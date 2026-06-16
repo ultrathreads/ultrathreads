@@ -8,6 +8,7 @@ import (
 
 	"ultrathreads/bus"
 	"ultrathreads/middleware"
+	"ultrathreads/service"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 )
 
 // Setup 初始化路由引擎
-func Setup(e *gin.Engine, mgr *bus.Manager) {
+func Setup(e *gin.Engine, mgr *bus.Manager, srv *service.Services) {
 	e.Use(gin.Recovery())
 	e.Use(middleware.Cors())
 
@@ -34,6 +35,6 @@ func Setup(e *gin.Engine, mgr *bus.Manager) {
 	jwtOAuth = middleware.JwtAuth(middleware.LoginOAuth)
 
 	// 注册各模块路由
-	setupApp(e)
+	setupApp(e, srv)
 	setupAdmin(e)
 }

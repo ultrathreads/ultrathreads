@@ -29,8 +29,8 @@ func (s *statisticService) GenerateData() {
 
 	var (
 		// ✅ int → int64 适配：Count 返回 int64，strconv.FormatInt 替代 strconv.Itoa
-		statUserCount = strconv.FormatInt(Srv.UserService.Count(querybuilder.NewQueryBuilder()), 10)
-		statPostCount = strconv.FormatInt(Srv.PostService.Count(querybuilder.NewQueryBuilder()), 10)
+		statUserCount = strconv.FormatInt(Srv.User.Count(querybuilder.NewQueryBuilder()), 10)
+		statPostCount = strconv.FormatInt(Srv.Post.Count(querybuilder.NewQueryBuilder()), 10)
 	)
 
 	// 注意：Set 内部已有事务，此处无需额外包装

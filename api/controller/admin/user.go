@@ -22,7 +22,7 @@ type UserController struct {
 func (c *UserController) Show(ctx *gin.Context) {
 	var gDto form.GeneralGetDto
 	if c.BindAndValidate(ctx, &gDto) {
-		user := service.Srv.UserService.Get(gDto.ID)
+		user := service.Srv.User.Get(gDto.ID)
 		if user == nil {
 			c.Fail(ctx, util.NewErrorMsg("User not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -42,7 +42,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	user := service.Srv.UserService.Get(gDto.ID)
+	user := service.Srv.User.Get(gDto.ID)
 	if user == nil {
 		c.Fail(ctx, util.NewErrorMsg("User not found, id="+strconv.FormatInt(gDto.ID, 10)))
 		return
@@ -53,7 +53,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 		return
 	}
 
-	err := service.Srv.UserService.Update(userForm)
+	err := service.Srv.User.Update(userForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -67,7 +67,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.Srv.UserService.Delete(gDto.ID)
+	service.Srv.User.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -89,7 +89,7 @@ func (c *UserController) List(ctx *gin.Context) {
 	if len(nickname) > 0 {
 		conditions.Like("nickname", nickname)
 	}
-	list, paging := service.Srv.UserService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := service.Srv.User.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, user := range list {
