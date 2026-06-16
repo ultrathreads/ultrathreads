@@ -50,8 +50,13 @@ export default function MyFavoritesList({ initialFavorites, onDeleteFavoriteActi
     });
   };
 
+  const pageTitle = '我的书签';
+
   return (
     <div className="thread-tree-container">
+      <div className="thread-tree-header">
+        <h3>{pageTitle}</h3>
+      </div>
       <ul className="thread">
         {optimisticFavorites.map((item) => (
           <li key={item.slug}>
