@@ -124,7 +124,15 @@ export default async function ReadPage({ params, searchParams }: Props) {
     } else {
       const rsp = await getPostTree(slug, serviceOpts);
       currentPost = rsp.extra as AssembledPost | null;
-      const assembledPosts = assembleSideload(rsp.data ?? [], rsp.included);
+
+      const rawData = rsp.data;
+      const postsArray = Array.isArray(rawData)
+        ? rawData
+        : rawData != null
+          ? [rawData]       // 单对象 → 包装为数组
+          : [];             // null/undefined → 空数组
+
+      const assembledPosts = assembleSideload(postsArray, rsp.included);
       viewData = buildThreadTree(assembledPosts);
       totalReplyCount = assembledPosts.length > 0 ? assembledPosts.length - 1 : 0;
       includedNodes = rsp.included?.nodes ?? [];

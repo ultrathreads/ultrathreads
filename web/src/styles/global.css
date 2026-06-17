@@ -269,6 +269,24 @@ body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Ping
   border-color: var(--color-primary);
 }
 
+/* 创作菜单定位锚点（不可省，否则下拉面板定位基准错误） */
+.create-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 下拉箭头旋转（不可省，.post-btn 内无此样式） */
+.post-btn .dropdown-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+.post-btn .dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
 /* 用户菜单外层 */
 .user-menu-wrapper {
     position: relative; display: flex; align-items: center; gap: 10px;
