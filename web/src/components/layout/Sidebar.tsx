@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import clsx from 'clsx';
 import { useTranslation } from '@/lib/i18n/i18n-client';
 import { getAllNodes } from '@/services/node-service';
@@ -10,23 +10,27 @@ import type { NodeEntity, TagEntity } from '@/types/domain';
 import { NodeIcon } from '@/components/ui/NodeIcon';
 import { SidebarNav } from './SidebarNav';
 
-// ✅ 常量提取，避免魔法字符串散落在代码中
 const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
 
 export default function Sidebar() {
   const { t } = useTranslation();
   const router = useRouter();
   const params = useParams<{ slug?: string }>();
+  const searchParams = useSearchParams();
 
-  // ✅ 初始值从 localStorage 读取，SSR 阶段默认为 true 避免水合不匹配
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeEntity[]>([]);
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const activeSlug = params?.slug || null;
+  const activeNodeSlug = useMemo(() => {
+    return params?.slug || searchParams.get('node') || null;
+  }, [params?.slug, searchParams]);
 
-  // ✅ 挂载后同步 localStorage 状态，仅在客户端执行
+  const activeTagSlug = useMemo(() => {
+    return params?.slug || searchParams.get('tag') || null;
+  }, [params?.slug, searchParams]);
+
   useEffect(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     if (stored !== null) {
@@ -34,7 +38,7 @@ export default function Sidebar() {
     }
   }, []);
 
-  // ✅ 切换时同时写入 localStorage
+
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
@@ -95,7 +99,7 @@ export default function Sidebar() {
           ) : (
             <ul className="forum-list">
               {nodes.map((node) => {
-                const isActive = node.slug === activeSlug;
+                const isActive = node.slug === activeNodeSlug;
                 return (
                   <li
                     key={node.slug}
@@ -120,7 +124,7 @@ export default function Sidebar() {
           ) : (
             <div className="tag-cloud">
               {tags.map((tag) => {
-                const isActive = tag.slug === activeSlug;
+                const isActive = tag.slug === activeTagSlug;
                 return (
                   <span
                     key={tag.slug}
