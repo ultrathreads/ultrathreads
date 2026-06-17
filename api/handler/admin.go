@@ -7,11 +7,10 @@ import (
 	"ultrathreads/middleware"
 )
 
-func (h *Handler) setupAdmin(e *gin.Engine) {
+func (h *Handler) initAdminAPI(e *gin.Engine) {
 	adminAPI := e.Group("/api/admin")
 	adminAPI.Use(h.jwtAuth.MiddlewareFunc(), middleware.CurrentUser, middleware.AdminRequired())
 
-	// ✅ 保持原有空结构体实例化方式，不依赖 NewXxxController
 	dashboardCtrl := &admin.DashboardController{}
 	adminAPI.GET("/dashboard/systeminfo", dashboardCtrl.Systeminfo)
 

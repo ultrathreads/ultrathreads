@@ -6,6 +6,7 @@ import (
 	"ultrathreads/render"
 	"ultrathreads/bus/event"
 	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -19,12 +20,12 @@ type PostController struct {
 
 // Show 话题详情
 func (c *PostController) Show(ctx *gin.Context) {
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
+	var req dto.SlugRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
 
-	post := service.Srv.Post.GetBySlug(gDto.Slug)
+	post := service.Srv.Post.GetBySlug(req.Slug)
 	if post == nil || post.Status != model.StatusOk {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -189,13 +190,13 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 // StoreRootPost 发表根帖
 func (c *PostController) StoreRootPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var postForm form.RootPostCreateForm
+	var req dto.CreateRootPostRequest
 
-	if !c.BindAndValidate(ctx, &postForm) {
+	if !c.BindAndValidate(ctx, &req) {
 		return // BindAndValidate 内部已写回错误响应
 	}
 
-	post, err := service.Srv.Post.CreateRootPost(user.ID, postForm)
+	post, err := service.Srv.Post.CreateRootPost(user.ID, req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -206,7 +207,7 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 		UserID: user.ID,
 		PostID: post.ID,
 		IsRoot: true,
-		Tags:   postForm.Tags,
+		Tags:   req.Tags,
 	})
 
 	c.RespondOK(ctx, render.ToSimplePost(post))
@@ -215,12 +216,12 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 // Update 更新主贴
 func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var postForm form.RootPostUpdateForm
-	if !c.BindAndValidate(ctx, &postForm) {
+	var req dto.UpdateRootPostRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
 
-	post := service.Srv.Post.GetBySlug(postForm.Slug)
+	post := service.Srv.Post.GetBySlug(req.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -231,7 +232,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		return
 	}
 
-	err := service.Srv.Post.UpdateRootPost(postForm)
+	err := service.Srv.Post.UpdateRootPost(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -240,7 +241,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 	c.PublishEvent(ctx, event.PostUpdated{
 		UserID: user.ID,
 		PostID: post.ID,
-		Tags:   postForm.Tags,
+		Tags:   req.Tags,
 		IsRoot: post.IsRoot(),
 	})
 

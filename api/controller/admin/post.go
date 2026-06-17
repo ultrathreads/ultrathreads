@@ -7,6 +7,7 @@ import (
 	"ultrathreads/render"
 	"ultrathreads/controller"
 	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/model"
@@ -46,12 +47,12 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var postForm form.RootPostUpdateForm
-	if !c.BindAndValidate(ctx, &postForm) {
+	var req dto.UpdateRootPostRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
-	postForm.Slug = gDto.Slug
-	err := service.Srv.Post.UpdateRootPost(postForm)
+	req.Slug = gDto.Slug
+	err := service.Srv.Post.UpdateRootPost(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return

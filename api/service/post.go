@@ -14,6 +14,7 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
@@ -245,7 +246,7 @@ func (s *postService) Undelete(id int64) error {
 }
 
 // CreateRootPost 创建根帖（主帖）
-func (s *postService) CreateRootPost(userID int64, dto form.RootPostCreateForm) (*model.Post, error) {
+func (s *postService) CreateRootPost(userID int64, dto dto.CreateRootPostRequest) (*model.Post, error) {
 	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
 
 	// ✅ 节点校验（仅根帖需要）
@@ -267,7 +268,6 @@ func (s *postService) CreateRootPost(userID int64, dto form.RootPostCreateForm) 
 		NodeId:          nodeID,
 		Title:           dto.Title,
 		Content:         dto.Content,
-		ImageList:       dto.ImageList,
 		Status:          model.StatusOk,
 		LastCommentTime: now,
 		CreateTime:      now,
@@ -292,9 +292,9 @@ func (s *postService) CreateRootPost(userID int64, dto form.RootPostCreateForm) 
 }
 
 // Update 编辑帖子
-func (s *postService) UpdateRootPost(dto form.RootPostUpdateForm) error {
-	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
-	postID := hashid.Slug2Id[model.Post](dto.Slug)
+func (s *postService) UpdateRootPost(req dto.UpdateRootPostRequest) error {
+	nodeID := hashid.Slug2Id[model.Node](*req.NodeSlug)
+	postID := hashid.Slug2Id[model.Post](req.Slug)
 	node := s.nodeRepo.Get(nodeID)
 	if node == nil || node.Status != model.StatusOk {
 		return util.NewErrorMsg("节点不存在")
@@ -304,8 +304,8 @@ func (s *postService) UpdateRootPost(dto form.RootPostUpdateForm) error {
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
 			"node_id":    node.ID,
-			"title":      dto.Title,
-			"content":    dto.Content,
+			"title":      req.Title,
+			"content":    req.Content,
 			"updated_at": util.NowTimestamp(),
 		}).Error; err != nil {
 			return err

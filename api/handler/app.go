@@ -7,8 +7,8 @@ import (
 	"ultrathreads/middleware"
 )
 
-// setupApp 注册所有前台路由，JWT 通过参数注入而非全局变量
-func (h *Handler) setupApp(e *gin.Engine) {
+// initAppAPI 注册所有前台路由，JWT 通过参数注入而非全局变量
+func (h *Handler) initAppAPI(e *gin.Engine) {
 	api := e.Group("/api")
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
@@ -39,7 +39,7 @@ func (h *Handler) setupApp(e *gin.Engine) {
 	optional.Use(middleware.CurrentUserReadState())
 	{
 		postController := &controller.PostController{}
-		nodeController := controller.NewNodeController(h.services.Node) // ✅ 原代码中此方法已存在，保持不变
+		nodeController := controller.NewNodeController(h.services.Node)
 		tagController := &controller.TagController{}
 		articleController := &controller.ArticleController{}
 		userController := &controller.UserController{}

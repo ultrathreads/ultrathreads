@@ -15,7 +15,7 @@ type Handler struct {
 	services *service.Services
 	mgr      *bus.Manager
 	
-	// ✅ 将 JWT 中间件作为 Handler 的成员变量，保证全局单例
+	// 将 JWT 中间件作为 Handler 的成员变量，保证全局单例
 	jwtAuth  *jwt.GinJWTMiddleware
 	jwtOAuth *jwt.GinJWTMiddleware
 }
@@ -26,7 +26,7 @@ func NewHandlers(services *service.Services, mgr *bus.Manager) *Handler {
 		mgr:      mgr,
 	}
 	
-	// ✅ 在构造阶段统一初始化，后续所有路由共享同一实例
+	// 在构造阶段统一初始化，后续所有路由共享同一实例
 	h.jwtAuth = middleware.JwtAuth(middleware.LoginStandard)
 	h.jwtOAuth = middleware.JwtAuth(middleware.LoginOAuth)
 	
@@ -35,21 +35,24 @@ func NewHandlers(services *service.Services, mgr *bus.Manager) *Handler {
 
 // Init 组装引擎、全局中间件，并调用 setupApp 注册所有路由
 func (h *Handler) Init() *gin.Engine {
-	engine := gin.New()
-	engine.Use(gin.Logger(), gin.Recovery())
-	engine.Use(middleware.Cors())
-	engine.Use(func(c *gin.Context) {
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
+	router.Use(middleware.Cors())
+	router.Use(func(c *gin.Context) {
 		c.Set(bus.BusKey, h.mgr.Bus)
 		c.Next()
 	})
 
-	engine.Any("/", func(ctx *gin.Context) {
+	// Init router
+	router.Any("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "UltraThreads API\n")
 	})
+	router.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
 
-	// ✅ 直接使用成员变量，不再传递局部参数
-	h.setupApp(engine)
-	h.setupAdmin(engine)
+	h.initAppAPI(router)
+	h.initAdminAPI(router)
 
-	return engine
+	return router
 }
