@@ -13,7 +13,6 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
-	"ultrathreads/form"
 	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/util"
@@ -246,8 +245,8 @@ func (s *postService) Undelete(id int64) error {
 }
 
 // CreateRootPost 创建根帖（主帖）
-func (s *postService) CreateRootPost(userID int64, dto dto.CreateRootPostRequest) (*model.Post, error) {
-	nodeID := hashid.Slug2Id[model.Node](dto.NodeSlug)
+func (s *postService) CreateRootPost(userID int64, req dto.CreateRootPostRequest) (*model.Post, error) {
+	nodeID := hashid.Slug2Id[model.Node](req.NodeSlug)
 
 	// ✅ 节点校验（仅根帖需要）
 	if nodeID <= 0 {
@@ -266,8 +265,8 @@ func (s *postService) CreateRootPost(userID int64, dto dto.CreateRootPostRequest
 		Type:            model.PostTypeNormal,
 		UserId:          userID,
 		NodeId:          nodeID,
-		Title:           dto.Title,
-		Content:         dto.Content,
+		Title:           req.Title,
+		Content:         req.Content,
 		Status:          model.StatusOk,
 		LastCommentTime: now,
 		CreateTime:      now,
@@ -317,20 +316,20 @@ func (s *postService) UpdateRootPost(req dto.UpdateRootPostRequest) error {
 }
 
 // CreateReply 创建回复
-func (s *postService) CreateReply(userID int64, dto form.ReplyCreateForm) (*model.Post, error) {
-	parentID := hashid.Slug2Id[model.Post](dto.ParentSlug)
+func (s *postService) CreateReply(userID int64, req dto.CreateReplyRequest) (*model.Post, error) {
+	parentID := hashid.Slug2Id[model.Post](req.ParentSlug)
 
 	if parentID <= 0 {
 		return nil, errors.New("无效的父级帖子")
 	}
 
+	title := util.ExtractReplyTitle(req.Content, 20) // 从内容提取前20字符
 	now := util.NowTimestamp()
 	post := &model.Post{
 		Type:       model.PostTypeNormal,
 		UserId:     userID,
-		Title:		dto.Title,
-		Content:    dto.Content,
-		ImageList:  dto.ImageList,
+		Title:		title,
+		Content:    req.Content,
 		Status:     model.StatusOk,
 		CreateTime: now,
 	}
@@ -370,14 +369,16 @@ func (s *postService) CreateReply(userID int64, dto form.ReplyCreateForm) (*mode
 }
 
 // Update 编辑帖子
-func (s *postService) UpdateReply(dto form.ReplyUpdateForm) error {
-	postID := hashid.Slug2Id[model.Post](dto.Slug)
+func (s *postService) UpdateReply(req dto.UpdateReplyRequest) error {
+	postID := hashid.Slug2Id[model.Post](req.Slug)
+
+	title := util.ExtractReplyTitle(*req.Content, 20)
 
 	// 事务：Transaction + 闭包，全部使用 tx 操作
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
-			"title":      dto.Title,
-			"content":    dto.Content,
+			"title":      title,
+			"content":    req.Content,
 			"updated_at": util.NowTimestamp(),
 		}).Error; err != nil {
 			return err

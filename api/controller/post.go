@@ -5,11 +5,11 @@ import (
 
 	"ultrathreads/render"
 	"ultrathreads/bus/event"
-	"ultrathreads/form"
 	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 )
@@ -96,14 +96,13 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 
 // GetPostTree 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostTree(ctx *gin.Context) {
-
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
+	var req dto.SlugRequest
+	if !c.BindAndValidate(ctx, &req) {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 
-	currentPost, posts, err := service.Srv.Post.GetPostTree(gDto.Slug)
+	currentPost, posts, err := service.Srv.Post.GetPostTree(req.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -131,13 +130,13 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 
 // GetPostFlat 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostFlat(ctx *gin.Context) {
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
+	var req dto.SlugRequest
+	if !c.BindAndValidate(ctx, &req) {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 
-	posts, err := service.Srv.Post.GetPostsByThreadId(gDto.Slug)
+	posts, err := service.Srv.Post.GetPostsByThreadId(req.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -157,8 +156,8 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 
 func (c *PostController) GetUserPosts(ctx *gin.Context) {
 	// 1. 获取并验证基础参数（如 user_id）
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
+	var req dto.SlugRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return 
 	}
 
@@ -167,7 +166,7 @@ func (c *PostController) GetUserPosts(ctx *gin.Context) {
 	postType := ctx.DefaultQuery("type", "root")
 
 	// 3. 调用 Service 层获取数据
-	posts, paging := service.Srv.Post.GetUserPosts(gDto.Slug, postType, page, 20)
+	posts, paging := service.Srv.Post.GetUserPosts(req.Slug, postType, page, 20)
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
@@ -252,15 +251,12 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 func (c *PostController) StoreReply(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 
-	var replyForm form.ReplyCreateForm
-	if !c.BindAndValidate(ctx, &replyForm) {
+	var req dto.CreateReplyRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
 
-	replyForm.ParentSlug = replyForm.Slug
-	replyForm.Title = util.ExtractReplyTitle(replyForm.Content, 20) // 从内容提取前20字符
-
-	post, err := service.Srv.Post.CreateReply(user.ID, replyForm)
+	post, err := service.Srv.Post.CreateReply(user.ID, req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -278,12 +274,12 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 
 func (c *PostController) UpdateReply(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var postForm form.ReplyUpdateForm
-	if !c.BindAndValidate(ctx, &postForm) {
+	var req dto.UpdateReplyRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
 
-	post := service.Srv.Post.GetBySlug(postForm.Slug)
+	post := service.Srv.Post.GetBySlug(req.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -294,9 +290,7 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 		return
 	}
 
-	postForm.Title = util.ExtractReplyTitle(postForm.Content, 20) // 从内容提取前20字符
-
-	err := service.Srv.Post.UpdateReply(postForm)
+	err := service.Srv.Post.UpdateReply(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -313,10 +307,11 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 
 // GetUserRecent 用户最近的帖子
 func (c *PostController) GetUserRecent(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
+	var req dto.SlugRequest
+	id := hashid.Slug2Id[model.User](req.Slug)
+	if c.BindAndValidate(ctx, &req) {
 		posts := service.Srv.Post.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
-			gDto.ID, model.StatusOk).Desc("id").Limit(10))
+			id, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, render.ToSimplePosts(posts))
 	}
 }
@@ -324,12 +319,13 @@ func (c *PostController) GetUserRecent(ctx *gin.Context) {
 // Like 点赞
 func (c *PostController) Like(ctx *gin.Context) {
     user := c.GetCurrentUser(ctx)
-    var gDto form.GeneralGetDto
-    if !c.BindAndValidateUri(ctx, &gDto) {
+    var req dto.SlugRequest
+    if !c.BindAndValidateUri(ctx, &req) {
         return
     }
 
-    if err := service.PostLikeService.Like(user.ID, gDto.ID); err != nil {
+    id := hashid.Slug2Id[model.Post](req.Slug)
+    if err := service.PostLikeService.Like(user.ID, id); err != nil {
         c.Fail(ctx, util.FromError(err))
         return
     }
@@ -340,12 +336,12 @@ func (c *PostController) Like(ctx *gin.Context) {
 // Favorite 收藏话题
 func (c *PostController) Favorite(ctx *gin.Context) {
     user := c.GetCurrentUser(ctx)
-    var gDto form.IdentifierDto
-    if !c.BindAndValidateUri(ctx, &gDto) {
+    var req dto.SlugRequest
+    if !c.BindAndValidateUri(ctx, &req) {
         return
     }
 
-    if err := service.FavoriteService.AddPostFavorite(user.ID, gDto.Slug); err != nil {
+    if err := service.FavoriteService.AddPostFavorite(user.ID, req.Slug); err != nil {
         c.Fail(ctx, util.FromError(err))
         return
     }
@@ -355,16 +351,16 @@ func (c *PostController) Favorite(ctx *gin.Context) {
 
 func (c *PostController) ViewPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var gDto form.IdentifierDto
-	if !c.BindAndValidate(ctx, &gDto) {
-		return
-	}
+	var req dto.SlugRequest
+    if !c.BindAndValidateUri(ctx, &req) {
+        return
+    }
 
 	nodeSlug := util.QueryStringDefault(ctx, "nodeSlug","")
 
     c.PublishEvent(ctx, event.PostViewed{
         UserID:     user.ID,
-        PostSlug:   gDto.Slug,
+        PostSlug:   req.Slug,
         NodeSlug:   nodeSlug,
         ViewedTime: util.NowTimestamp(),
     })

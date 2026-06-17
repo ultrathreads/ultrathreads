@@ -147,18 +147,9 @@ export default function Sidebar() {
         title={collapsed ? t('expand_sidebar') : t('collapse_sidebar')}
         aria-label={collapsed ? t('expand_sidebar') : t('collapse_sidebar')}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          width="16"
-          height="16"
-          aria-hidden="true"
-        >
-          {/* 修正后的居中路径：三条线从 x=4 到 x=20，左右各留 4px */}
-          <path d="M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M4 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+          <path d="M9 3v18"></path>
         </svg>
       </button>
     </div>

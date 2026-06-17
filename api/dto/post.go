@@ -28,7 +28,7 @@ type UpdateRootPostRequest struct {
 
 // CreateReplyRequest 创建回复请求
 type CreateReplyRequest struct {
-	ThreadSlug string   `uri:"slug" binding:"required"`
+	Slug 	   string   `uri:"slug" binding:"required"`
 	Content    string   `json:"content" binding:"required"`
 	ImageList  []string `json:"imageList"`
 	ParentSlug string   `json:"parentSlug,omitempty"`
