@@ -1,14 +1,14 @@
-package router
+package handler
 
 import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/controller"
 	"ultrathreads/middleware"
-	"ultrathreads/service"
 )
 
-func setupApp(e *gin.Engine, srv *service.Services) {
+// setupApp 注册所有前台路由，JWT 通过参数注入而非全局变量
+func (h *Handler) setupApp(e *gin.Engine) {
 	api := e.Group("/api")
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
@@ -19,27 +19,27 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 	api.Any("/debug", siteController.Debug)
 
 	// Auth
-	api.POST("/auth/login", jwtAuth.LoginHandler)
-	api.POST("/auth/login/refresh", jwtAuth.RefreshHandler)
-	api.POST("/auth/register", new(controller.AuthController).Register)
+	api.POST("/auth/login", h.jwtAuth.LoginHandler)
+	api.POST("/auth/login/refresh", h.jwtAuth.RefreshHandler)
+	api.POST("/auth/register", (&controller.AuthController{}).Register)
 
 	// OAuth
 	oauthController := &controller.OAuthController{}
 	api.GET("/oauth/:provider/authorize", oauthController.Authorize)
-	api.GET("/oauth/:provider/callback", jwtOAuth.LoginHandler)
+	api.GET("/oauth/:provider/callback", h.jwtOAuth.LoginHandler)
 
 	// Captcha
 	captchaController := &controller.CaptchaController{}
 	api.GET("/captcha/request", captchaController.GetRequest)
 	api.GET("/captcha/show/:captchaId", captchaController.Show)
 
-	// ---------- Optional Auth 组（未登录可访问，已登录自动注入用户上下文与已读状态） ----------
+	// ---------- Optional Auth 组 ----------
 	optional := api.Group("/")
-	optional.Use(middleware.OptionalAuth(jwtAuth))
+	optional.Use(middleware.OptionalAuth(h.jwtAuth))
 	optional.Use(middleware.CurrentUserReadState())
 	{
 		postController := &controller.PostController{}
-		nodeController := controller.NewNodeController(srv.Node)
+		nodeController := controller.NewNodeController(h.services.Node) // ✅ 原代码中此方法已存在，保持不变
 		tagController := &controller.TagController{}
 		articleController := &controller.ArticleController{}
 		userController := &controller.UserController{}
@@ -56,13 +56,13 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 			nodeGroup.GET("/:slug/threads", postController.ListThreads)
 		}
 
+		// Posts
 		postApi := optional.Group("/posts")
 		{
 			postApi.GET("/:slug", postController.Show)
 			postApi.GET("/:slug/tree", postController.GetPostTree)
 			postApi.GET("/:slug/flat", postController.GetPostFlat)
 		}
-
 		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
 		optional.GET("/user/posts/:slug", postController.GetUserPosts)
 
@@ -75,7 +75,7 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 			tagGroup.GET("/:slug/threads", postController.ListTagThreads)
 		}
 
-
+		// Users (public profile)
 		userGroup := optional.Group("/users/:slug")
 		{
 			userGroup.GET("/posts", postController.GetUserPosts)
@@ -91,7 +91,7 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 		optional.GET("/articles/user/recent/:id", articleController.GetUserRecent)
 		optional.GET("/user/articles/:id", articleController.GetUserArticles)
 
-		// Users（公开资料）
+		// User score & profile
 		optional.GET("/profile/:slug", userController.Show)
 		optional.GET("/user/score/rank", userController.GetScoreRank)
 
@@ -102,7 +102,7 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 
 	// ---------- 需登录接口（强制鉴权） ----------
 	jwtApi := api.Group("/")
-	jwtApi.Use(jwtAuth.MiddlewareFunc(), middleware.CurrentUser)
+	jwtApi.Use(h.jwtAuth.MiddlewareFunc(), middleware.CurrentUser)
 	{
 		nodeController := &controller.NodeController{}
 		postController := &controller.PostController{}
@@ -115,7 +115,7 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 		// Nodes
 		jwtApi.POST("/nodes/:slug/mark-as-read", nodeController.MarkAsRead)
 
-		// Posts（写操作）
+		// Posts (write)
 		postGroup := jwtApi.Group("/posts")
 		{
 			postGroup.POST("", postController.StoreRootPost)
@@ -124,9 +124,7 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 			postGroup.POST("/:slug/like", postController.Like)
 			postGroup.POST("/:slug/favorite", postController.Favorite)
 			postGroup.Any("/:slug/view-post", postController.ViewPost)
-
 		}
-
 		jwtApi.POST("/replies/:slug", postController.UpdateReply)
 
 		// Favorites
@@ -136,13 +134,13 @@ func setupApp(e *gin.Engine, srv *service.Services) {
 		// Tags
 		jwtApi.POST("/tags/auto-complete", tagController.AutoComplete)
 
-		// Articles（写操作）
+		// Articles (write)
 		jwtApi.POST("/articles", articleController.Store)
 		jwtApi.GET("/article/:id/edit", articleController.Edit)
 		jwtApi.PUT("/article/:id", articleController.Update)
 		jwtApi.POST("/article/:id/favorite", articleController.Favorite)
 
-		// Users（个人操作）
+		// Users (personal)
 		jwtApi.PUT("/users/:slug", userController.Update)
 		jwtApi.GET("/user/current", userController.GetCurrent)
 		jwtApi.GET("/user/scorelogs", userController.GetScorelogs)
