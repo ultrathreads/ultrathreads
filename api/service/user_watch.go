@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 
-	"gorm.io/gorm" // ✅ v2 替换 jinzhu/gorm
+	"gorm.io/gorm"
 
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -79,7 +80,8 @@ func (s *userWatchService) Recent(userId int64, count int) []model.UserWatch {
 }
 
 // Watch 关注用户
-func (s *userWatchService) Watch(userID int64, watcherID int64) error {
+func (s *userWatchService) Watch(userSlug string, watcherID int64) error {
+	userID := hashid.Slug2Id[model.User](userSlug)
 	if userID == watcherID {
 		return errors.New("不能自己关注自己")
 	}

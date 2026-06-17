@@ -2,11 +2,10 @@ package admin
 
 import (
 	"github.com/gin-gonic/gin"
-	"strconv"
 
 	"ultrathreads/cache"
 	"ultrathreads/controller"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -20,11 +19,11 @@ type UserController struct {
 
 // Show show user
 func (c *UserController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		user := service.Srv.User.Get(gDto.ID)
+	var req dto.SlugRequest
+	if c.BindAndValidate(ctx, &req) {
+		user := service.Srv.User.GetBySlug(req.Slug)
 		if user == nil {
-			c.Fail(ctx, util.NewErrorMsg("User not found, id="+strconv.FormatInt(gDto.ID, 10)))
+			c.Fail(ctx, util.NewErrorMsg("User not found"))
 			return
 		}
 		c.Success(ctx, c.buildUserItem(user))
@@ -38,22 +37,18 @@ func (c *UserController) Store(ctx *gin.Context) {
 
 // Update 更新用户信息
 func (c *UserController) Update(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if !c.BindAndValidate(ctx, &gDto) {
+	var req dto.UpdateUserRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
-	user := service.Srv.User.Get(gDto.ID)
+	user := service.Srv.User.GetBySlug(req.Slug)
 	if user == nil {
-		c.Fail(ctx, util.NewErrorMsg("User not found, id="+strconv.FormatInt(gDto.ID, 10)))
+		c.Fail(ctx, util.NewErrorMsg("User not found"))
 		return
 	}
 
-	var userForm form.UserUpdateForm
-	if !c.BindAndValidate(ctx, &userForm) {
-		return
-	}
 
-	err := service.Srv.User.Update(userForm)
+	err := service.Srv.User.Update(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -63,11 +58,11 @@ func (c *UserController) Update(ctx *gin.Context) {
 
 // Delete delete user
 func (c *UserController) Delete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
-	if !c.BindAndValidate(ctx, &gDto) {
+	var req dto.SlugRequest
+	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
-	service.Srv.User.Delete(gDto.ID)
+	service.Srv.User.Delete(req.Slug)
 	c.Success(ctx, nil)
 }
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"ultrathreads/render"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -29,9 +29,9 @@ func (c *UserController) GetCurrent(ctx *gin.Context) {
 
 // 用户详情
 func (c *UserController) Show(ctx *gin.Context) {
-	var gDto form.IdentifierDto
-	if c.BindAndValidate(ctx, &gDto) {
-		user := service.Srv.User.GetBySlug(gDto.Slug)
+	var req dto.SlugRequest
+	if c.BindAndValidate(ctx, &req) {
+		user := service.Srv.User.GetBySlug(req.Slug)
 		if user != nil && user.Status != model.StatusDeleted {
 			c.Success(ctx, render.ToUser(user))
 		} else {
@@ -48,17 +48,17 @@ func (c *UserController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var dto form.UserUpdateForm
-	if c.BindAndValidate(ctx, &dto) {
-		if len(dto.Website) > 0 && util.IsValidateUrl(dto.Website) != nil {
+	var req dto.UpdateUserRequest
+	if c.BindAndValidate(ctx, &req) {
+		if len(req.Website) > 0 && util.IsValidateUrl(req.Website) != nil {
 			c.Fail(ctx, util.NewErrorMsg("个人主页地址错误"))
 			return
 		}
 		err := service.Srv.User.Updates(user.ID, map[string]interface{}{
-			"nickname":    dto.Nickname,
-			"avatar":      dto.Avatar,
-			"website":     dto.Website,
-			"description": dto.Description,
+			"nickname":    req.Nickname,
+			"avatar":      req.Avatar,
+			"website":     req.Website,
+			"description": req.Description,
 		})
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
@@ -213,9 +213,9 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 // Watch 关注
 func (c *UserController) Watch(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var gDto form.GeneralGetDto
-	if c.BindAndValidate(ctx, &gDto) {
-		err := service.UserWatchService.Watch(gDto.ID, user.ID)
+	var req dto.SlugRequest
+	if c.BindAndValidate(ctx, &req) {
+		err := service.UserWatchService.Watch(req.Slug, user.ID)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
 			return

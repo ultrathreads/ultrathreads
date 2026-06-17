@@ -10,7 +10,7 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/avatar"
@@ -70,12 +70,12 @@ func (s *userService) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ int �
 	return dao.UserDao.Count(cnd)
 }
 
-func (s *userService) Update(dto form.UserUpdateForm) error {
-	userID := hashid.Slug2Id[model.User](dto.Slug)
+func (s *userService) Update(req dto.UpdateUserRequest) error {
+	userID := hashid.Slug2Id[model.User](req.Slug)
 	err := dao.UserDao.Updates(userID, map[string]interface{}{
-		"nickname":    dto.Nickname,
-		"description": dto.Description,
-		"level":       dto.Level,
+		"nickname":    req.Nickname,
+		"description": req.Description,
+		"level":       req.Level,
 		"update_time": util.NowTimestamp(),
 	})
 	cache.UserCache.Invalidate(userID)
@@ -95,7 +95,8 @@ func (s *userService) UpdateColumn(id int64, name string, value interface{}) err
 }
 
 // Delete 删除用户
-func (s *userService) Delete(id int64) error {
+func (s *userService) Delete(slug string) error {
+	id := hashid.Slug2Id[model.User](slug)
 	if err := dao.UserDao.Delete(id); err != nil {
 		return err
 	}
