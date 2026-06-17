@@ -1,6 +1,8 @@
 {
   "title": "超线程",
   "navigation": "导航菜单",
+  "expand_sidebar":"展开侧边栏",
+  "collapse_sidebar": "折叠侧边栏",
   "forum_sections": "论坛节点",
   "hot_tags": "热门标签",
   "home": "🏠 首页",

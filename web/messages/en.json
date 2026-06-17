@@ -1,6 +1,8 @@
 {
   "title": "from common title",
   "navigation": "Navigation",
+  "expand_sidebar":"Expand Sidebar",
+  "collapse_sidebar": "Collapse Sidebar",
   "forum_sections": "Forum Nodes",
   "hot_tags": "Hot Tags",
   "home": "🏠 Home",
