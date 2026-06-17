@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// 纯函数保持不变
 function formatTimestamp(timestamp: number | string | undefined | null, t: any): string {
   if (!timestamp) return '';
   const ts = typeof timestamp === 'string' ? new Date(timestamp).getTime() : timestamp;
@@ -11,11 +10,11 @@ function formatTimestamp(timestamp: number | string | undefined | null, t: any):
   
   if (diffMs < 60000) return t('justNow');
   const min = Math.floor(diffMs / 60000);
-  if (min < 60) return t('minutesAgo', { n: min });
+  if (min < 60) return t('minutesAgo', { count: min });
   const hour = Math.floor(diffMs / 3600000);
-  if (hour < 24) return t('hoursAgo', { n: hour });
+  if (hour < 24) return t('hoursAgo', { count: hour });
   const day = Math.floor(diffMs / 86400000);
-  if (day < 7) return t('daysAgo', { n: day });
+  if (day < 7) return t('daysAgo', { count: day });
   
   const d = new Date(ts);
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

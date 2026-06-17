@@ -24,9 +24,9 @@
   "switch_to_dark": "切换到深色模式",
   "switch_to_light": "切换到亮色模式",
   "justNow": "刚刚",
-  "minutesAgo": "{{n}} 分钟前",
-  "hoursAgo": "{{n}} 小时前",
-  "daysAgo": "{{n}} 天前",
+  "minutesAgo": "{{count}} 分钟前",
+  "hoursAgo": "{{count}} 小时前",
+  "daysAgo": "{{count}} 天前",
 
   "noThreads": "暂无主贴",
   "noPosts": "暂无帖子",
