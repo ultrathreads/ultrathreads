@@ -8,7 +8,7 @@ import Avatar from '@/components/ui/Avatar';
 import AuthorLink from '@/components/ui/AuthorLink';
 
 export default function UserMenu() {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const { user, isLoggedIn, isLoading, error, logout, displayName, avatarUrl, isAdmin, roles } = useAuth();
   const { isOpen, toggle, close, ref } = useClickOutside(false);
 
@@ -20,8 +20,8 @@ export default function UserMenu() {
   // 角色映射：未匹配的 slug 降级显示原始值，空数组显示兜底文案
   const userRoles = user.roles ?? [];
   const roleDisplay = userRoles.length
-    ? userRoles.map((role) => t(`common:roles.${role}`, { defaultValue: role })).join(', ')
-    : t('common:roles._fallback');
+    ? userRoles.map((role) => t(`roles.${role}`, { defaultValue: role })).join(', ')
+    : t('roles._fallback');
 
   return (
     <div className="user-menu-wrapper" ref={ref}>

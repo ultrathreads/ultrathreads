@@ -1,42 +1,34 @@
 {
-  "common": {
-    "title": "超线程",
-    "navigation": "导航菜单",
-    "forum_sections": "论坛节点",
-    "hot_tags": "热门标签",
-    "home":"🏠 首页",
-    "mine": "👤 我的...",
-    "myPosts": "📋 我的帖子",
+  "title": "超线程",
+  "navigation": "导航菜单",
+  "forum_sections": "论坛节点",
+  "hot_tags": "热门标签",
+  "home":"🏠 首页",
+  "mine": "👤 我的...",
+  "myPosts": "📋 我的帖子",
 
-    "all_threads": "全部帖子",
-    "all_threads_desc": "浏览全站最新讨论与热门话题",
+  "all_threads": "全部帖子",
+  "all_threads_desc": "浏览全站最新讨论与热门话题",
 
-    "loading": "加载中...",
-    "loadFailed": "数据加载失败。",
-    "search_default_value":"搜索帖子...",
-    "posting": "发帖",
-    "register": "注册",
-    "login": "登录",
-    "justNow": "刚刚",
-    "minutesAgo": "{{n}} 分钟前",
-    "hoursAgo": "{{n}} 小时前",
-    "daysAgo": "{{n}} 天前",
+  "loading": "加载中...",
+  "loadFailed": "数据加载失败。",
+  "search_default_value":"搜索帖子...",
+  "posting": "发帖",
+  "register": "注册",
+  "login": "登录",
+  "justNow": "刚刚",
+  "minutesAgo": "{{n}} 分钟前",
+  "hoursAgo": "{{n}} 小时前",
+  "daysAgo": "{{n}} 天前",
 
-    "noThreads": "暂无主贴",
-    "noPosts": "暂无帖子",
+  "noThreads": "暂无主贴",
+  "noPosts": "暂无帖子",
 
-    "roles": {
-      "admin": "管理员",
-      "editor": "编辑",
-      "moderator": "版主",
-      "vip": "VIP会员",
-      "_fallback": "普通用户"
-    }
-  },
-  "home": {
-    "title": "首页",
-    "description": "这是一个使用 i18next 国际化的示例页面",
-    "counter": "当前计数: {{count}}",
-    "increment": "点击 +1"
+  "roles": {
+    "admin": "管理员",
+    "editor": "编辑",
+    "moderator": "版主",
+    "vip": "VIP会员",
+    "_fallback": "普通用户"
   }
 }

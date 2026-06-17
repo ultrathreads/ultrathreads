@@ -48,7 +48,7 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
 
 export default function ThreadTree({ threads, activeNode, activeTag, emptyText }: Props) {
   const router = useRouter();
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const { isLoggedIn } = useAuth();
 
   const [allCollapsed, setAllCollapsed] = useState(false);
@@ -92,7 +92,7 @@ export default function ThreadTree({ threads, activeNode, activeTag, emptyText }
           {showPostBtn && (
             <>
               <Link href={createHref} className="toolbar-post-btn">
-                ✏️ {t('common:posting')}
+                ✏️ {t('posting')}
               </Link>
               {/* 分隔线：区分主操作与辅助工具 */}
               <div className="toolbar-divider" />

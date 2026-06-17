@@ -1,42 +1,34 @@
 {
-  "common": {
-    "title": "from common title",
-    "navigation": "Navigation",
-    "forum_sections": "Forum nodes",
-    "hot_tags": "Hot tags",
-    "home":"🏠 Home",
-    "mine": "👤 My...",
-    "myPosts": "📋 My posts",
+  "title": "from common title",
+  "navigation": "Navigation",
+  "forum_sections": "Forum nodes",
+  "hot_tags": "Hot tags",
+  "home":"🏠 Home",
+  "mine": "👤 My...",
+  "myPosts": "📋 My posts",
 
-    "all_threads": "All Threads",
-    "all_threads_desc": "Browse the latest discussions and trending topics across the site",
+  "all_threads": "All Threads",
+  "all_threads_desc": "Browse the latest discussions and trending topics across the site",
 
-    "loading": "Loading...",
-    "loadFailed": "Failed to load data.",
-    "search_default_value":"Search...",
-    "posting": "Create new...",
-    "register": "Register",
-    "login": "Login",
-    "justNow": "Just now",
-    "minutesAgo": "{{n}} min ago",
-    "hoursAgo": "{{n}} hr ago",
-    "daysAgo": "{{n}} day ago",
+  "loading": "Loading...",
+  "loadFailed": "Failed to load data.",
+  "search_default_value":"Search...",
+  "posting": "Create new...",
+  "register": "Register",
+  "login": "Login",
+  "justNow": "Just now",
+  "minutesAgo": "{{n}} min ago",
+  "hoursAgo": "{{n}} hr ago",
+  "daysAgo": "{{n}} day ago",
 
-    "noThreads": "No threads.",
-    "noPosts": "No posts.",
+  "noThreads": "No threads.",
+  "noPosts": "No posts.",
 
-    "roles": {
-      "admin": "管理员",
-      "editor": "编辑",
-      "moderator": "版主",
-      "vip": "VIP会员",
-      "_fallback": "普通用户"
-    }
-  },
-  "home": {
-    "title": "from home title",
-    "description": "This is a demo page using i18next for internationalization",
-    "counter": "Current count: {{count}}",
-    "increment": "Click +1"
+  "roles": {
+    "admin": "管理员",
+    "editor": "编辑",
+    "moderator": "版主",
+    "vip": "VIP会员",
+    "_fallback": "普通用户"
   }
 }

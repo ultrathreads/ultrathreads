@@ -18,7 +18,7 @@ interface Props {
 
 // ✅ 移除 useAuth、Link、发帖按钮相关逻辑，回归纯展示组件
 export default function NodeHeader({ node, tag }: Props) {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const displayData = tag || node;
 
   if (!displayData) {
@@ -26,8 +26,8 @@ export default function NodeHeader({ node, tag }: Props) {
       <div className="board-title-wrapper">
         <span className="board-title-icon">🏠</span>
         <div className="board-title-text">
-          <div className="board-title-name">{t('common:all_threads')}</div>
-          <div className="board-title-desc">{t('common:all_threads_desc')}</div>
+          <div className="board-title-name">{t('all_threads')}</div>
+          <div className="board-title-desc">{t('all_threads_desc')}</div>
         </div>
       </div>
     );

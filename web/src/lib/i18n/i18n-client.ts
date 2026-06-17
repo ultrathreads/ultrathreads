@@ -19,16 +19,15 @@ i18next
   .use(initReactI18next)
   .use(LanguageDetector)
   .init({
-    // ⚠️ 资源结构必须与 i18n-server.ts 中的 resources 完全一致
+    // ⚠️ 单命名空间：将所有 key 合并到默认的 translation 命名空间中
     resources: {
-      zh: { common: zh.common, home: zh.home },
-      en: { common: en.common, home: en.home },
+      zh: { translation: zh },
+      en: { translation: en },
     },
     supportedLngs: languages,
     fallbackLng: defaultLocale,
     lng: defaultLocale,
-    ns: ['common', 'home'],
-    defaultNS: 'common',
+    // 不再需要指定 ns 和 defaultNS，i18next 默认使用 'translation'
     interpolation: {
       escapeValue: false,
     },
@@ -45,7 +44,7 @@ i18next
 
 /**
  * 类型安全的客户端翻译 Hook
- * 用法: const { t } = useTranslation('common');
+ * 用法: const { t } = useTranslation();
  */
 export function useTranslation(ns?: string | string[]) {
   return useTranslationOrg(ns);

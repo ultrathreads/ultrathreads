@@ -10,7 +10,7 @@ import { useSiteConfig } from '@/providers/SiteConfigProvider';
 
 export default function Header() {
   const config = useSiteConfig();
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const { isLoggedIn, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -44,7 +44,7 @@ export default function Header() {
           <Link href="/" className="header-title">{config.siteTitle}</Link>
           <div className="search-box">
             <span className="search-icon">🔍</span>
-            <input className="search-input" id="searchInput" placeholder={t('common:search_default_value')} />
+            <input className="search-input" id="searchInput" placeholder={t('search_default_value')} />
           </div>
         </div>
         <div className="header-actions">
@@ -65,7 +65,7 @@ export default function Header() {
         </Link>
         <div className="search-box">
           <span className="search-icon">🔍</span>
-          <input className="search-input" id="searchInput" placeholder={t('common:search_default_value')} />
+          <input className="search-input" id="searchInput" placeholder={t('search_default_value')} />
         </div>
       </div>
 
@@ -80,7 +80,7 @@ export default function Header() {
                 aria-expanded={isCreateOpen}
                 aria-haspopup="true"
               >
-                ✍️ {t('common:create', '创作')}
+                ✍️ {t('create', '创作')}
                 <span className={`dropdown-arrow ${isCreateOpen ? 'open' : ''}`}>▾</span>
               </button>
 
@@ -90,7 +90,7 @@ export default function Header() {
                   className="dropdown-item"
                   onClick={() => setIsCreateOpen(false)}
                 >
-                  📝 {t('common:create_post', '发帖')}
+                  📝 {t('create_post', '发帖')}
                 </Link>
                 {/*
                 <Link
@@ -98,7 +98,7 @@ export default function Header() {
                   className="dropdown-item"
                   onClick={() => setIsCreateOpen(false)}
                 >
-                  📄 {t('common:create_article', '发文章')}
+                  📄 {t('create_article', '发文章')}
                 </Link>
                 */}
               </div>
@@ -108,8 +108,8 @@ export default function Header() {
           </>
         ) : (
           <>
-            <Link href="/auth/login" className="login-link">{t('common:login')}</Link>
-            <Link href="/auth/register" className="register-link">{t('common:register')}</Link>
+            <Link href="/auth/login" className="login-link">{t('login')}</Link>
+            <Link href="/auth/register" className="register-link">{t('register')}</Link>
           </>
         )}
 

@@ -14,7 +14,7 @@ import { SidebarNav } from './SidebarNav';
 const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
 
 export default function Sidebar() {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useParams<{ slug?: string }>();
 
@@ -83,15 +83,15 @@ export default function Sidebar() {
       <div className={`sidebar-content-wrapper ${collapsed ? 'collapsed' : ''}`} id="sidebarContent">
         {/* 导航菜单 */}
         <div className="sidebar-section">
-          <div className="sidebar-title">{t('common:navigation')}</div>
+          <div className="sidebar-title">{t('navigation')}</div>
           <SidebarNav />
         </div>
 
         {/* 论坛板块 */}
         <div className="sidebar-section">
-          <div className="sidebar-title">{t('common:forum_sections')}</div>
+          <div className="sidebar-title">{t('forum_sections')}</div>
           {loading ? (
-            <div className="forum-list-loading">{t('common:loading')}</div>
+            <div className="forum-list-loading">{t('loading')}</div>
           ) : (
             <ul className="forum-list">
               {nodes.map((node) => {
@@ -114,9 +114,9 @@ export default function Sidebar() {
 
         {/* 热门标签 */}
         <div className="sidebar-section">
-          <div className="sidebar-title">{t('common:hot_tags')}</div>
+          <div className="sidebar-title">{t('hot_tags')}</div>
           {loading ? (
-            <div className="forum-list-loading">{t('common:loading')}</div>
+            <div className="forum-list-loading">{t('loading')}</div>
           ) : (
             <div className="tag-cloud">
               {tags.map((tag) => {
@@ -141,7 +141,7 @@ export default function Sidebar() {
         id="toggle-btn"
         onClick={toggleCollapsed}
         dangerouslySetInnerHTML={{ __html: collapsed ? '&#9654;' : '&#9664;' }}
-        aria-label={collapsed ? t('common:expand_sidebar') : t('common:collapse_sidebar')}
+        aria-label={collapsed ? t('expand_sidebar') : t('collapse_sidebar')}
       />
     </div>
   );

@@ -6,12 +6,12 @@ import { useTranslation } from '@/lib/i18n/i18n-client';
 import clsx from 'clsx';
 
 const NAV_ITEMS = [
-  { href: '/', labelKey: 'common:home', matchType: 'exact' as const },
-  { href: '/my', labelKey: 'common:mine', matchType: 'exact' as const },
+  { href: '/', labelKey: 'home', matchType: 'exact' as const },
+  { href: '/my', labelKey: 'mine', matchType: 'exact' as const },
 ];
 
 export function SidebarNav() {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
