@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"ultrathreads/controller"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -18,7 +18,7 @@ type LinkController struct {
 
 // Show show link
 func (c *LinkController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		link := service.LinkService.Get(gDto.ID)
 		if link == nil {
@@ -31,7 +31,7 @@ func (c *LinkController) Show(ctx *gin.Context) {
 
 // Store create a link
 func (c *LinkController) Store(ctx *gin.Context) {
-	var linkForm form.LinkCreateForm
+	var linkForm dto.LinkCreateForm
 	if !c.BindAndValidate(ctx, &linkForm) {
 		return
 	}
@@ -45,7 +45,7 @@ func (c *LinkController) Store(ctx *gin.Context) {
 
 // Update update a link
 func (c *LinkController) Update(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
@@ -55,7 +55,7 @@ func (c *LinkController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var linkForm form.LinkUpdateForm
+	var linkForm dto.LinkUpdateForm
 	if !c.BindAndValidate(ctx, &linkForm) {
 		return
 	}
@@ -70,7 +70,7 @@ func (c *LinkController) Update(ctx *gin.Context) {
 
 // Delete delete link
 func (c *LinkController) Delete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}

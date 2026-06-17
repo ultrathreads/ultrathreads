@@ -7,7 +7,7 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/hashid"
 )
@@ -48,7 +48,7 @@ func (s *tagService) List(cnd *querybuilder.QueryBuilder) (list []model.Tag, pag
 	return dao.TagDao.List(cnd)
 }
 
-func (s *tagService) Create(req form.TagCreateForm) (*model.Tag, error) {
+func (s *tagService) Create(req dto.TagCreateForm) (*model.Tag, error) {
 	tag := &model.Tag{
 		Name:        req.Name,
 		Description: req.Description,
@@ -60,7 +60,7 @@ func (s *tagService) Create(req form.TagCreateForm) (*model.Tag, error) {
 	return tag, nil
 }
 
-func (s *tagService) Update(int int64, req form.TagUpdateForm) error {
+func (s *tagService) Update(int int64, req dto.TagUpdateForm) error {
 	err := dao.TagDao.Updates(req.ID, map[string]interface{}{
 		"name":        req.Name,
 		"description": req.Description,

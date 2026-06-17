@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"ultrathreads/dao"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -33,12 +33,12 @@ func (s *linkService) List(cnd *querybuilder.QueryBuilder) (list []model.Link, p
 
 // Create 创建链接
 // ✅ 移除无效事务包装：单条 Create 无需事务，且原代码 DAO 内部用全局 db 导致 tx 未生效
-func (s *linkService) Create(dto form.LinkCreateForm) (*model.Link, error) {
+func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
 	link := &model.Link{
-		Title:      dto.Title,
-		Url:        dto.URL,
-		Summary:    dto.Summary,
-		Logo:       dto.Logo,
+		Title:      req.Title,
+		Url:        req.URL,
+		Summary:    req.Summary,
+		Logo:       req.Logo,
 		CreateTime: util.NowTimestamp(),
 	}
 	if err := dao.LinkDao.Create(link); err != nil {
@@ -47,24 +47,23 @@ func (s *linkService) Create(dto form.LinkCreateForm) (*model.Link, error) {
 	return link, nil
 }
 
-func (s *linkService) Update(dto form.LinkUpdateForm) error {
-	return dao.LinkDao.Updates(dto.ID, map[string]interface{}{
-		"title":       dto.Title,
-		"url":         dto.URL,
-		"summary":     dto.Summary,
-		"logo":        dto.Logo,
-		"status":      dto.Status,
+func (s *linkService) Update(req dto.LinkUpdateForm) error {
+	return dao.LinkDao.Updates(req.ID, map[string]interface{}{
+		"title":       req.Title,
+		"url":         req.URL,
+		"summary":     req.Summary,
+		"logo":        req.Logo,
+		"status":      req.Status,
 		"update_time": util.NowTimestamp(),
 	})
 }
 
 // Delete 删除链接
-func (s *linkService) Delete(id int64) error { // ✅ 补充 error 返回值，与 DAO 层对齐
+func (s *linkService) Delete(id int64) error {
 	return dao.LinkDao.Delete(id)
 }
 
 // Submit 提交友情链接
-// ✅ 同样移除无效事务包装
 func (s *linkService) Submit(url, title, summary, logo string) (*model.Link, error) {
 	url = strings.TrimSpace(url)
 	title = strings.TrimSpace(title)

@@ -5,7 +5,7 @@ import (
 
 	"ultrathreads/controller"
 	"ultrathreads/util"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 )
 
@@ -20,7 +20,7 @@ func (c *SettingController) List(ctx *gin.Context) {
 }
 
 func (c *SettingController) Store(ctx *gin.Context) {
-	var req form.SettingsRequest
+	var req dto.SettingsRequest
 	// ✅ ShouldBindJSON 自动解析 + 校验
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		c.Fail(ctx, util.NewError(400, "参数格式错误: "+err.Error()))

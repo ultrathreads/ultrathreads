@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"ultrathreads/controller"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -18,7 +18,7 @@ type TagController struct {
 
 // Show show tag
 func (c *TagController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		tag := service.TagService.Get(gDto.ID)
 		if tag == nil {
@@ -31,7 +31,7 @@ func (c *TagController) Show(ctx *gin.Context) {
 
 // Store create a tag
 func (c *TagController) Store(ctx *gin.Context) {
-	var tagForm form.TagCreateForm
+	var tagForm dto.TagCreateForm
 	if !c.BindAndValidate(ctx, &tagForm) {
 		return
 	}
@@ -45,7 +45,7 @@ func (c *TagController) Store(ctx *gin.Context) {
 
 // Update update a tag
 func (c *TagController) Update(ctx *gin.Context) {
-	var tagForm form.TagUpdateForm
+	var tagForm dto.TagUpdateForm
 	if !c.BindAndValidate(ctx, &tagForm) {
 		return
 	}
@@ -65,7 +65,7 @@ func (c *TagController) Update(ctx *gin.Context) {
 
 // Delete delete tag
 func (c *TagController) Delete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}

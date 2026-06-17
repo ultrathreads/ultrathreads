@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"ultrathreads/controller"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -18,7 +18,7 @@ type NodeController struct {
 
 // Show show node
 func (c *NodeController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		node := service.Srv.Node.Get(gDto.ID)
 		if node == nil {
@@ -31,7 +31,7 @@ func (c *NodeController) Show(ctx *gin.Context) {
 
 // Store create a node
 func (c *NodeController) Store(ctx *gin.Context) {
-	var nodeForm form.NodeCreateForm
+	var nodeForm dto.NodeCreateForm
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
@@ -45,7 +45,7 @@ func (c *NodeController) Store(ctx *gin.Context) {
 
 // Update update a node
 func (c *NodeController) Update(ctx *gin.Context) {
-	var nodeForm form.NodeUpdateForm
+	var nodeForm dto.NodeUpdateForm
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
@@ -64,7 +64,7 @@ func (c *NodeController) Update(ctx *gin.Context) {
 }
 
 func (c *NodeController) Sort(ctx *gin.Context) {
-    var req form.SortRequest
+    var req dto.SortRequest
     if err := ctx.ShouldBindJSON(&req); err != nil {
         ctx.JSON(400, gin.H{"code": 40001, "message": "参数错误: " + err.Error()})
         return
@@ -87,7 +87,7 @@ func (c *NodeController) Sort(ctx *gin.Context) {
 
 // Delete delete node
 func (c *NodeController) Delete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}

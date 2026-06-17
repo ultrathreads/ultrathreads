@@ -5,7 +5,7 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
@@ -18,8 +18,8 @@ type NodeServicer interface {
     Get(id int64) *model.Node
     GetBySlug(slug string) *model.Node
     List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
-    Create(req form.NodeCreateForm) (*model.Node, error)
-    Update(id int64, req form.NodeUpdateForm) error
+    Create(req dto.NodeCreateForm) (*model.Node, error)
+    Update(id int64, req dto.NodeUpdateForm) error
     Delete(id int64) error
     IncrTopicCount(nodeId int64)
     GetRecommendNodes() []model.Node
@@ -54,7 +54,7 @@ func (s *nodeService) List(cnd *querybuilder.QueryBuilder) (list []model.Node, p
 	return s.repo.List(cnd)
 }
 
-func (s *nodeService) Create(req form.NodeCreateForm) (*model.Node, error) {
+func (s *nodeService) Create(req dto.NodeCreateForm) (*model.Node, error) {
 	node := &model.Node{
 		Name:        req.Name,
 		Description: req.Description,
@@ -70,7 +70,7 @@ func (s *nodeService) Create(req form.NodeCreateForm) (*model.Node, error) {
 	return node, nil
 }
 
-func (s *nodeService) Update(id int64, req form.NodeUpdateForm) error {
+func (s *nodeService) Update(id int64, req dto.NodeUpdateForm) error {
 	err := s.repo.Updates(id, map[string]interface{}{
 		"name":        req.Name,
 		"description": req.Description,

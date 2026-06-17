@@ -12,7 +12,7 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
@@ -69,14 +69,12 @@ func (s *settingService) SetAll(configStr string) error {
 }
 
 // SetAllFromStruct 接收强类型表单结构体并批量保存配置
-func (s *settingService) SetAllFromStruct(req form.SettingsRequest) error {
-	// ✅ 将 form 结构体序列化为标准 JSON 字符串
+func (s *settingService) SetAllFromStruct(req dto.SettingsRequest) error {
 	bytes, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("序列化配置失败: %w", err)
 	}
 
-	// ✅ 直接复用现有的 SetAll 逻辑（包含 gjson 解析、事务、setSingle）
 	return s.SetAll(string(bytes))
 }
 

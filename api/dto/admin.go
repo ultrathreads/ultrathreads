@@ -1,4 +1,8 @@
-package form
+package dto
+
+type IdRequest struct {
+    ID int64 `uri:"id" json:"id" binding:"required,min=1"`
+}
 
 // 定义与前端 SiteSettings 对应的结构体
 type SettingsRequest struct {
