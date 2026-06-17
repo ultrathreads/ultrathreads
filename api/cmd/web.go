@@ -20,7 +20,7 @@ import (
 	"ultrathreads/dao"
 	"ultrathreads/database"
 	"ultrathreads/service"
-	"ultrathreads/router"
+	"ultrathreads/handler"
 	"ultrathreads/util/hashid"
 	"ultrathreads/server"
 )
@@ -73,8 +73,7 @@ func runWeb(c *cli.Context) error {
 
 	cron.Setup()
 
-	engine := gin.Default()
-	router.Setup(engine, mgr, service.Srv)
+	handlers := handler.NewHandlers(service.Srv, mgr)
 
 	// ========== Web Server ==========
 	srv := server.NewServer(server.Config{
@@ -83,7 +82,7 @@ func runWeb(c *cli.Context) error {
 		WriteTimeout:    viper.GetDuration("http.write_timeout"),
 		ShutdownTimeout: time.Duration(viper.GetInt("shutdown_timeout")) * time.Second,
 		MaxHeaderBytes:  viper.GetInt("http.max_header_megabytes") << 20,
-	}, engine)
+	}, handlers.Init())
 
 	errCh := srv.Start()
 
