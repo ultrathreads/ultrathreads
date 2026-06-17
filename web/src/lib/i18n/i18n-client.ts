@@ -34,6 +34,12 @@ i18next
     detection: {
       order: ['cookie', 'navigator'],
       caches: ['cookie'],
+      lookupCookie: 'NEXT_LOCALE',
+      cookieOptions: {
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 365 * 24 * 60 * 60,      // 1年
+      },
     },
     // SSR 阶段固定使用默认语言，防止服务端与客户端初始渲染不一致
     ...(runsOnServerSide && {

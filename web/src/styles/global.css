@@ -165,6 +165,41 @@ body, html { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Ping
     color: var(--color-primary);
 }
 
+/* Footer 语言切换器 - 复用现有变量体系 */
+.footer-divider {
+  color: var(--border-base);
+  margin: 0 4px;
+}
+
+.footer-lang-switcher {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.footer-lang-btn {
+  background: none;
+  border: 1px solid transparent;
+  padding: 2px 8px;
+  font-size: 0.875rem;       /* 与 .footer-links a 字号一致 */
+  color: var(--text-muted);  /* 与 .footer-links a 颜色一致 */
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+}
+
+.footer-lang-btn:hover {
+  color: var(--color-primary);      /* 与 .footer-links a:hover 一致 */
+  background-color: var(--bg-hover);
+}
+
+.footer-lang-btn.active {
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+  background-color: var(--color-primary-bg);
+  font-weight: 600;
+}
+
 /* =============================================
    3. 顶部导航栏 Header - 全站通用头部
    ============================================= */

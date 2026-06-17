@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import { headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { I18nClientProvider } from '@/providers/I18nClientProvider';
 import { SiteConfigProvider } from '@/providers/SiteConfigProvider'; 
 import { AuthProvider } from '@/providers/AuthProvider';
@@ -9,6 +10,9 @@ import { fetchSiteConfig } from '@/services/site-service';
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await fetchSiteConfig();
+
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'zh';
 
   return {
     title: {
