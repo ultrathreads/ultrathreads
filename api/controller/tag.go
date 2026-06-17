@@ -5,7 +5,7 @@ import (
 
 	"ultrathreads/render"
 	"ultrathreads/cache"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -18,7 +18,7 @@ type TagController struct {
 
 // Show 标签详情
 func (c *TagController) Show(ctx *gin.Context) {
-	var gDto form.IdentifierDto
+	var gDto dto.SlugRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		tag := service.TagService.GetBySlug(gDto.Slug)
 		if tag == nil {

@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/render"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -29,7 +29,7 @@ func (c *NodeController) List(ctx *gin.Context) {
 
 // Show 显示单个节点
 func (c *NodeController) Show(ctx *gin.Context) {
-	var gDto form.IdentifierDto
+	var gDto dto.SlugRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		var node *model.Node
 		if id, parseErr := strconv.ParseInt(gDto.Slug, 10, 64); parseErr == nil {
@@ -43,7 +43,7 @@ func (c *NodeController) Show(ctx *gin.Context) {
 }
 
 func (c *NodeController) MarkAsRead(ctx *gin.Context) {
-	var gDto form.IdentifierDto
+	var gDto dto.SlugRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}

@@ -6,7 +6,7 @@ import (
 
 	"ultrathreads/render"
 	"ultrathreads/controller"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -19,7 +19,7 @@ type UserScoreLogController struct {
 
 // Show 显示积分纪录
 func (c *UserScoreLogController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		userScoreLog := service.UserScoreLogService.Get(gDto.ID)
 		if userScoreLog == nil {

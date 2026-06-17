@@ -12,7 +12,7 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/dao"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
@@ -43,12 +43,12 @@ func (s *articleService) List(cnd *querybuilder.QueryBuilder) (list []model.Arti
 }
 
 // Create 发表文章
-func (s *articleService) Create(dto form.ArticleCreateForm) (*model.Article, error) {
+func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, error) {
 	article := &model.Article{
-		UserId:      dto.UserID,
-		Title:       dto.Title,
-		Summary:     dto.Summary,
-		Content:     dto.Content,
+		UserId:      req.UserID,
+		Title:       req.Title,
+		Summary:     req.Summary,
+		Content:     req.Content,
 		ContentType: model.ContentTypeMarkdown,
 		Status:      model.StatusOk,
 		Share:       false,
@@ -59,7 +59,7 @@ func (s *articleService) Create(dto form.ArticleCreateForm) (*model.Article, err
 
 	// ✅ v2 事务：Transaction + 闭包，tx 替代原来的 dao.DB()
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
-		tagIDs := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags))
+		tagIDs := dao.TagDao.GetOrCreates(util.ParseTagsToArray(req.Tags))
 
 		// ⚠️ 注意：如果 ArticleDao.Create 内部仍使用全局 db，
 		// 则此处的 tx 不会生效。需要改造 DAO 支持传入 tx，
@@ -76,23 +76,23 @@ func (s *articleService) Create(dto form.ArticleCreateForm) (*model.Article, err
 }
 
 // Update 编辑文章
-func (s *articleService) Update(dto form.ArticleUpdateForm) error {
+func (s *articleService) Update(req dto.ArticleUpdateForm) error {
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Article{}).Where("id = ?", dto.ID).Updates(map[string]interface{}{
-			"title":       dto.Title,
-			"content":     dto.Content,
+		if err := tx.Model(&model.Article{}).Where("id = ?", req.ID).Updates(map[string]interface{}{
+			"title":       req.Title,
+			"content":     req.Content,
 			"update_time": util.NowTimestamp(),
 		}).Error; err != nil {
 			return err
 		}
 
-		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(dto.Tags))
-		dao.ArticleTagDao.DeleteArticleTags(dto.ID)
-		dao.ArticleTagDao.AddArticleTags(dto.ID, tagIds)
+		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(req.Tags))
+		dao.ArticleTagDao.DeleteArticleTags(req.ID)
+		dao.ArticleTagDao.AddArticleTags(req.ID, tagIds)
 		return nil
 	})
 
-	cache.ArticleTagCache.Invalidate(dto.ID)
+	cache.ArticleTagCache.Invalidate(req.ID)
 	return err
 }
 

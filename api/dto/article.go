@@ -1,4 +1,4 @@
-package form
+package dto
 
 // ArticleCreateForm post create form
 type ArticleCreateForm struct {

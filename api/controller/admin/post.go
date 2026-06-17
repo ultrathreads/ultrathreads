@@ -6,7 +6,6 @@ import (
 
 	"ultrathreads/render"
 	"ultrathreads/controller"
-	"ultrathreads/form"
 	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -23,7 +22,7 @@ type PostController struct {
 
 // Show show post
 func (c *PostController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		post := service.Srv.Post.Get(gDto.ID)
 		if post == nil {
@@ -36,7 +35,7 @@ func (c *PostController) Show(ctx *gin.Context) {
 
 // Update update a post
 func (c *PostController) Update(ctx *gin.Context) {
-	var gDto form.IdentifierDto
+	var gDto dto.SlugRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
@@ -62,7 +61,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 
 // Delete delete post
 func (c *PostController) Delete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
@@ -72,7 +71,7 @@ func (c *PostController) Delete(ctx *gin.Context) {
 
 // Undelete delete post
 func (c *PostController) Undelete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
@@ -127,7 +126,7 @@ func (c *PostController) List(ctx *gin.Context) {
 
 // Recommend 推荐
 func (c *PostController) Recommend(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
@@ -141,7 +140,7 @@ func (c *PostController) Recommend(ctx *gin.Context) {
 
 // Unrecommend 取消推荐
 func (c *PostController) Unrecommend(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}

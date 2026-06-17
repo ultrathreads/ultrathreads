@@ -1,4 +1,4 @@
-package form
+package dto
 
 // AuthSigninForm auth signin form
 type AuthSigninForm struct {

@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/render"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 )
@@ -18,14 +18,14 @@ type AuthController struct {
 // Register
 func (c *AuthController) Register(ctx *gin.Context) {
 	ref := ctx.Request.FormValue("ref")
-	var dto form.AuthSignupForm
-	if c.BindAndValidate(ctx, &dto) {
-		if !captcha.VerifyString(dto.CaptchaID, dto.CaptchaCode) {
+	var req dto.AuthSignupForm
+	if c.BindAndValidate(ctx, &req) {
+		if !captcha.VerifyString(req.CaptchaID, req.CaptchaCode) {
 			c.Fail(ctx, util.ErrorCaptchaWrong)
 			return
 		}
 
-		user, err := service.Srv.User.Create(dto.Username, dto.Email, dto.Nickname, dto.Password, dto.RePassword)
+		user, err := service.Srv.User.Create(req.Username, req.Email, req.Nickname, req.Password, req.RePassword)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
 			return

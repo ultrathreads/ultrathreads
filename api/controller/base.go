@@ -8,9 +8,9 @@ import (
 
 	"ultrathreads/bus"
 	"ultrathreads/bus/core"
-	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/util"
+	"ultrathreads/util/binding"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 )
@@ -50,7 +50,7 @@ func (c *BaseController) PublishEvent(ctx *gin.Context, payload interface{}) {
 
 // BindAndValidate bind and validate
 func (c *BaseController) BindAndValidate(ctx *gin.Context, obj interface{}) bool {
-	if err := form.Bind(ctx, obj); err != nil {
+	if err := binding.Bind(ctx, obj); err != nil {
 		c.Fail(ctx, &util.CodeError{Code: -1, Message: err.Error()})
 		return false
 	}

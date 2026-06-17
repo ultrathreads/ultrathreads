@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
-	"ultrathreads/form"
 	"ultrathreads/model"
 	"ultrathreads/service"
+	"ultrathreads/util/binding"
 	"ultrathreads/util/log"
 )
 
@@ -128,7 +128,7 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 // Authenticator 标准用户名密码登录验证
 func Authenticator(c *gin.Context) (interface{}, error) {
 	var loginDto LoginDto
-	if err := form.Bind(c, &loginDto); err != nil {
+	if err := binding.Bind(c, &loginDto); err != nil {
 		return "", err
 	}
 
@@ -149,7 +149,7 @@ func AuthenticatorOAuth(c *gin.Context) (interface{}, error) {
 	provider := c.Param("provider")
 
 	var oauthDto LoginOAuthDto
-	if err := form.Bind(c, &oauthDto); err != nil {
+	if err := binding.Bind(c, &oauthDto); err != nil {
 		return "", err
 	}
 

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"ultrathreads/render"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -18,7 +18,7 @@ type ArticleController struct {
 
 // Show show article by id
 func (c *ArticleController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		article := service.ArticleService.Get(gDto.ID)
 		if article == nil || article.Status != model.StatusOk {
@@ -36,7 +36,7 @@ func (c *ArticleController) Store(ctx *gin.Context) {
 		c.Fail(ctx, util.ErrorNotLogin)
 		return
 	}
-	var articleForm form.ArticleCreateForm
+	var articleForm dto.ArticleCreateForm
 	if c.BindAndValidate(ctx, &articleForm) {
 		articleForm.UserID = user.ID
 		article, err := service.ArticleService.Create(articleForm)
@@ -56,7 +56,7 @@ func (c *ArticleController) Edit(ctx *gin.Context) {
 		return
 	}
 
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		article := service.ArticleService.Get(gDto.ID)
 
@@ -93,7 +93,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 		c.Fail(ctx, util.ErrorNotLogin)
 		return
 	}
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		c.Fail(ctx, util.ErrorArticleNotFound)
 		return
@@ -110,7 +110,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var articleForm form.ArticleUpdateForm
+	var articleForm dto.ArticleUpdateForm
 	if c.BindAndValidate(ctx, &articleForm) {
 		articleForm.ID = article.ID
 		err := service.ArticleService.Update(articleForm)
@@ -143,7 +143,7 @@ func (c *ArticleController) List(ctx *gin.Context) {
 
 // GetTagArticles 标签文章列表
 func (c *ArticleController) GetTagArticles(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		cursor := util.FormInt64Default(ctx, "cursor", 0)
 		articles, cursor := service.ArticleService.GetTagArticles(gDto.ID, cursor)
@@ -156,7 +156,7 @@ func (c *ArticleController) GetTagArticles(ctx *gin.Context) {
 
 // GetUserRecent 用户最近的文章
 func (c *ArticleController) GetUserRecent(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		articles := service.ArticleService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
@@ -167,7 +167,7 @@ func (c *ArticleController) GetUserRecent(ctx *gin.Context) {
 // GetUserArticles 用户的文章
 func (c *ArticleController) GetUserArticles(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		articles, paging := service.ArticleService.List(querybuilder.NewQueryBuilder().
 			Eq("user_id", gDto.ID).
@@ -183,7 +183,7 @@ func (c *ArticleController) GetUserArticles(ctx *gin.Context) {
 
 // GetUserNewestBy 用户最新的文章
 func (c *ArticleController) GetUserNewestBy(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		newestArticles := service.ArticleService.GetUserNewestArticles(gDto.ID)
 		c.Success(ctx, render.ToSimpleArticles(newestArticles))
@@ -192,7 +192,7 @@ func (c *ArticleController) GetUserNewestBy(ctx *gin.Context) {
 
 // GetRelatedBy 相关文章
 func (c *ArticleController) GetRelatedBy(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		relatedArticles := service.ArticleService.GetRelatedArticles(gDto.ID)
 		c.Success(ctx, render.ToSimpleArticles(relatedArticles))
@@ -202,7 +202,7 @@ func (c *ArticleController) GetRelatedBy(ctx *gin.Context) {
 // Favorite 收藏文章
 func (c *ArticleController) Favorite(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		c.Fail(ctx, util.ErrorArticleNotFound)
 		return

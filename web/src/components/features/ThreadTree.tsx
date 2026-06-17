@@ -92,7 +92,7 @@ export default function ThreadTree({ threads, activeNode, activeTag, emptyText }
           {showPostBtn && (
             <>
               <Link href={createHref} className="toolbar-post-btn">
-                ✏️ {t('posting')}
+                ✏️ {t('create_post')}
               </Link>
               {/* 分隔线：区分主操作与辅助工具 */}
               <div className="toolbar-divider" />

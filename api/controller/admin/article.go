@@ -9,7 +9,7 @@ import (
 	"ultrathreads/render"
 	"ultrathreads/cache"
 	"ultrathreads/controller"
-	"ultrathreads/form"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -25,7 +25,7 @@ type ArticleController struct {
 
 // Show show article
 func (c *ArticleController) Show(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		article := service.ArticleService.Get(gDto.ID)
 		if article == nil {
@@ -38,7 +38,7 @@ func (c *ArticleController) Show(ctx *gin.Context) {
 
 // Update update a article
 func (c *ArticleController) Update(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
@@ -48,7 +48,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var articleForm form.ArticleUpdateForm
+	var articleForm dto.ArticleUpdateForm
 	if !c.BindAndValidate(ctx, &articleForm) {
 		return
 	}
@@ -63,7 +63,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 
 // Delete delete article
 func (c *ArticleController) Delete(ctx *gin.Context) {
-	var gDto form.GeneralGetDto
+	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
