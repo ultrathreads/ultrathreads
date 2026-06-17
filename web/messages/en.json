@@ -1,25 +1,26 @@
 {
   "title": "from common title",
   "navigation": "Navigation",
-  "forum_sections": "Forum nodes",
-  "hot_tags": "Hot tags",
-  "home":"🏠 Home",
+  "forum_sections": "Forum Nodes",
+  "hot_tags": "Hot Tags",
+  "home": "🏠 Home",
   "mine": "👤 My...",
-  "myPosts": "📋 My posts",
+  "myPosts": "📋 My Posts",
 
   "all_threads": "All Threads",
   "all_threads_desc": "Browse the latest discussions and trending topics across the site",
 
   "loading": "Loading...",
   "loadFailed": "Failed to load data.",
-  "search_default_value":"Search...",
+  "search_default_value": "Search...",
   "create": "Create",
   "create_post": "New Post",
-  "posting": "Create new...",
+  "posting": "Create New...",
   "register": "Register",
   "switch_to_dark": "Switch to Dark Mode",
   "switch_to_light": "Switch to Light Mode",
-  "login": "Login",
+  "login": "Log In",
+  "logout": "Log Out",
   "justNow": "Just now",
   "minutesAgo": "{{n}} min ago",
   "hoursAgo": "{{n}} hr ago",
@@ -28,11 +29,15 @@
   "noThreads": "No threads.",
   "noPosts": "No posts.",
 
+  "admin_panel": "Admin Panel",
+  "profile_center": "Profile",
+  "account_settings": "Account Settings",
+
   "roles": {
-    "admin": "管理员",
-    "editor": "编辑",
-    "moderator": "版主",
-    "vip": "VIP会员",
-    "_fallback": "普通用户"
+    "admin": "Admin",
+    "editor": "Editor",
+    "moderator": "Moderator",
+    "vip": "VIP Member",
+    "_fallback": "User"
   }
 }

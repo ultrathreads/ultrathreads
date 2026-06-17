@@ -52,18 +52,18 @@ export default function UserMenu() {
         {isAdmin && (
           <>
             <Link href="/admin" className="dropdown-item" onClick={close}>
-              🛠️ 后台管理
+              🛠️ {t('admin_panel')}
             </Link>
             <div className="dropdown-divider" />
           </>
         )}
 
         <Link href="/settings/profile" className="dropdown-item" onClick={close}>
-          👤 个人中心
+          👤 {t('profile_center')}
         </Link>
 
         <Link href="/settings/account" className="dropdown-item" onClick={close}>
-          ⚙️ 账号设置
+          ⚙️ {t('account_settings')}
         </Link>
 
         <div className="dropdown-divider" />
@@ -75,7 +75,7 @@ export default function UserMenu() {
             logout();
           }}
         >
-          🚪 退出登录
+          🚪 {t('logout')}
         </div>
       </div>
     </div>
