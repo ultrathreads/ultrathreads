@@ -42,7 +42,7 @@ type LoginResponseData struct {
 }
 
 // JwtAuth 初始化 JWT 中间件
-func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
+func JwtAuth(loginType int, userSvc service.UserServicer, loginSourceSvc service.LoginSourceServicer) *jwt.GinJWTMiddleware {
 	jwtMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "Jwt",
 		Key:         []byte(viper.GetString("jwt.key")),
@@ -50,7 +50,6 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 		MaxRefresh:  time.Hour * 24 * 90,
 		IdentityKey: viper.GetString("jwt.identity_key"),
 
-		// ✅ 改造：返回结构化双 Token 响应，显式包含 success 字段
 		LoginResponse: func(c *gin.Context, code int, token string, expire time.Time) {
 			expiresIn := int64(time.Until(expire).Seconds())
 			if expiresIn < 0 {
@@ -93,10 +92,10 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 		},
 
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			if LoginType == LoginOAuth {
-				return AuthenticatorOAuth(c)
+			if loginType == LoginOAuth {
+				return authenticatorOAuth(c, userSvc, loginSourceSvc)
 			}
-			return Authenticator(c)
+			return authenticator(c, userSvc)
 		},
 
 		Authorizator: func(data interface{}, c *gin.Context) bool {
@@ -106,7 +105,6 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 			return false
 		},
 
-		// ✅ 修复：未授权时返回标准 HTTP 401 + success=false
 		Unauthorized: func(c *gin.Context, code int, message string) {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    code,
@@ -125,8 +123,8 @@ func JwtAuth(LoginType int) *jwt.GinJWTMiddleware {
 	return jwtMiddleware
 }
 
-// Authenticator 标准用户名密码登录验证
-func Authenticator(c *gin.Context) (interface{}, error) {
+// authenticator 标准用户名密码登录验证
+func authenticator(c *gin.Context, userSvc service.UserServicer) (interface{}, error) {
 	var loginDto LoginDto
 	if err := binding.Bind(c, &loginDto); err != nil {
 		return "", err
@@ -134,7 +132,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 	log.Info("loginDto.Username: %s", loginDto.Username)
 
-	ok, err, u := service.Srv.User.VerifyAndReturnUserInfo(loginDto.Username, loginDto.Password)
+	ok, err, u := userSvc.VerifyAndReturnUserInfo(loginDto.Username, loginDto.Password)
 	if ok {
 		return model.UserClaims{
 			ID:   u.ID,
@@ -144,8 +142,8 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	return nil, err
 }
 
-// AuthenticatorOAuth OAuth 第三方登录验证
-func AuthenticatorOAuth(c *gin.Context) (interface{}, error) {
+// authenticatorOAuth OAuth 第三方登录验证
+func authenticatorOAuth(c *gin.Context, userSvc service.UserServicer, loginSourceSvc service.LoginSourceServicer) (interface{}, error) {
 	provider := c.Param("provider")
 
 	var oauthDto LoginOAuthDto
@@ -153,12 +151,12 @@ func AuthenticatorOAuth(c *gin.Context) (interface{}, error) {
 		return "", err
 	}
 
-	account, err := service.LoginSourceService.GetOrCreate(provider, oauthDto.Code, oauthDto.State)
+	account, err := loginSourceSvc.GetOrCreate(provider, oauthDto.Code, oauthDto.State)
 	if err != nil {
 		return nil, err
 	}
 
-	u, err := service.Srv.User.SignInByLoginSource(account)
+	u, err := userSvc.SignInByLoginSource(account)
 	if err == nil {
 		return model.UserClaims{
 			ID:   u.ID,

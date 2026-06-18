@@ -8,38 +8,54 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewArticleTagDao(db *gorm.DB) *articleTagDao {
-	return &articleTagDao{db: db}
+// ArticleTagRepository 文章标签关联数据访问契约
+type ArticleTagRepository interface {
+	Get(id int64) *model.ArticleTag
+	Take(where ...interface{}) *model.ArticleTag
+	Find(cnd *querybuilder.QueryBuilder) []model.ArticleTag
+	List(cnd *querybuilder.QueryBuilder) ([]model.ArticleTag, *querybuilder.Paging)
+	Create(t *model.ArticleTag) error
+	Update(t *model.ArticleTag) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	AddArticleTags(articleId int64, tagIds []int64)
+	DeleteArticleTags(articleId int64)
+	FindByArticleId(articleId int64) []model.ArticleTag
 }
 
-type articleTagDao struct {
+type articleTagRepo struct {
 	db *gorm.DB
 }
 
-func (d *articleTagDao) Get(id int64) *model.ArticleTag {
+func NewArticleTagDao(db *gorm.DB) ArticleTagRepository {
+	return &articleTagRepo{db: db}
+}
+
+func (r *articleTagRepo) Get(id int64) *model.ArticleTag {
 	ret := &model.ArticleTag{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *articleTagDao) Take(where ...interface{}) *model.ArticleTag {
+func (r *articleTagRepo) Take(where ...interface{}) *model.ArticleTag {
 	ret := &model.ArticleTag{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *articleTagDao) Find(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag) {
-	cnd.Find(d.db, &list)
+func (r *articleTagRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *articleTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.ArticleTag{})
+func (r *articleTagRepo) List(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.ArticleTag{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -49,37 +65,33 @@ func (d *articleTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.Artic
 	return
 }
 
-func (d *articleTagDao) Create(t *model.ArticleTag) (err error) {
-	err = d.db.Create(t).Error
-	return
+func (r *articleTagRepo) Create(t *model.ArticleTag) error {
+	return r.db.Create(t).Error
 }
 
-func (d *articleTagDao) Update(t *model.ArticleTag) (err error) {
-	err = d.db.Save(t).Error
-	return
+func (r *articleTagRepo) Update(t *model.ArticleTag) error {
+	return r.db.Save(t).Error
 }
 
-func (d *articleTagDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = d.db.Model(&model.ArticleTag{}).Where("id = ?", id).Updates(columns).Error
-	return
+func (r *articleTagRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.ArticleTag{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *articleTagDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = d.db.Model(&model.ArticleTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
+func (r *articleTagRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.ArticleTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (d *articleTagDao) Delete(id int64) {
-	d.db.Delete(&model.ArticleTag{}, "id = ?", id)
+func (r *articleTagRepo) Delete(id int64) {
+	r.db.Delete(&model.ArticleTag{}, "id = ?", id)
 }
 
-func (d *articleTagDao) AddArticleTags(articleId int64, tagIds []int64) {
+func (r *articleTagRepo) AddArticleTags(articleId int64, tagIds []int64) {
 	if articleId <= 0 || len(tagIds) == 0 {
 		return
 	}
 
 	for _, tagId := range tagIds {
-		_ = d.Create(&model.ArticleTag{
+		_ = r.Create(&model.ArticleTag{
 			ArticleId:  articleId,
 			TagId:      tagId,
 			CreateTime: util.NowTimestamp(),
@@ -87,13 +99,13 @@ func (d *articleTagDao) AddArticleTags(articleId int64, tagIds []int64) {
 	}
 }
 
-func (d *articleTagDao) DeleteArticleTags(articleId int64) {
+func (r *articleTagRepo) DeleteArticleTags(articleId int64) {
 	if articleId <= 0 {
 		return
 	}
-	d.db.Where("article_id = ?", articleId).Delete(model.ArticleTag{})
+	r.db.Where("article_id = ?", articleId).Delete(model.ArticleTag{})
 }
 
-func (d *articleTagDao) FindByArticleId(articleId int64) []model.ArticleTag {
-	return d.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
+func (r *articleTagRepo) FindByArticleId(articleId int64) []model.ArticleTag {
+	return r.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
 }

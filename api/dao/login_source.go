@@ -7,33 +7,60 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewLoginSourceDao(db *gorm.DB) *loginSourceDao {
-	return &loginSourceDao{db: db}
+// LoginSourceRepository 登录来源数据访问契约
+type LoginSourceRepository interface {
+	Get(id int64) *model.LoginSource
+	Take(where ...interface{}) *model.LoginSource
+	Find(cnd *querybuilder.QueryBuilder) []model.LoginSource
+	FindOne(cnd *querybuilder.QueryBuilder) *model.LoginSource
+	List(cnd *querybuilder.QueryBuilder) ([]model.LoginSource, *querybuilder.Paging)
+	Create(t *model.LoginSource) error
+	Update(t *model.LoginSource) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
 }
 
-type loginSourceDao struct {
+type loginSourceRepo struct {
 	db *gorm.DB
 }
 
-func (d *loginSourceDao) Get(id int64) *model.LoginSource {
+func NewLoginSourceDao(db *gorm.DB) LoginSourceRepository {
+	return &loginSourceRepo{db: db}
+}
+
+func (r *loginSourceRepo) Get(id int64) *model.LoginSource {
 	ret := &model.LoginSource{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *loginSourceDao) Take(where ...interface{}) *model.LoginSource {
+func (r *loginSourceRepo) Take(where ...interface{}) *model.LoginSource {
 	ret := &model.LoginSource{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *loginSourceDao) List(cnd *querybuilder.QueryBuilder) (list []model.LoginSource, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.LoginSource{})
+func (r *loginSourceRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.LoginSource) {
+	cnd.Find(r.db, &list)
+	return
+}
+
+func (r *loginSourceRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.LoginSource {
+	ret := &model.LoginSource{}
+	if err := cnd.FindOne(r.db, ret); err != nil {
+		return nil
+	}
+	return ret
+}
+
+func (r *loginSourceRepo) List(cnd *querybuilder.QueryBuilder) (list []model.LoginSource, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.LoginSource{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -43,26 +70,22 @@ func (d *loginSourceDao) List(cnd *querybuilder.QueryBuilder) (list []model.Logi
 	return
 }
 
-func (d *loginSourceDao) Create(t *model.LoginSource) (err error) {
-	err = d.db.Create(t).Error
-	return
+func (r *loginSourceRepo) Create(t *model.LoginSource) error {
+	return r.db.Create(t).Error
 }
 
-func (d *loginSourceDao) Update(t *model.LoginSource) (err error) {
-	err = d.db.Save(t).Error
-	return
+func (r *loginSourceRepo) Update(t *model.LoginSource) error {
+	return r.db.Save(t).Error
 }
 
-func (d *loginSourceDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = d.db.Model(&model.LoginSource{}).Where("id = ?", id).Updates(columns).Error
-	return
+func (r *loginSourceRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.LoginSource{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *loginSourceDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = d.db.Model(&model.LoginSource{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
+func (r *loginSourceRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.LoginSource{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (d *loginSourceDao) Delete(id int64) {
-	d.db.Delete(&model.LoginSource{}, "id = ?", id)
+func (r *loginSourceRepo) Delete(id int64) {
+	r.db.Delete(&model.LoginSource{}, "id = ?", id)
 }

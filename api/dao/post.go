@@ -10,10 +10,22 @@ import (
 )
 
 type PostRepository interface {
-    Get(id int64) *model.Post
+	Get(id int64) *model.Post
+	Take(where ...interface{}) *model.Post
+	Find(cnd *querybuilder.QueryBuilder) []model.Post
+	FindOne(cnd *querybuilder.QueryBuilder) *model.Post
+	List(cnd *querybuilder.QueryBuilder) ([]model.Post, *querybuilder.Paging)
+	Count(cnd *querybuilder.QueryBuilder) int64
+	Create(t *model.Post) error
+	Update(t *model.Post) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64) error
+	GetRootPosts(limit int) ([]*model.Post, error)
+	IncrViewCount(id int64) error
 }
 
-func NewPostDao(db *gorm.DB) *postDao {
+func NewPostDao(db *gorm.DB) PostRepository {
 	return &postDao{db: db}
 }
 

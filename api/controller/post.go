@@ -16,6 +16,19 @@ import (
 
 type PostController struct {
 	BaseController
+	postSvc      service.PostServicer
+	userSvc      service.UserServicer
+	postLikeSvc  service.PostLikeServicer
+	favoriteSvc  service.FavoriteServicer
+}
+
+func NewPostController(postSvc service.PostServicer, userSvc service.UserServicer, postLikeSvc service.PostLikeServicer, favoriteSvc service.FavoriteServicer) *PostController {
+	return &PostController{
+		postSvc:     postSvc,
+		userSvc:     userSvc,
+		postLikeSvc: postLikeSvc,
+		favoriteSvc: favoriteSvc,
+	}
 }
 
 // Show 话题详情
@@ -25,13 +38,13 @@ func (c *PostController) Show(ctx *gin.Context) {
 		return
 	}
 
-	post := service.Srv.Post.GetBySlug(req.Slug)
+	post := c.postSvc.GetBySlug(req.Slug)
 	if post == nil || post.Status != model.StatusOk {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 	renderPost := render.ToPost(post)
-	user := service.Srv.User.Get(post.UserId)
+	user := c.userSvc.Get(post.UserId)
 	renderPost.User = render.ToUser(user)
 	log.Debug("renderPost.User=%v", renderPost.User)
 
@@ -44,7 +57,7 @@ func (c *PostController) ListThreads(ctx *gin.Context) {
 	pageSize := util.FormIntDefault(ctx, "pageSize", 20)
 	nodeSlug := util.ParamStringDefault(ctx, "slug", "")
 
-	posts, paging := service.Srv.Post.GetNodeThreadsFull(page, pageSize, nodeSlug)
+	posts, paging := c.postSvc.GetNodeThreadsFull(page, pageSize, nodeSlug)
 
 	var lastReadAtMap map[string]int64
 	if nodeSlug != "" {
@@ -74,7 +87,7 @@ func (c *PostController) ListTagThreads(ctx *gin.Context) {
 	tagSlug := util.ParamStringDefault(ctx, "slug", "")
 	page := util.FormIntDefault(ctx, "page", 1)
 
-	posts, paging := service.Srv.Post.GetTagThreadsFull(tagSlug, page)
+	posts, paging := c.postSvc.GetTagThreadsFull(tagSlug, page)
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
@@ -102,17 +115,16 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 		return
 	}
 
-	currentPost, posts, err := service.Srv.Post.GetPostTree(req.Slug)
+	currentPost, posts, err := c.postSvc.GetPostTree(req.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
 	}
 
 	currentPostRender := render.ToPost(currentPost)
-	user := service.Srv.User.Get(currentPost.UserId)
+	user := c.userSvc.Get(currentPost.UserId)
 	currentPostRender.User = render.ToUser(user)
 
-	//把render之后的currentPost压入extra，虽然有点怪异，但也算的上是巧思。
 	results, incUsers, incNodes, incTags := render.ToSimplePostsWithIncluded(posts)
 
 	rsp := model.PostListWithIncluded{
@@ -127,7 +139,6 @@ func (c *PostController) GetPostTree(ctx *gin.Context) {
 	c.SuccessWithIncluded(ctx, rsp)
 }
 
-
 // GetPostFlat 帖子详情（含扁平化回帖）
 func (c *PostController) GetPostFlat(ctx *gin.Context) {
 	var req dto.SlugRequest
@@ -136,7 +147,7 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 		return
 	}
 
-	posts, err := service.Srv.Post.GetPostsByThreadId(req.Slug)
+	posts, err := c.postSvc.GetPostsByThreadId(req.Slug)
 	if err != nil {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -155,18 +166,15 @@ func (c *PostController) GetPostFlat(ctx *gin.Context) {
 }
 
 func (c *PostController) GetUserPosts(ctx *gin.Context) {
-	// 1. 获取并验证基础参数（如 user_id）
 	var req dto.SlugRequest
 	if !c.BindAndValidate(ctx, &req) {
-		return 
+		return
 	}
 
-	// 2. 获取分页和类型参数
 	page := util.FormIntDefault(ctx, "page", 1)
 	postType := ctx.DefaultQuery("type", "root")
 
-	// 3. 调用 Service 层获取数据
-	posts, paging := service.Srv.Post.GetUserPosts(req.Slug, postType, page, 20)
+	posts, paging := c.postSvc.GetUserPosts(req.Slug, postType, page, 20)
 
 	lastReadAtMap := c.GetLastReadStates(ctx)
 
@@ -192,16 +200,15 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 	var req dto.CreateRootPostRequest
 
 	if !c.BindAndValidate(ctx, &req) {
-		return // BindAndValidate 内部已写回错误响应
+		return
 	}
 
-	post, err := service.Srv.Post.CreateRootPost(user.ID, req)
+	post, err := c.postSvc.CreateRootPost(user.ID, req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
 
-	// IsRoot 恒为 true，无需运行时判断
 	c.PublishEvent(ctx, event.PostCreated{
 		UserID: user.ID,
 		PostID: post.ID,
@@ -212,7 +219,7 @@ func (c *PostController) StoreRootPost(ctx *gin.Context) {
 	c.RespondOK(ctx, render.ToSimplePost(post))
 }
 
-// Update 更新主贴
+// UpdateRootPost 更新主贴
 func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	var req dto.UpdateRootPostRequest
@@ -220,7 +227,7 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		return
 	}
 
-	post := service.Srv.Post.GetBySlug(req.Slug)
+	post := c.postSvc.GetBySlug(req.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -231,12 +238,12 @@ func (c *PostController) UpdateRootPost(ctx *gin.Context) {
 		return
 	}
 
-	err := service.Srv.Post.UpdateRootPost(req)
+	err := c.postSvc.UpdateRootPost(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
-	
+
 	c.PublishEvent(ctx, event.PostUpdated{
 		UserID: user.ID,
 		PostID: post.ID,
@@ -256,13 +263,12 @@ func (c *PostController) StoreReply(ctx *gin.Context) {
 		return
 	}
 
-	post, err := service.Srv.Post.CreateReply(user.ID, req)
+	post, err := c.postSvc.CreateReply(user.ID, req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
 
-	// IsRoot 恒为 false
 	c.PublishEvent(ctx, event.PostCreated{
 		UserID: user.ID,
 		PostID: post.ID,
@@ -279,7 +285,7 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 		return
 	}
 
-	post := service.Srv.Post.GetBySlug(req.Slug)
+	post := c.postSvc.GetBySlug(req.Slug)
 	if post == nil || post.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorPostNotFound)
 		return
@@ -290,12 +296,12 @@ func (c *PostController) UpdateReply(ctx *gin.Context) {
 		return
 	}
 
-	err := service.Srv.Post.UpdateReply(req)
+	err := c.postSvc.UpdateReply(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
-	
+
 	c.PublishEvent(ctx, event.PostUpdated{
 		UserID: user.ID,
 		PostID: post.ID,
@@ -310,7 +316,7 @@ func (c *PostController) GetUserRecent(ctx *gin.Context) {
 	var req dto.SlugRequest
 	id := hashid.Slug2Id[model.User](req.Slug)
 	if c.BindAndValidate(ctx, &req) {
-		posts := service.Srv.Post.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
+		posts := c.postSvc.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			id, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, render.ToSimplePosts(posts))
 	}
@@ -325,7 +331,7 @@ func (c *PostController) Like(ctx *gin.Context) {
     }
 
     id := hashid.Slug2Id[model.Post](req.Slug)
-    if err := service.PostLikeService.Like(user.ID, id); err != nil {
+    if err := c.postLikeSvc.Like(user.ID, id); err != nil {
         c.Fail(ctx, util.FromError(err))
         return
     }
@@ -341,7 +347,7 @@ func (c *PostController) Favorite(ctx *gin.Context) {
         return
     }
 
-    if err := service.FavoriteService.AddPostFavorite(user.ID, req.Slug); err != nil {
+    if err := c.favoriteSvc.AddPostFavorite(user.ID, req.Slug); err != nil {
         c.Fail(ctx, util.FromError(err))
         return
     }

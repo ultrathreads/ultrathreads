@@ -11,28 +11,37 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var LinkService = newLinkService()
-
-func newLinkService() *linkService {
-	return &linkService{}
+// LinkServicer 链接业务契约
+type LinkServicer interface {
+	Get(id int64) *model.Link
+	Find(cnd *querybuilder.QueryBuilder) []model.Link
+	List(cnd *querybuilder.QueryBuilder) ([]model.Link, *querybuilder.Paging)
+	Create(req dto.LinkCreateForm) (*model.Link, error)
+	Update(req dto.LinkUpdateForm) error
+	Delete(id int64) error
+	Submit(url, title, summary, logo string) (*model.Link, error)
 }
 
-type linkService struct{}
+func NewLinkService(repo dao.LinkRepository) LinkServicer {
+	return &linkService{repo: repo}
+}
+
+type linkService struct {
+	repo dao.LinkRepository
+}
 
 func (s *linkService) Get(id int64) *model.Link {
-	return dao.LinkDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *linkService) Find(cnd *querybuilder.QueryBuilder) []model.Link {
-	return dao.LinkDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
-func (s *linkService) List(cnd *querybuilder.QueryBuilder) (list []model.Link, paging *querybuilder.Paging) {
-	return dao.LinkDao.List(cnd)
+func (s *linkService) List(cnd *querybuilder.QueryBuilder) ([]model.Link, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
-// Create 创建链接
-// ✅ 移除无效事务包装：单条 Create 无需事务，且原代码 DAO 内部用全局 db 导致 tx 未生效
 func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
 	link := &model.Link{
 		Title:      req.Title,
@@ -41,14 +50,14 @@ func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
 		Logo:       req.Logo,
 		CreateTime: util.NowTimestamp(),
 	}
-	if err := dao.LinkDao.Create(link); err != nil {
+	if err := s.repo.Create(link); err != nil {
 		return nil, err
 	}
 	return link, nil
 }
 
 func (s *linkService) Update(req dto.LinkUpdateForm) error {
-	return dao.LinkDao.Updates(req.ID, map[string]interface{}{
+	return s.repo.Updates(req.ID, map[string]interface{}{
 		"title":       req.Title,
 		"url":         req.URL,
 		"summary":     req.Summary,
@@ -58,12 +67,10 @@ func (s *linkService) Update(req dto.LinkUpdateForm) error {
 	})
 }
 
-// Delete 删除链接
 func (s *linkService) Delete(id int64) error {
-	return dao.LinkDao.Delete(id)
+	return s.repo.Delete(id)
 }
 
-// Submit 提交友情链接
 func (s *linkService) Submit(url, title, summary, logo string) (*model.Link, error) {
 	url = strings.TrimSpace(url)
 	title = strings.TrimSpace(title)
@@ -86,7 +93,7 @@ func (s *linkService) Submit(url, title, summary, logo string) (*model.Link, err
 		CreateTime: util.NowTimestamp(),
 	}
 
-	if err := dao.LinkDao.Create(link); err != nil {
+	if err := s.repo.Create(link); err != nil {
 		return nil, err
 	}
 	return link, nil

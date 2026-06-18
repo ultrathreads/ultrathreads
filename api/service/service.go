@@ -7,22 +7,75 @@ import (
 
 // Services 聚合所有服务实例，作为统一的服务访问入口
 type Services struct {
-	Node  *nodeService
-	Post  *postService
-	User  *userService
+	Node          NodeServicer
+	Post          PostServicer
+	User          UserServicer
+	Article       ArticleServicer
+	ArticleTag    ArticleTagServicer
+	Favorite      FavoriteServicer
+	Link          LinkServicer
+	LoginSource   LoginSourceServicer
+	Notification  NotificationServicer
+	PostLike      PostLikeServicer
+	PostTag       PostTagServicer
+	Rbac          RbacServicer
+	Setting       SettingServicer
+	Tag           TagServicer
+	UserReadState UserReadStateServicer
+	UserScore     UserScoreServicer
+	UserScoreLog  UserScoreLogServicer
+	UserWatch     UserWatchServicer
+	Appinfo       AppinfoServicer
+	Statistic     StatisticServicer
 }
 
 // NewServices 集中初始化所有服务
-// 当前阶段仍返回具体类型，后续重构 DI 时只需修改此函数的签名和内部实现
-func NewServices(_repos *dao.Repositories, _caches *cache.Caches) *Services {
-	return &Services{
-		Node: NewNodeService(_repos.Node, _caches.Node), 
+func NewServices(repos *dao.Repositories, caches *cache.Caches) *Services {
+	// 创建无依赖的基础服务
+	linkSvc := NewLinkService(repos.Link)
+	appinfoSvc := NewAppinfoService()
+	articleTagSvc := NewArticleTagService(repos.ArticleTag)
+	postTagSvc := NewPostTagService(repos.PostTag)
+	scoreLogSvc := NewUserScoreLogService(repos.UserScoreLog)
+	loginSourceSvc := NewLoginSourceService(repos.LoginSource)
+	notificationSvc := NewNotificationService(repos.Notification, repos.Post)
+	postLikeSvc := NewPostLikeService(repos.PostLike)
+	rbacSvc := NewRbacService(repos.Rbac)
+	settingSvc := NewSettingService(repos.Setting)
+	tagSvc := NewTagService(repos.Tag)
+	userReadStateSvc := NewUserReadStateService(repos.UserReadState)
+	userWatchSvc := NewUserWatchService(repos.UserWatch)
+	favoriteSvc := NewFavoriteService(repos.Favorite, repos.Article, repos.Post)
+	userScoreSvc := NewUserScoreService(repos.UserScore, scoreLogSvc)
 
-		Post: NewPostService(_repos.Post, _repos.Node), 
-		User: NewUserService(_repos.User),
+	// 创建依赖其他服务的服务
+	postSvc := NewPostService(repos.Post, repos.Node, postTagSvc, settingSvc)
+	userSvc := NewUserService(repos.User, repos.Post)
+	articleSvc := NewArticleService(repos.Article, repos.Tag, repos.ArticleTag, articleTagSvc)
+
+	// 创建依赖多种服务的聚合服务
+	statisticSvc := NewStatisticService(userSvc, postSvc, settingSvc)
+
+	return &Services{
+		Node:          NewNodeService(repos.Node, caches.Node),
+		Post:          postSvc,
+		User:          userSvc,
+		Article:       articleSvc,
+		ArticleTag:    articleTagSvc,
+		Favorite:      favoriteSvc,
+		Link:          linkSvc,
+		LoginSource:   loginSourceSvc,
+		Notification:  notificationSvc,
+		PostLike:      postLikeSvc,
+		PostTag:       postTagSvc,
+		Rbac:          rbacSvc,
+		Setting:       settingSvc,
+		Tag:           tagSvc,
+		UserReadState: userReadStateSvc,
+		UserScore:     userScoreSvc,
+		UserScoreLog:  scoreLogSvc,
+		UserWatch:     userWatchSvc,
+		Appinfo:       appinfoSvc,
+		Statistic:     statisticSvc,
 	}
 }
-
-// Srv 全局服务实例（过渡期使用）
-// ⚠️ 注意：这是为了兼容现有代码的临时方案，最终目标是消除这个全局变量
-var Srv *Services

@@ -10,9 +10,23 @@ import (
 // initAppAPI 注册所有前台路由，JWT 通过参数注入而非全局变量
 func (h *Handler) initAppAPI(e *gin.Engine) {
 	api := e.Group("/api")
+	svc := h.services
+
+	// --- 创建所有 Controller 实例 ---
+	siteController := controller.NewSiteController(svc.Setting, svc.Appinfo, svc.UserReadState)
+	authController := controller.NewAuthController(svc.User)
+	oauthController := &controller.OAuthController{}
+	captchaController := &controller.CaptchaController{}
+	postController := controller.NewPostController(svc.Post, svc.User, svc.PostLike, svc.Favorite)
+	nodeController := controller.NewNodeController(svc.Node, svc.UserReadState)
+	tagController := controller.NewTagController(svc.Tag)
+	articleController := controller.NewArticleController(svc.Article, svc.Favorite)
+	userController := controller.NewUserController(svc.User, svc.Post, svc.UserScore, svc.UserScoreLog, svc.Notification, svc.Favorite, svc.Article, svc.UserWatch, svc.Rbac)
+	linkController := controller.NewLinkController(svc.Link)
+	favoriteController := controller.NewFavoriteController(svc.Favorite)
+	uploadController := &controller.UploadController{}
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
-	siteController := &controller.SiteController{}
 	api.Any("/stat", siteController.Stat)
 	api.Any("/ping", siteController.Ping)
 	api.Any("/site/config", siteController.Config)
@@ -21,30 +35,21 @@ func (h *Handler) initAppAPI(e *gin.Engine) {
 	// Auth
 	api.POST("/auth/login", h.jwtAuth.LoginHandler)
 	api.POST("/auth/login/refresh", h.jwtAuth.RefreshHandler)
-	api.POST("/auth/register", (&controller.AuthController{}).Register)
+	api.POST("/auth/register", authController.Register)
 
 	// OAuth
-	oauthController := &controller.OAuthController{}
 	api.GET("/oauth/:provider/authorize", oauthController.Authorize)
 	api.GET("/oauth/:provider/callback", h.jwtOAuth.LoginHandler)
 
 	// Captcha
-	captchaController := &controller.CaptchaController{}
 	api.GET("/captcha/request", captchaController.GetRequest)
 	api.GET("/captcha/show/:captchaId", captchaController.Show)
 
 	// ---------- Optional Auth 组 ----------
 	optional := api.Group("/")
 	optional.Use(middleware.OptionalAuth(h.jwtAuth))
-	optional.Use(middleware.CurrentUserReadState())
+	optional.Use(middleware.CurrentUserReadState(svc.UserReadState))
 	{
-		postController := &controller.PostController{}
-		nodeController := controller.NewNodeController(h.services.Node)
-		tagController := &controller.TagController{}
-		articleController := &controller.ArticleController{}
-		userController := &controller.UserController{}
-		linkController := &controller.LinkController{}
-
 		// Home
 		optional.GET("/threads", postController.ListThreads)
 
@@ -104,14 +109,6 @@ func (h *Handler) initAppAPI(e *gin.Engine) {
 	jwtApi := api.Group("/")
 	jwtApi.Use(h.jwtAuth.MiddlewareFunc(), middleware.CurrentUser)
 	{
-		nodeController := &controller.NodeController{}
-		postController := &controller.PostController{}
-		favoriteController := &controller.FavoriteController{}
-		tagController := &controller.TagController{}
-		articleController := &controller.ArticleController{}
-		userController := &controller.UserController{}
-		uploadController := &controller.UploadController{}
-
 		// Nodes
 		jwtApi.POST("/nodes/:slug/mark-as-read", nodeController.MarkAsRead)
 

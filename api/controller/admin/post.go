@@ -18,13 +18,19 @@ import (
 // PostController post controller
 type PostController struct {
 	controller.BaseController
+	postSvc service.PostServicer
+	nodeSvc service.NodeServicer
+}
+
+func NewPostController(postSvc service.PostServicer, nodeSvc service.NodeServicer) *PostController {
+	return &PostController{postSvc: postSvc, nodeSvc: nodeSvc}
 }
 
 // Show show post
 func (c *PostController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		post := service.Srv.Post.Get(gDto.ID)
+		post := c.postSvc.Get(gDto.ID)
 		if post == nil {
 			c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -40,7 +46,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 	postID := hashid.Slug2Id[model.Post](gDto.Slug)
-	post := service.Srv.Post.Get(postID)
+	post := c.postSvc.Get(postID)
 	if post == nil {
 		c.Fail(ctx, util.NewErrorMsg("Post not found, id="+strconv.FormatInt(postID, 10)))
 		return
@@ -51,7 +57,7 @@ func (c *PostController) Update(ctx *gin.Context) {
 		return
 	}
 	req.Slug = gDto.Slug
-	err := service.Srv.Post.UpdateRootPost(req)
+	err := c.postSvc.UpdateRootPost(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -65,17 +71,17 @@ func (c *PostController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.Srv.Post.Delete(gDto.ID)
+	c.postSvc.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
-// Undelete delete post
+// Undelete undelete post
 func (c *PostController) Undelete(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.Srv.Post.Undelete(gDto.ID)
+	c.postSvc.Undelete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -106,15 +112,14 @@ func (c *PostController) List(ctx *gin.Context) {
 		conditions.Like("title", title)
 	}
 
-	list, paging := service.Srv.Post.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.postSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, post := range list {
 		result := util.StructToMap(post, "content")
 		result["user"] = render.ToDefaultUser(post.UserId)
-		result["node"] = service.Srv.Node.Get(post.NodeId)
-		result["tags"] = render.ToTags(service.Srv.Post.GetPostTags(post.ID))
-		// 简介
+		result["node"] = c.nodeSvc.Get(post.NodeId)
+		result["tags"] = render.ToTags(c.postSvc.GetPostTags(post.ID))
 		mr := markdown.NewMd().Run(post.Content)
 		result["summary"] = mr.SummaryText
 
@@ -130,7 +135,7 @@ func (c *PostController) Recommend(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	err := service.Srv.Post.SetRecommend(gDto.ID, true)
+	err := c.postSvc.SetRecommend(gDto.ID, true)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -144,7 +149,7 @@ func (c *PostController) Unrecommend(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	err := service.Srv.Post.SetRecommend(gDto.ID, false)
+	err := c.postSvc.SetRecommend(gDto.ID, false)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return

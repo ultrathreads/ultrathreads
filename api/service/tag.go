@@ -14,17 +14,35 @@ import (
 
 type ScanTagCallback func(tags []model.Tag) bool
 
-var TagService = newTagService()
+// TagServicer 标签业务契约
+type TagServicer interface {
+	Get(id int64) *model.Tag
+	GetBySlug(slug string) *model.Tag
+	Take(where ...interface{}) *model.Tag
+	Find(cnd *querybuilder.QueryBuilder) []model.Tag
+	FindOne(cnd *querybuilder.QueryBuilder) *model.Tag
+	List(cnd *querybuilder.QueryBuilder) ([]model.Tag, *querybuilder.Paging)
+	Create(req dto.TagCreateForm) (*model.Tag, error)
+	Update(int int64, req dto.TagUpdateForm) error
+	Delete(id int64) error
+	AutoComplete(input string) []model.Tag
+	GetOrCreate(name string) (*model.Tag, error)
+	GetByName(name string) *model.Tag
+	GetTags() []model.TagResponse
+	FindByIds(tagIds []int64) []model.Tag
+	Scan(cb ScanTagCallback)
+}
 
-func newTagService() *tagService {
-	return &tagService{}
+func NewTagService(repo dao.TagRepository) TagServicer {
+	return &tagService{repo: repo}
 }
 
 type tagService struct {
+	repo dao.TagRepository
 }
 
 func (s *tagService) Get(id int64) *model.Tag {
-	return dao.TagDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *tagService) GetBySlug(slug string) *model.Tag {
@@ -33,19 +51,19 @@ func (s *tagService) GetBySlug(slug string) *model.Tag {
 }
 
 func (s *tagService) Take(where ...interface{}) *model.Tag {
-	return dao.TagDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *tagService) Find(cnd *querybuilder.QueryBuilder) []model.Tag {
-	return dao.TagDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
 func (s *tagService) FindOne(cnd *querybuilder.QueryBuilder) *model.Tag {
-	return dao.TagDao.FindOne(cnd)
+	return s.repo.FindOne(cnd)
 }
 
-func (s *tagService) List(cnd *querybuilder.QueryBuilder) (list []model.Tag, paging *querybuilder.Paging) {
-	return dao.TagDao.List(cnd)
+func (s *tagService) List(cnd *querybuilder.QueryBuilder) ([]model.Tag, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *tagService) Create(req dto.TagCreateForm) (*model.Tag, error) {
@@ -54,14 +72,14 @@ func (s *tagService) Create(req dto.TagCreateForm) (*model.Tag, error) {
 		Description: req.Description,
 		Status:      req.Status,
 	}
-	if err := dao.TagDao.Create(tag); err != nil {
+	if err := s.repo.Create(tag); err != nil {
 		return nil, errors.New("创建标签失败")
 	}
 	return tag, nil
 }
 
 func (s *tagService) Update(int int64, req dto.TagUpdateForm) error {
-	err := dao.TagDao.Updates(req.ID, map[string]interface{}{
+	err := s.repo.Updates(req.ID, map[string]interface{}{
 		"name":        req.Name,
 		"description": req.Description,
 		"status":      req.Status,
@@ -73,32 +91,31 @@ func (s *tagService) Update(int int64, req dto.TagUpdateForm) error {
 }
 
 func (s *tagService) Delete(id int64) error {
-	if err := dao.TagDao.Delete(id); err != nil {
+	if err := s.repo.Delete(id); err != nil {
 		return errors.New("删除标签失败")
 	}
 	return nil
 }
 
-// 自动完成
 func (s *tagService) AutoComplete(input string) []model.Tag {
 	input = strings.TrimSpace(input)
 	if len(input) == 0 {
 		return nil
 	}
-	return dao.TagDao.Find(querybuilder.NewQueryBuilder().Where("status = ? and name like ?",
+	return s.repo.Find(querybuilder.NewQueryBuilder().Where("status = ? and name like ?",
 		model.StatusOk, "%"+input+"%").Limit(6))
 }
 
 func (s *tagService) GetOrCreate(name string) (*model.Tag, error) {
-	return dao.TagDao.GetOrCreate(name)
+	return s.repo.GetOrCreate(name)
 }
 
 func (s *tagService) GetByName(name string) *model.Tag {
-	return dao.TagDao.GetByName(name)
+	return s.repo.GetByName(name)
 }
 
 func (s *tagService) GetTags() []model.TagResponse {
-	list := dao.TagDao.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk))
+	list := s.repo.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk))
 
 	var tags []model.TagResponse
 	for _, tag := range list {
@@ -108,14 +125,13 @@ func (s *tagService) GetTags() []model.TagResponse {
 }
 
 func (s *tagService) FindByIds(tagIds []int64) []model.Tag {
-	return dao.TagDao.FindByIds(tagIds)
+	return s.repo.FindByIds(tagIds)
 }
 
-// 扫描
 func (s *tagService) Scan(cb ScanTagCallback) {
 	var cursor int64
 	for {
-		list := dao.TagDao.Find(querybuilder.NewQueryBuilder().Where("id > ?", cursor).Asc("id").Limit(100))
+		list := s.repo.Find(querybuilder.NewQueryBuilder().Where("id > ?", cursor).Asc("id").Limit(100))
 		if list == nil || len(list) == 0 {
 			break
 		}

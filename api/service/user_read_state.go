@@ -1,76 +1,86 @@
 package service
 
 import (
-	"ultrathreads/cache"
 	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util/hashid"
-	"ultrathreads/util/log"
+	"ultrathreads/util/querybuilder"
 )
 
-var UserReadStateService = newUserReadStateService()
+// UserReadStateServicer 用户阅读状态业务契约
+type UserReadStateServicer interface {
+	Get(id int64) *model.UserReadState
+	Take(where ...interface{}) *model.UserReadState
+	Find(cnd *querybuilder.QueryBuilder) []model.UserReadState
+	FindOne(cnd *querybuilder.QueryBuilder) *model.UserReadState
+	List(cnd *querybuilder.QueryBuilder) ([]model.UserReadState, *querybuilder.Paging)
+	Create(t *model.UserReadState) error
+	Update(t *model.UserReadState) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	GetUserReadStates(userID int64) map[int64]int64
+	MarkAsRead(userID int64, nodeSlug string, now int64) error
+}
 
-func newUserReadStateService() *userReadStateService {
-	return &userReadStateService{}
+func NewUserReadStateService(repo dao.UserReadStateRepository) UserReadStateServicer {
+	return &userReadStateService{repo: repo}
 }
 
 type userReadStateService struct {
+	repo dao.UserReadStateRepository
 }
 
-// GetLastReadAt 获取用户指定节点的已读时间戳
-// 优先走 LoadingCache，Miss 时由 cache 层自动回源 DAO 并缓存结果（含零值防穿透）
-func (s *userReadStateService) GetLastReadAt(userID, nodeID int64) int64 {
-	return cache.ReadStateCache.Get(userID, nodeID)
+func (s *userReadStateService) Get(id int64) *model.UserReadState {
+	return s.repo.Get(id)
 }
 
-// MarkAsRead 标记节点为已读
-// 核心写入入口，保证游标只向前推进 + 缓存即时失效
-func (s *userReadStateService) MarkAsRead(userID int64, nodeSlug string, readAt int64) error {
-	if userID <= 0 || nodeSlug == "" {
-		return nil // 非法参数静默忽略，不阻断主流程
-	}
-
-	nodeID := hashid.Slug2Id[model.Node](nodeSlug)
-	if nodeID <= 0 {
-		return nil // 无效 slug 静默忽略
-	}
-
-	err := dao.UserReadStateDao.Upsert(userID, nodeID, readAt)
-	if err != nil {
-		log.Error("MarkAsRead upsert failed: userID=%d, nodeSlug=%s, nodeID=%d, err=%v", userID, nodeSlug, nodeID, err)
-		return err
-	}
-
-	// 写入成功后立即失效缓存，下次 Get 自动通过 LoadingCache 加载最新值
-	cache.ReadStateCache.InvalidateUserStates(userID)
-	return nil
+func (s *userReadStateService) Take(where ...interface{}) *model.UserReadState {
+	return s.repo.Take(where...)
 }
 
-// BatchMarkAsRead 批量标记已读（如"全部已读"功能）
-func (s *userReadStateService) BatchMarkAsRead(userID int64, nodeSlugs []string, readAt int64) {
-	for _, nodeSlug := range nodeSlugs {
-		if err := s.MarkAsRead(userID, nodeSlug, readAt); err != nil {
-			log.Error("BatchMarkAsRead failed: userID=%d, nodeSlug=%s, err=%v", userID, nodeSlug, err)
-			// 单条失败不中断批量操作，与 IncrTopicCount 容错风格一致
-		}
-	}
+func (s *userReadStateService) Find(cnd *querybuilder.QueryBuilder) []model.UserReadState {
+	return s.repo.Find(cnd)
 }
 
-// IsUnread 判断指定帖子是否未读
-// 供列表接口逐条比对使用
-func (s *userReadStateService) IsUnread(userID, nodeID int64, postCreatedAt int64) bool {
-	if userID <= 0 {
-		return false // 未登录用户不展示未读标记
-	}
-	lastReadAt := s.GetLastReadAt(userID, nodeID)
-	return postCreatedAt > lastReadAt
+func (s *userReadStateService) FindOne(cnd *querybuilder.QueryBuilder) *model.UserReadState {
+	return s.repo.FindOne(cnd)
+}
+
+func (s *userReadStateService) List(cnd *querybuilder.QueryBuilder) ([]model.UserReadState, *querybuilder.Paging) {
+	return s.repo.List(cnd)
+}
+
+func (s *userReadStateService) Create(t *model.UserReadState) error {
+	return s.repo.Create(t)
+}
+
+func (s *userReadStateService) Update(t *model.UserReadState) error {
+	return s.repo.Update(t)
+}
+
+func (s *userReadStateService) Updates(id int64, columns map[string]interface{}) error {
+	return s.repo.Updates(id, columns)
+}
+
+func (s *userReadStateService) UpdateColumn(id int64, name string, value interface{}) error {
+	return s.repo.UpdateColumn(id, name, value)
+}
+
+func (s *userReadStateService) Delete(id int64) {
+	s.repo.Delete(id)
 }
 
 // GetUserReadStates 获取用户所有节点的已读状态
-// 直接走全量缓存，一次加载避免 N+1 查询
 func (s *userReadStateService) GetUserReadStates(userID int64) map[int64]int64 {
-	if userID <= 0 {
-		return make(map[int64]int64)
+	return s.repo.GetAllReadStates(userID)
+}
+
+// MarkAsRead 标记用户在指定节点已读
+func (s *userReadStateService) MarkAsRead(userID int64, nodeSlug string, now int64) error {
+	nodeID := hashid.Slug2Id[model.Node](nodeSlug)
+	if nodeID <= 0 {
+		return nil
 	}
-	return cache.ReadStateCache.GetUserStates(userID)
+	return s.repo.Upsert(userID, nodeID, now)
 }

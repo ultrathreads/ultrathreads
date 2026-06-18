@@ -13,6 +13,11 @@ import (
 // AuthController auth controller
 type AuthController struct {
 	BaseController
+	userSvc service.UserServicer
+}
+
+func NewAuthController(userSvc service.UserServicer) *AuthController {
+	return &AuthController{userSvc: userSvc}
 }
 
 // Register
@@ -25,7 +30,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 			return
 		}
 
-		user, err := service.Srv.User.Create(req.Username, req.Email, req.Nickname, req.Password, req.RePassword)
+		user, err := c.userSvc.Create(req.Username, req.Email, req.Nickname, req.Password, req.RePassword)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
 			return

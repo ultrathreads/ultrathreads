@@ -1,26 +1,34 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"ultrathreads/render"
+	"github.com/gin-gonic/gin"
+
 	"ultrathreads/dto"
 	"ultrathreads/model"
+	"ultrathreads/render"
 	"ultrathreads/service"
 	"ultrathreads/util"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
 
 type ArticleController struct {
 	BaseController
+	articleSvc  service.ArticleServicer
+	favoriteSvc service.FavoriteServicer
+}
+
+func NewArticleController(articleSvc service.ArticleServicer, favoriteSvc service.FavoriteServicer) *ArticleController {
+	return &ArticleController{articleSvc: articleSvc, favoriteSvc: favoriteSvc}
 }
 
 // Show show article by id
 func (c *ArticleController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		article := service.ArticleService.Get(gDto.ID)
+		article := c.articleSvc.Get(gDto.ID)
 		if article == nil || article.Status != model.StatusOk {
 			c.Fail(ctx, util.ErrorArticleNotFound)
 			return
@@ -29,7 +37,7 @@ func (c *ArticleController) Show(ctx *gin.Context) {
 	}
 }
 
-// Create 发表文章
+// Store 发表文章
 func (c *ArticleController) Store(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
 	if user == nil {
@@ -39,7 +47,7 @@ func (c *ArticleController) Store(ctx *gin.Context) {
 	var articleForm dto.ArticleCreateForm
 	if c.BindAndValidate(ctx, &articleForm) {
 		articleForm.UserID = user.ID
-		article, err := service.ArticleService.Create(articleForm)
+		article, err := c.articleSvc.Create(articleForm)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
 			return
@@ -58,7 +66,7 @@ func (c *ArticleController) Edit(ctx *gin.Context) {
 
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		article := service.ArticleService.Get(gDto.ID)
+		article := c.articleSvc.Get(gDto.ID)
 
 		if article == nil || article.Status != model.StatusOk {
 			c.Fail(ctx, util.NewErrorMsg("话题不存在或已被删除"))
@@ -69,7 +77,7 @@ func (c *ArticleController) Edit(ctx *gin.Context) {
 			return
 		}
 
-		tags := service.ArticleService.GetArticleTags(article.ID)
+		tags := c.articleSvc.GetArticleTags(article.ID)
 		var tagNames []string
 		if len(tags) > 0 {
 			for _, tag := range tags {
@@ -99,7 +107,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 		return
 	}
 
-	article := service.ArticleService.Get(gDto.ID)
+	article := c.articleSvc.Get(gDto.ID)
 	if article == nil || article.Status == model.StatusDeleted {
 		c.Fail(ctx, util.ErrorArticleNotFound)
 		return
@@ -113,7 +121,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 	var articleForm dto.ArticleUpdateForm
 	if c.BindAndValidate(ctx, &articleForm) {
 		articleForm.ID = article.ID
-		err := service.ArticleService.Update(articleForm)
+		err := c.articleSvc.Update(articleForm)
 		if err != nil {
 			c.Fail(ctx, util.FromError(err))
 			return
@@ -126,7 +134,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 
 // GetRecent 最近文章
 func (c *ArticleController) GetRecent(ctx *gin.Context) {
-	articles := service.ArticleService.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk).Desc("id").Limit(10))
+	articles := c.articleSvc.Find(querybuilder.NewQueryBuilder().Where("status = ?", model.StatusOk).Desc("id").Limit(10))
 
 	c.Success(ctx, articles)
 }
@@ -134,7 +142,7 @@ func (c *ArticleController) GetRecent(ctx *gin.Context) {
 // List 文章列表
 func (c *ArticleController) List(ctx *gin.Context) {
 	cursor := util.FormInt64Default(ctx, "cursor", 0)
-	articles, cursor := service.ArticleService.GetArticles(cursor)
+	articles, cursor := c.articleSvc.GetArticles(cursor)
 	c.Success(ctx, gin.H{
 		"results": render.ToSimpleArticles(articles),
 		"cursor":  strconv.FormatInt(cursor, 10),
@@ -146,7 +154,7 @@ func (c *ArticleController) GetTagArticles(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
 		cursor := util.FormInt64Default(ctx, "cursor", 0)
-		articles, cursor := service.ArticleService.GetTagArticles(gDto.ID, cursor)
+		articles, cursor := c.articleSvc.GetTagArticles(gDto.ID, cursor)
 		c.Success(ctx, gin.H{
 			"results": render.ToSimpleArticles(articles),
 			"cusor":   strconv.FormatInt(cursor, 10),
@@ -158,7 +166,7 @@ func (c *ArticleController) GetTagArticles(ctx *gin.Context) {
 func (c *ArticleController) GetUserRecent(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		articles := service.ArticleService.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
+		articles := c.articleSvc.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
 		c.Success(ctx, render.ToSimpleArticles(articles))
 	}
@@ -169,7 +177,7 @@ func (c *ArticleController) GetUserArticles(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		articles, paging := service.ArticleService.List(querybuilder.NewQueryBuilder().
+		articles, paging := c.articleSvc.List(querybuilder.NewQueryBuilder().
 			Eq("user_id", gDto.ID).
 			Eq("status", model.StatusOk).
 			Page(page, 20).Desc("id"))
@@ -185,7 +193,7 @@ func (c *ArticleController) GetUserArticles(ctx *gin.Context) {
 func (c *ArticleController) GetUserNewestBy(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		newestArticles := service.ArticleService.GetUserNewestArticles(gDto.ID)
+		newestArticles := c.articleSvc.GetUserNewestArticles(gDto.ID)
 		c.Success(ctx, render.ToSimpleArticles(newestArticles))
 	}
 }
@@ -194,7 +202,7 @@ func (c *ArticleController) GetUserNewestBy(ctx *gin.Context) {
 func (c *ArticleController) GetRelatedBy(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		relatedArticles := service.ArticleService.GetRelatedArticles(gDto.ID)
+		relatedArticles := c.articleSvc.GetRelatedArticles(gDto.ID)
 		c.Success(ctx, render.ToSimpleArticles(relatedArticles))
 	}
 }
@@ -202,15 +210,15 @@ func (c *ArticleController) GetRelatedBy(ctx *gin.Context) {
 // Favorite 收藏文章
 func (c *ArticleController) Favorite(ctx *gin.Context) {
 	user := c.GetCurrentUser(ctx)
-	var gDto dto.IdRequest
-	if !c.BindAndValidate(ctx, &gDto) {
-		c.Fail(ctx, util.ErrorArticleNotFound)
+	var req dto.SlugRequest
+	if !c.BindAndValidateUri(ctx, &req) {
 		return
 	}
-	err := service.FavoriteService.AddArticleFavorite(user.ID, gDto.ID)
-	if err != nil {
+
+	if err := c.favoriteSvc.AddArticleFavorite(user.ID, hashid.Slug2Id[model.Article](req.Slug)); err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}
+
 	c.Success(ctx, nil)
 }

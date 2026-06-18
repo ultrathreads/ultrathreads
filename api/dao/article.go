@@ -9,18 +9,29 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-type articleDao struct {
+// ArticleRepository 文章数据访问契约
+type ArticleRepository interface {
+	Get(id int64) *model.Article
+	Find(cnd *querybuilder.QueryBuilder) []model.Article
+	List(cnd *querybuilder.QueryBuilder) ([]model.Article, *querybuilder.Paging)
+	Create(t *model.Article) error
+	Update(t *model.Article) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64) error
+}
+
+type articleRepo struct {
 	db *gorm.DB
 }
 
-func NewArticleDao(db *gorm.DB) *articleDao {
-	return &articleDao{db: db}
+func NewArticleDao(db *gorm.DB) ArticleRepository {
+	return &articleRepo{db: db}
 }
 
-// Get 根据 ID 获取文章，未找到时返回 nil（兼容原逻辑）
-func (d *articleDao) Get(id int64) *model.Article {
+func (r *articleRepo) Get(id int64) *model.Article {
 	ret := &model.Article{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -29,14 +40,14 @@ func (d *articleDao) Get(id int64) *model.Article {
 	return ret
 }
 
-func (d *articleDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Article) {
-	cnd.Find(d.db, &list)
+func (r *articleRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.Article) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *articleDao) List(cnd *querybuilder.QueryBuilder) (list []model.Article, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.Article{})
+func (r *articleRepo) List(cnd *querybuilder.QueryBuilder) (list []model.Article, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.Article{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -46,26 +57,22 @@ func (d *articleDao) List(cnd *querybuilder.QueryBuilder) (list []model.Article,
 	return
 }
 
-func (d *articleDao) Create(t *model.Article) error {
-	return d.db.Create(t).Error
+func (r *articleRepo) Create(t *model.Article) error {
+	return r.db.Create(t).Error
 }
 
-// Update 全量更新（包含零值）
-func (d *articleDao) Update(t *model.Article) error {
-	return d.db.Save(t).Error
+func (r *articleRepo) Update(t *model.Article) error {
+	return r.db.Save(t).Error
 }
 
-// Updates 按 map 更新指定字段（支持零值）
-func (d *articleDao) Updates(id int64, columns map[string]interface{}) error {
-	return d.db.Model(&model.Article{}).Where("id = ?", id).Updates(columns).Error
+func (r *articleRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.Article{}).Where("id = ?", id).Updates(columns).Error
 }
 
-// UpdateColumn 更新单个列（跳过 Hook 和更新时间）
-func (d *articleDao) UpdateColumn(id int64, name string, value interface{}) error {
-	return d.db.Model(&model.Article{}).Where("id = ?", id).UpdateColumn(name, value).Error
+func (r *articleRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.Article{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-// Delete 根据 ID 删除
-func (d *articleDao) Delete(id int64) error {
-	return d.db.Delete(&model.Article{}, "id = ?", id).Error
+func (r *articleRepo) Delete(id int64) error {
+	return r.db.Delete(&model.Article{}, "id = ?", id).Error
 }

@@ -26,7 +26,7 @@ type NodeServicer interface {
     GetNodes() []model.Node
 }
 
-func NewNodeService(repo dao.NodeRepository, nodeCache cache.NodeCacheInterface) *nodeService {
+func NewNodeService(repo dao.NodeRepository, nodeCache cache.NodeCacheInterface) NodeServicer {
     return &nodeService{
     	repo: repo,
     	nodeCache: nodeCache,

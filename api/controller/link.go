@@ -11,13 +11,18 @@ import (
 
 type LinkController struct {
 	BaseController
+	linkSvc service.LinkServicer
+}
+
+func NewLinkController(linkSvc service.LinkServicer) *LinkController {
+	return &LinkController{linkSvc: linkSvc}
 }
 
 // List 列表
 func (c *LinkController) List(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 
-	links, paging := service.LinkService.List(querybuilder.NewQueryBuilder().
+	links, paging := c.linkSvc.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Page(page, 20).Asc("id"))
 
 	var results []map[string]interface{}
@@ -32,7 +37,7 @@ func (c *LinkController) List(ctx *gin.Context) {
 
 // 前10个链接
 func (c *LinkController) GetToplinks(ctx *gin.Context) {
-	links := service.LinkService.Find(querybuilder.NewQueryBuilder().
+	links := c.linkSvc.Find(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Limit(10).Asc("id"))
 
 	var results []map[string]interface{}

@@ -11,21 +11,26 @@ import (
 
 type SiteController struct {
 	BaseController
+	settingSvc        service.SettingServicer
+	appinfoSvc        service.AppinfoServicer
+	userReadStateSvc  service.UserReadStateServicer
+}
+
+func NewSiteController(settingSvc service.SettingServicer, appinfoSvc service.AppinfoServicer, userReadStateSvc service.UserReadStateServicer) *SiteController {
+	return &SiteController{settingSvc: settingSvc, appinfoSvc: appinfoSvc, userReadStateSvc: userReadStateSvc}
 }
 
 func (c *SiteController) Debug(ctx *gin.Context) {
-
-	userID := int64(1);
-	states := service.UserReadStateService.GetUserReadStates(userID)
+	userID := int64(1)
+	states := c.userReadStateSvc.GetUserReadStates(userID)
 
 	c.Success(ctx, states)
 }
 
 func (c *SiteController) Config(ctx *gin.Context) {
-
 	data := map[string]interface{}{}
-	data["setting"] = service.SettingService.GetSetting()
-	data["appinfo"] = service.AppinfoService.GetAppinfo()
+	data["setting"] = c.settingSvc.GetSetting()
+	data["appinfo"] = c.appinfoSvc.GetAppinfo()
 
 	c.Success(ctx, data)
 }

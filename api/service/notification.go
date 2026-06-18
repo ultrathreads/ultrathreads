@@ -13,78 +13,98 @@ import (
 	"ultrathreads/util/urls"
 )
 
-var NotificationService = newNotificationService()
+// NotificationServicer 通知业务契约
+type NotificationServicer interface {
+	Get(id int64) *model.Notification
+	Take(where ...interface{}) *model.Notification
+	Find(cnd *querybuilder.QueryBuilder) []model.Notification
+	FindOne(cnd *querybuilder.QueryBuilder) *model.Notification
+	List(cnd *querybuilder.QueryBuilder) ([]model.Notification, *querybuilder.Paging)
+	Create(t *model.Notification) error
+	Update(t *model.Notification) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	GetUnReadCount(userId int64) int64
+	MarkRead(userId int64) error
+	SendUserWatchNotification(userWatch *model.UserWatch)
+	SendPostLikeNotification(postLike *model.PostLike)
+	Produce(fromId, toId int64, content, quoteContent string, msgType int, extraDataMap map[string]interface{})
+	Consume()
+	SendEmailNotice(notification *model.Notification)
+}
 
-func newNotificationService() *notificationService {
+func NewNotificationService(repo dao.NotificationRepository, postRepo dao.PostRepository) NotificationServicer {
 	return &notificationService{
+		repo:              repo,
+		postRepo:          postRepo,
 		notificationsChan: make(chan *model.Notification),
 	}
 }
 
 type notificationService struct {
+	repo                     dao.NotificationRepository
+	postRepo                 dao.PostRepository
 	notificationsChan        chan *model.Notification
 	notificationsConsumeOnce sync.Once
 }
 
 func (s *notificationService) Get(id int64) *model.Notification {
-	return dao.NotificationDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *notificationService) Take(where ...interface{}) *model.Notification {
-	return dao.NotificationDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *notificationService) Find(cnd *querybuilder.QueryBuilder) []model.Notification {
-	return dao.NotificationDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
 func (s *notificationService) FindOne(cnd *querybuilder.QueryBuilder) *model.Notification {
-	return dao.NotificationDao.FindOne(cnd)
+	return s.repo.FindOne(cnd)
 }
 
-func (s *notificationService) List(cnd *querybuilder.QueryBuilder) (list []model.Notification, paging *querybuilder.Paging) {
-	return dao.NotificationDao.List(cnd)
+func (s *notificationService) List(cnd *querybuilder.QueryBuilder) ([]model.Notification, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *notificationService) Create(t *model.Notification) error {
-	return dao.NotificationDao.Create(t)
+	return s.repo.Create(t)
 }
 
 func (s *notificationService) Update(t *model.Notification) error {
-	return dao.NotificationDao.Update(t)
+	return s.repo.Update(t)
 }
 
 func (s *notificationService) Updates(id int64, columns map[string]interface{}) error {
-	return dao.NotificationDao.Updates(id, columns)
+	return s.repo.Updates(id, columns)
 }
 
 func (s *notificationService) UpdateColumn(id int64, name string, value interface{}) error {
-	return dao.NotificationDao.UpdateColumn(id, name, value)
+	return s.repo.UpdateColumn(id, name, value)
 }
 
 func (s *notificationService) Delete(id int64) {
-	dao.NotificationDao.Delete(id)
+	s.repo.Delete(id)
 }
 
-// 获取未读消息数量
 func (s *notificationService) GetUnReadCount(userId int64) (count int64) {
-	return dao.NotificationDao.GetUnReadCount(userId)
+	return s.repo.GetUnReadCount(userId)
 }
 
-// 将所有消息标记为已读
 func (s *notificationService) MarkRead(userId int64) error {
-	return dao.NotificationDao.UpdateStatusBatch(userId)
+	return s.repo.UpdateStatusBatch(userId)
 }
 
-// 用户关注
 func (s *notificationService) SendUserWatchNotification(userWatch *model.UserWatch) {
 	user := cache.UserCache.Get(userWatch.WatcherID)
 
 	var (
-		fromId       = userWatch.WatcherID // 消息发送人
-		authorId     int64                 // 被关注人
-		content      string                // 消息内容
-		quoteContent string                // 引用内容
+		fromId       = userWatch.WatcherID
+		authorId     int64
+		content      string
+		quoteContent string
 	)
 
 	authorId = userWatch.UserID
@@ -94,7 +114,6 @@ func (s *notificationService) SendUserWatchNotification(userWatch *model.UserWat
 	if authorId <= 0 {
 		return
 	}
-	// 给被关注者发消息
 	s.Produce(fromId, authorId, content, quoteContent, model.MsgTypeUserWatch, map[string]interface{}{
 		"entityType":  model.EntityTypeUser,
 		"entityId":    userWatch.WatcherID,
@@ -102,17 +121,16 @@ func (s *notificationService) SendUserWatchNotification(userWatch *model.UserWat
 	})
 }
 
-// 内容被点赞
 func (s *notificationService) SendPostLikeNotification(postLike *model.PostLike) {
 	user := cache.UserCache.Get(postLike.UserId)
 
 	var (
-		fromId       = postLike.UserId // 消息发送人
-		authorId     int64              // 点赞者编号
-		content      string             // 消息内容
-		quoteContent string             // 引用内容
+		fromId       = postLike.UserId
+		authorId     int64
+		content      string
+		quoteContent string
 	)
-	post := dao.PostDao.Get(postLike.PostId)
+	post := s.postRepo.Get(postLike.PostId)
 	if post != nil {
 		authorId = post.UserId
 		content = user.Username.String + " 点赞了你的话题：" + post.Title
@@ -122,7 +140,6 @@ func (s *notificationService) SendPostLikeNotification(postLike *model.PostLike)
 	if authorId <= 0 {
 		return
 	}
-	// 给帖子作者发消息
 	s.Produce(fromId, authorId, content, quoteContent, model.MsgTypePostLike, map[string]interface{}{
 		"entityType":  model.EntityTypePost,
 		"entityId":    post.ID,
@@ -130,7 +147,6 @@ func (s *notificationService) SendPostLikeNotification(postLike *model.PostLike)
 	})
 }
 
-// 生产，将消息数据放入chan
 func (s *notificationService) Produce(fromId, toId int64, content, quoteContent string, msgType int, extraDataMap map[string]interface{}) {
 	to := cache.UserCache.Get(toId)
 	if to == nil {
@@ -158,7 +174,6 @@ func (s *notificationService) Produce(fromId, toId int64, content, quoteContent 
 	}
 }
 
-// 消费，消费chan中的消息
 func (s *notificationService) Consume() {
 	s.notificationsConsumeOnce.Do(func() {
 		go func() {
@@ -177,7 +192,6 @@ func (s *notificationService) Consume() {
 	})
 }
 
-// 发送邮件通知
 func (s *notificationService) SendEmailNotice(notification *model.Notification) {
 	user := cache.UserCache.Get(notification.UserId)
 	if user != nil && len(user.Email.String) > 0 {

@@ -22,27 +22,52 @@ import (
 
 type ScanArticleCallback func(articles []model.Article)
 
-var ArticleService = newArticleService()
-
-func newArticleService() *articleService {
-	return &articleService{}
+// ArticleServicer 文章业务契约
+type ArticleServicer interface {
+	Get(id int64) *model.Article
+	Find(cnd *querybuilder.QueryBuilder) []model.Article
+	List(cnd *querybuilder.QueryBuilder) ([]model.Article, *querybuilder.Paging)
+	Create(req dto.ArticleCreateForm) (*model.Article, error)
+	Update(req dto.ArticleUpdateForm) error
+	Delete(id int64) error
+	GetArticleInIds(articleIds []int64) []model.Article
+	GetArticles(cursor int64) ([]model.Article, int64)
+	GetArticleTags(articleId int64) []model.Tag
+	GetTagArticles(tagId int64, cursor int64) ([]model.Article, int64)
+	GetRelatedArticles(articleId int64) []model.Article
+	GetUserNewestArticles(userId int64) []model.Article
+	ScanDesc(dateFrom, dateTo int64, cb ScanArticleCallback)
+	GenerateRss()
 }
 
-type articleService struct{}
+func NewArticleService(repo dao.ArticleRepository, tagRepo dao.TagRepository, articleTagRepo dao.ArticleTagRepository, articleTagSvc ArticleTagServicer) ArticleServicer {
+	return &articleService{
+		repo:           repo,
+		tagRepo:        tagRepo,
+		articleTagRepo: articleTagRepo,
+		articleTagSvc:  articleTagSvc,
+	}
+}
+
+type articleService struct {
+	repo           dao.ArticleRepository
+	tagRepo        dao.TagRepository
+	articleTagRepo dao.ArticleTagRepository
+	articleTagSvc  ArticleTagServicer
+}
 
 func (s *articleService) Get(id int64) *model.Article {
-	return dao.ArticleDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *articleService) Find(cnd *querybuilder.QueryBuilder) []model.Article {
-	return dao.ArticleDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
-func (s *articleService) List(cnd *querybuilder.QueryBuilder) (list []model.Article, paging *querybuilder.Paging) {
-	return dao.ArticleDao.List(cnd)
+func (s *articleService) List(cnd *querybuilder.QueryBuilder) ([]model.Article, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
-// Create 发表文章
 func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, error) {
 	article := &model.Article{
 		UserId:      req.UserID,
@@ -57,25 +82,20 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 		UpdateTime:  util.NowTimestamp(),
 	}
 
-	// ✅ v2 事务：Transaction + 闭包，tx 替代原来的 dao.DB()
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
-		tagIDs := dao.TagDao.GetOrCreates(util.ParseTagsToArray(req.Tags))
+		tagIDs := s.tagRepo.GetOrCreates(util.ParseTagsToArray(req.Tags))
 
-		// ⚠️ 注意：如果 ArticleDao.Create 内部仍使用全局 db，
-		// 则此处的 tx 不会生效。需要改造 DAO 支持传入 tx，
-		// 或在此处直接使用 tx.Create(article)
 		if err := tx.Create(article).Error; err != nil {
 			return err
 		}
 
-		dao.ArticleTagDao.AddArticleTags(article.ID, tagIDs)
+		s.articleTagRepo.AddArticleTags(article.ID, tagIDs)
 		return nil
 	})
 
 	return article, err
 }
 
-// Update 编辑文章
 func (s *articleService) Update(req dto.ArticleUpdateForm) error {
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Article{}).Where("id = ?", req.ID).Updates(map[string]interface{}{
@@ -86,9 +106,9 @@ func (s *articleService) Update(req dto.ArticleUpdateForm) error {
 			return err
 		}
 
-		tagIds := dao.TagDao.GetOrCreates(util.ParseTagsToArray(req.Tags))
-		dao.ArticleTagDao.DeleteArticleTags(req.ID)
-		dao.ArticleTagDao.AddArticleTags(req.ID, tagIds)
+		tagIds := s.tagRepo.GetOrCreates(util.ParseTagsToArray(req.Tags))
+		s.articleTagRepo.DeleteArticleTags(req.ID)
+		s.articleTagRepo.AddArticleTags(req.ID, tagIds)
 		return nil
 	})
 
@@ -97,14 +117,13 @@ func (s *articleService) Update(req dto.ArticleUpdateForm) error {
 }
 
 func (s *articleService) Delete(id int64) error {
-	err := dao.ArticleDao.UpdateColumn(id, "status", model.StatusDeleted)
+	err := s.repo.UpdateColumn(id, "status", model.StatusDeleted)
 	if err == nil {
-		ArticleTagService.DeleteByArticleId(id)
+		s.articleTagSvc.DeleteByArticleId(id)
 	}
 	return err
 }
 
-// GetArticleInIds 根据文章编号批量获取文章
 func (s *articleService) GetArticleInIds(articleIds []int64) []model.Article {
 	if len(articleIds) == 0 {
 		return nil
@@ -117,13 +136,12 @@ func (s *articleService) GetArticleInIds(articleIds []int64) []model.Article {
 	return articles
 }
 
-// GetArticles 游标分页文章列表
 func (s *articleService) GetArticles(cursor int64) (articles []model.Article, nextCursor int64) {
 	cnd := querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Desc("id").Limit(20)
 	if cursor > 0 {
 		cnd.Lt("id", cursor)
 	}
-	articles = dao.ArticleDao.Find(cnd)
+	articles = s.repo.Find(cnd)
 	if len(articles) > 0 {
 		nextCursor = articles[len(articles)-1].ID
 	} else {
@@ -132,9 +150,8 @@ func (s *articleService) GetArticles(cursor int64) (articles []model.Article, ne
 	return
 }
 
-// GetArticleTags 获取文章对应的标签
 func (s *articleService) GetArticleTags(articleId int64) []model.Tag {
-	articleTags := dao.ArticleTagDao.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
+	articleTags := s.articleTagRepo.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
 	var tagIds []int64
 	for _, articleTag := range articleTags {
 		tagIds = append(tagIds, articleTag.TagId)
@@ -142,14 +159,13 @@ func (s *articleService) GetArticleTags(articleId int64) []model.Tag {
 	return cache.TagCache.GetList(tagIds)
 }
 
-// GetTagArticles 标签文章列表
 func (s *articleService) GetTagArticles(tagId int64, cursor int64) (articles []model.Article, nextCursor int64) {
 	cnd := querybuilder.NewQueryBuilder().Eq("tag_id", tagId).Eq("status", model.StatusOk).Desc("id").Limit(20)
 	if cursor > 0 {
 		cnd.Lt("id", cursor)
 	}
 	nextCursor = cursor
-	articleTags := dao.ArticleTagDao.Find(cnd)
+	articleTags := s.articleTagRepo.Find(cnd)
 	if len(articleTags) > 0 {
 		var articleIds []int64
 		for _, articleTag := range articleTags {
@@ -161,14 +177,12 @@ func (s *articleService) GetTagArticles(tagId int64, cursor int64) (articles []m
 	return
 }
 
-// GetRelatedArticles 相关文章
 func (s *articleService) GetRelatedArticles(articleId int64) []model.Article {
 	tagIds := cache.ArticleTagCache.Get(articleId)
 	if len(tagIds) == 0 {
 		return nil
 	}
 	var articleTags []model.ArticleTag
-	// ✅ 补充错误处理
 	if err := dao.DB().Where("tag_id IN (?)", tagIds).Limit(30).Find(&articleTags).Error; err != nil {
 		log.Error("GetRelatedArticles find tags failed: %v", err)
 		return nil
@@ -190,18 +204,16 @@ func (s *articleService) GetRelatedArticles(articleId int64) []model.Article {
 	return s.GetArticleInIds(articleIds)
 }
 
-// GetUserNewestArticles 用户最新文章
 func (s *articleService) GetUserNewestArticles(userId int64) []model.Article {
-	return dao.ArticleDao.Find(querybuilder.NewQueryBuilder().
+	return s.repo.Find(querybuilder.NewQueryBuilder().
 		Where("user_id = ? AND status = ?", userId, model.StatusOk).
 		Desc("id").Limit(10))
 }
 
-// ScanDesc 倒序扫描文章
 func (s *articleService) ScanDesc(dateFrom, dateTo int64, cb ScanArticleCallback) {
 	var cursor int64 = math.MaxInt64
 	for {
-		list := dao.ArticleDao.Find(querybuilder.NewQueryBuilder("id", "status", "create_time", "update_time").
+		list := s.repo.Find(querybuilder.NewQueryBuilder("id", "status", "create_time", "update_time").
 			Lt("id", cursor).Gte("create_time", dateFrom).Lt("create_time", dateTo).Desc("id").Limit(1000))
 		if len(list) == 0 {
 			break
@@ -211,9 +223,8 @@ func (s *articleService) ScanDesc(dateFrom, dateTo int64, cb ScanArticleCallback
 	}
 }
 
-// GenerateRss 生成 RSS / Atom 订阅文件
 func (s *articleService) GenerateRss() {
-	articles := dao.ArticleDao.Find(querybuilder.NewQueryBuilder().
+	articles := s.repo.Find(querybuilder.NewQueryBuilder().
 		Where("status = ?", model.StatusOk).Desc("id").Limit(1000))
 
 	var items []*feeds.Item

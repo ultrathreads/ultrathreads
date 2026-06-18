@@ -8,46 +8,62 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewPostTagDao(db *gorm.DB) *postTagDao {
-	return &postTagDao{db: db}
+// PostTagRepository 帖子标签关联数据访问契约
+type PostTagRepository interface {
+	Get(id int64) *model.PostTag
+	Take(where ...interface{}) *model.PostTag
+	Find(cnd *querybuilder.QueryBuilder) []model.PostTag
+	FindOne(cnd *querybuilder.QueryBuilder) *model.PostTag
+	List(cnd *querybuilder.QueryBuilder) ([]model.PostTag, *querybuilder.Paging)
+	Create(t *model.PostTag) error
+	Update(t *model.PostTag) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	AddPostTags(postId int64, tagIds []int64)
+	DeletePostTags(postId int64)
 }
 
-type postTagDao struct {
+type postTagRepo struct {
 	db *gorm.DB
 }
 
-func (d *postTagDao) Get(id int64) *model.PostTag {
+func NewPostTagDao(db *gorm.DB) PostTagRepository {
+	return &postTagRepo{db: db}
+}
+
+func (r *postTagRepo) Get(id int64) *model.PostTag {
 	ret := &model.PostTag{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *postTagDao) Take(where ...interface{}) *model.PostTag {
+func (r *postTagRepo) Take(where ...interface{}) *model.PostTag {
 	ret := &model.PostTag{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *postTagDao) Find(cnd *querybuilder.QueryBuilder) (list []model.PostTag) {
-	cnd.Find(d.db, &list)
+func (r *postTagRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.PostTag) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *postTagDao) FindOne(cnd *querybuilder.QueryBuilder) *model.PostTag {
+func (r *postTagRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.PostTag {
 	ret := &model.PostTag{}
-	if err := cnd.FindOne(d.db, ret); err != nil {
+	if err := cnd.FindOne(r.db, ret); err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *postTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.PostTag, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.PostTag{})
+func (r *postTagRepo) List(cnd *querybuilder.QueryBuilder) (list []model.PostTag, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.PostTag{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -57,36 +73,32 @@ func (d *postTagDao) List(cnd *querybuilder.QueryBuilder) (list []model.PostTag,
 	return
 }
 
-func (d *postTagDao) Create(t *model.PostTag) (err error) {
-	err = d.db.Create(t).Error
-	return
+func (r *postTagRepo) Create(t *model.PostTag) error {
+	return r.db.Create(t).Error
 }
 
-func (d *postTagDao) Update(t *model.PostTag) (err error) {
-	err = d.db.Save(t).Error
-	return
+func (r *postTagRepo) Update(t *model.PostTag) error {
+	return r.db.Save(t).Error
 }
 
-func (d *postTagDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = d.db.Model(&model.PostTag{}).Where("id = ?", id).Updates(columns).Error
-	return
+func (r *postTagRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.PostTag{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *postTagDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = d.db.Model(&model.PostTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
+func (r *postTagRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.PostTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (d *postTagDao) Delete(id int64) {
-	d.db.Delete(&model.PostTag{}, "id = ?", id)
+func (r *postTagRepo) Delete(id int64) {
+	r.db.Delete(&model.PostTag{}, "id = ?", id)
 }
 
-func (d *postTagDao) AddPostTags(postId int64, tagIds []int64) {
+func (r *postTagRepo) AddPostTags(postId int64, tagIds []int64) {
 	if postId <= 0 || len(tagIds) == 0 {
 		return
 	}
 	for _, tagId := range tagIds {
-		_ = d.Create(&model.PostTag{
+		_ = r.Create(&model.PostTag{
 			PostId:     postId,
 			TagId:      tagId,
 			CreateTime: util.NowTimestamp(),
@@ -94,9 +106,9 @@ func (d *postTagDao) AddPostTags(postId int64, tagIds []int64) {
 	}
 }
 
-func (d *postTagDao) DeletePostTags(postId int64) {
+func (r *postTagRepo) DeletePostTags(postId int64) {
 	if postId <= 0 {
 		return
 	}
-	d.db.Where("post_id = ?", postId).Delete(&model.PostTag{})
+	r.db.Where("post_id = ?", postId).Delete(&model.PostTag{})
 }

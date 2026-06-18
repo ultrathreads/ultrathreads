@@ -9,7 +9,7 @@ import (
 )
 
 // AdminRequired 校验用户是否具有超级管理员权限或后台管理准入资格
-func AdminRequired() gin.HandlerFunc {
+func AdminRequired(rbacSvc service.RbacServicer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := GetCurrent(ctx)
 		if user == nil {
@@ -21,7 +21,7 @@ func AdminRequired() gin.HandlerFunc {
 			return
 		}
 
-		if !service.RbacService.CanAccessAdminPanel(user.ID) {
+		if !rbacSvc.CanAccessAdminPanel(user.ID) {
 			err := util.ErrorPermissionDenied
 			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"code":    err.Code,

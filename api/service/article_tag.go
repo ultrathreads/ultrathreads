@@ -6,47 +6,59 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var ArticleTagService = newArticleTagService()
+// ArticleTagServicer 文章标签关联业务契约
+type ArticleTagServicer interface {
+	Get(id int64) *model.ArticleTag
+	Take(where ...interface{}) *model.ArticleTag
+	Find(cnd *querybuilder.QueryBuilder) []model.ArticleTag
+	List(cnd *querybuilder.QueryBuilder) ([]model.ArticleTag, *querybuilder.Paging)
+	Create(t *model.ArticleTag) error
+	Update(t *model.ArticleTag) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	DeleteByArticleId(postId int64)
+}
 
-func newArticleTagService() *articleTagService {
-	return &articleTagService{}
+func NewArticleTagService(repo dao.ArticleTagRepository) ArticleTagServicer {
+	return &articleTagService{repo: repo}
 }
 
 type articleTagService struct {
+	repo dao.ArticleTagRepository
 }
 
 func (s *articleTagService) Get(id int64) *model.ArticleTag {
-	return dao.ArticleTagDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *articleTagService) Take(where ...interface{}) *model.ArticleTag {
-	return dao.ArticleTagDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *articleTagService) Find(cnd *querybuilder.QueryBuilder) []model.ArticleTag {
-	return dao.ArticleTagDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
-func (s *articleTagService) List(cnd *querybuilder.QueryBuilder) (list []model.ArticleTag, paging *querybuilder.Paging) {
-	return dao.ArticleTagDao.List(cnd)
+func (s *articleTagService) List(cnd *querybuilder.QueryBuilder) ([]model.ArticleTag, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *articleTagService) Create(t *model.ArticleTag) error {
-	return dao.ArticleTagDao.Create(t)
+	return s.repo.Create(t)
 }
 
 func (s *articleTagService) Update(t *model.ArticleTag) error {
-	return dao.ArticleTagDao.Update(t)
+	return s.repo.Update(t)
 }
 
 func (s *articleTagService) Updates(id int64, columns map[string]interface{}) error {
-	return dao.ArticleTagDao.Updates(id, columns)
+	return s.repo.Updates(id, columns)
 }
 
 func (s *articleTagService) UpdateColumn(id int64, name string, value interface{}) error {
-	return dao.ArticleTagDao.UpdateColumn(id, name, value)
+	return s.repo.UpdateColumn(id, name, value)
 }
 
 func (s *articleTagService) DeleteByArticleId(postId int64) {
-	dao.DB().Model(model.ArticleTag{}).Where("article_id = ?", postId).UpdateColumn("status", model.StatusDeleted)
+	s.repo.Updates(postId, map[string]interface{}{"status": model.StatusDeleted})
 }

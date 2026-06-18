@@ -15,13 +15,18 @@ import (
 // UserScoreController user score controller
 type UserScoreController struct {
 	controller.BaseController
+	userScoreSvc service.UserScoreServicer
+}
+
+func NewUserScoreController(userScoreSvc service.UserScoreServicer) *UserScoreController {
+	return &UserScoreController{userScoreSvc: userScoreSvc}
 }
 
 // Show 显示积分
 func (c *UserScoreController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		userScore := service.Srv.User.Get(gDto.ID)
+		userScore := c.userScoreSvc.Get(gDto.ID)
 		if userScore == nil {
 			c.Fail(ctx, util.NewErrorMsg("User score not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -41,7 +46,7 @@ func (c *UserScoreController) List(ctx *gin.Context) {
 		conditions.Eq("user_id", userId)
 	}
 
-	list, paging := service.UserScoreService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.userScoreSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, userScore := range list {

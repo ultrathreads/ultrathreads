@@ -19,10 +19,10 @@ import (
 	"ultrathreads/cron"
 	"ultrathreads/dao"
 	"ultrathreads/database"
-	"ultrathreads/service"
 	"ultrathreads/handler"
-	"ultrathreads/util/hashid"
 	"ultrathreads/server"
+	"ultrathreads/service"
+	"ultrathreads/util/hashid"
 )
 
 var CmdWeb = &cli.Command{
@@ -69,11 +69,11 @@ func runWeb(c *cli.Context) error {
 	repos := dao.NewRepositories(db)
 	caches := cache.NewCaches(repos)
 
-	service.Srv = service.NewServices(repos, caches)
+	svcs := service.NewServices(repos, caches)
 
-	cron.Setup()
+	cron.Setup(svcs.Article, svcs.Post)
 
-	handlers := handler.NewHandlers(service.Srv, mgr)
+	handlers := handler.NewHandlers(svcs, mgr)
 
 	// ========== Web Server ==========
 	srv := server.NewServer(server.Config{

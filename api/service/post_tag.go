@@ -6,55 +6,84 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var PostTagService = newPostTagService()
+// PostTagServicer 帖子标签关联业务契约
+type PostTagServicer interface {
+	Get(id int64) *model.PostTag
+	Take(where ...interface{}) *model.PostTag
+	Find(cnd *querybuilder.QueryBuilder) []model.PostTag
+	FindOne(cnd *querybuilder.QueryBuilder) *model.PostTag
+	List(cnd *querybuilder.QueryBuilder) ([]model.PostTag, *querybuilder.Paging)
+	Create(t *model.PostTag) error
+	Update(t *model.PostTag) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	AddPostTags(postId int64, tagIds []int64)
+	DeletePostTags(postId int64)
+	DeleteByPostId(postId int64)
+	UndeleteByPostId(postId int64)
+}
 
-func newPostTagService() *postTagService {
-	return &postTagService{}
+func NewPostTagService(repo dao.PostTagRepository) PostTagServicer {
+	return &postTagService{repo: repo}
 }
 
 type postTagService struct {
+	repo dao.PostTagRepository
 }
 
 func (s *postTagService) Get(id int64) *model.PostTag {
-	return dao.PostTagDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *postTagService) Take(where ...interface{}) *model.PostTag {
-	return dao.PostTagDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *postTagService) Find(cnd *querybuilder.QueryBuilder) []model.PostTag {
-	return dao.PostTagDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
 func (s *postTagService) FindOne(cnd *querybuilder.QueryBuilder) *model.PostTag {
-	return dao.PostTagDao.FindOne(cnd)
+	return s.repo.FindOne(cnd)
 }
 
-func (s *postTagService) List(cnd *querybuilder.QueryBuilder) (list []model.PostTag, paging *querybuilder.Paging) {
-	return dao.PostTagDao.List(cnd)
+func (s *postTagService) List(cnd *querybuilder.QueryBuilder) ([]model.PostTag, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *postTagService) Create(t *model.PostTag) error {
-	return dao.PostTagDao.Create(t)
+	return s.repo.Create(t)
 }
 
 func (s *postTagService) Update(t *model.PostTag) error {
-	return dao.PostTagDao.Update(t)
+	return s.repo.Update(t)
 }
 
 func (s *postTagService) Updates(id int64, columns map[string]interface{}) error {
-	return dao.PostTagDao.Updates(id, columns)
+	return s.repo.Updates(id, columns)
 }
 
 func (s *postTagService) UpdateColumn(id int64, name string, value interface{}) error {
-	return dao.PostTagDao.UpdateColumn(id, name, value)
+	return s.repo.UpdateColumn(id, name, value)
+}
+
+func (s *postTagService) Delete(id int64) {
+	s.repo.Delete(id)
+}
+
+func (s *postTagService) AddPostTags(postId int64, tagIds []int64) {
+	s.repo.AddPostTags(postId, tagIds)
+}
+
+func (s *postTagService) DeletePostTags(postId int64) {
+	s.repo.DeletePostTags(postId)
 }
 
 func (s *postTagService) DeleteByPostId(postId int64) {
-	dao.DB().Model(model.PostTag{}).Where("post_id = ?", postId).UpdateColumn("status", model.StatusDeleted)
+	s.repo.Updates(postId, map[string]interface{}{"status": model.StatusDeleted})
 }
 
 func (s *postTagService) UndeleteByPostId(postId int64) {
-	dao.DB().Model(model.PostTag{}).Where("post_id = ?", postId).UpdateColumn("status", model.StatusOk)
+	s.repo.Updates(postId, map[string]interface{}{"status": model.StatusOk})
 }

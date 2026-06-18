@@ -7,46 +7,60 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewUserScoreLogDao(db *gorm.DB) *userScoreLogDao {
-	return &userScoreLogDao{db: db}
+// UserScoreLogRepository 用户积分日志数据访问契约
+type UserScoreLogRepository interface {
+	Get(id int64) *model.UserScoreLog
+	Take(where ...interface{}) *model.UserScoreLog
+	Find(cnd *querybuilder.QueryBuilder) []model.UserScoreLog
+	FindOne(cnd *querybuilder.QueryBuilder) *model.UserScoreLog
+	List(cnd *querybuilder.QueryBuilder) ([]model.UserScoreLog, *querybuilder.Paging)
+	Create(t *model.UserScoreLog) error
+	Update(t *model.UserScoreLog) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
 }
 
-type userScoreLogDao struct {
+type userScoreLogRepo struct {
 	db *gorm.DB
 }
 
-func (d *userScoreLogDao) Get(id int64) *model.UserScoreLog {
+func NewUserScoreLogDao(db *gorm.DB) UserScoreLogRepository {
+	return &userScoreLogRepo{db: db}
+}
+
+func (r *userScoreLogRepo) Get(id int64) *model.UserScoreLog {
 	ret := &model.UserScoreLog{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *userScoreLogDao) Take(where ...interface{}) *model.UserScoreLog {
+func (r *userScoreLogRepo) Take(where ...interface{}) *model.UserScoreLog {
 	ret := &model.UserScoreLog{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *userScoreLogDao) Find(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog) {
-	cnd.Find(d.db, &list)
+func (r *userScoreLogRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *userScoreLogDao) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScoreLog {
+func (r *userScoreLogRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScoreLog {
 	ret := &model.UserScoreLog{}
-	if err := cnd.FindOne(d.db, ret); err != nil {
+	if err := cnd.FindOne(r.db, ret); err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *userScoreLogDao) List(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.UserScoreLog{})
+func (r *userScoreLogRepo) List(cnd *querybuilder.QueryBuilder) (list []model.UserScoreLog, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.UserScoreLog{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -56,26 +70,22 @@ func (d *userScoreLogDao) List(cnd *querybuilder.QueryBuilder) (list []model.Use
 	return
 }
 
-func (d *userScoreLogDao) Create(t *model.UserScoreLog) (err error) {
-	err = d.db.Create(t).Error
-	return
+func (r *userScoreLogRepo) Create(t *model.UserScoreLog) error {
+	return r.db.Create(t).Error
 }
 
-func (d *userScoreLogDao) Update(t *model.UserScoreLog) (err error) {
-	err = d.db.Save(t).Error
-	return
+func (r *userScoreLogRepo) Update(t *model.UserScoreLog) error {
+	return r.db.Save(t).Error
 }
 
-func (d *userScoreLogDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = d.db.Model(&model.UserScoreLog{}).Where("id = ?", id).Updates(columns).Error
-	return
+func (r *userScoreLogRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.UserScoreLog{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *userScoreLogDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = d.db.Model(&model.UserScoreLog{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
+func (r *userScoreLogRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.UserScoreLog{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (d *userScoreLogDao) Delete(id int64) {
-	d.db.Delete(&model.UserScoreLog{}, "id = ?", id)
+func (r *userScoreLogRepo) Delete(id int64) {
+	r.db.Delete(&model.UserScoreLog{}, "id = ?", id)
 }

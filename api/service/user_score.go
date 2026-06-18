@@ -10,53 +10,71 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var UserScoreService = newUserScoreService()
+// UserScoreServicer 用户积分业务契约
+type UserScoreServicer interface {
+	Get(id int64) *model.UserScore
+	Take(where ...interface{}) *model.UserScore
+	Find(cnd *querybuilder.QueryBuilder) []model.UserScore
+	FindOne(cnd *querybuilder.QueryBuilder) *model.UserScore
+	List(cnd *querybuilder.QueryBuilder) ([]model.UserScore, *querybuilder.Paging)
+	Create(t *model.UserScore) error
+	Update(t *model.UserScore) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	GetByUserId(userId int64) *model.UserScore
+	CreateOrUpdate(t *model.UserScore) error
+	Increment(userId int64, score int, sourceType, sourceId, description string) error
+	Decrement(userId int64, score int, sourceType, sourceId, description string) error
+}
 
-func newUserScoreService() *userScoreService {
-	return &userScoreService{}
+func NewUserScoreService(repo dao.UserScoreRepository, scoreLogSvc UserScoreLogServicer) UserScoreServicer {
+	return &userScoreService{repo: repo, scoreLogSvc: scoreLogSvc}
 }
 
 type userScoreService struct {
+	repo         dao.UserScoreRepository
+	scoreLogSvc  UserScoreLogServicer
 }
 
 func (s *userScoreService) Get(id int64) *model.UserScore {
-	return dao.UserScoreDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *userScoreService) Take(where ...interface{}) *model.UserScore {
-	return dao.UserScoreDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *userScoreService) Find(cnd *querybuilder.QueryBuilder) []model.UserScore {
-	return dao.UserScoreDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
 func (s *userScoreService) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScore {
-	return dao.UserScoreDao.FindOne(cnd)
+	return s.repo.FindOne(cnd)
 }
 
-func (s *userScoreService) List(cnd *querybuilder.QueryBuilder) (list []model.UserScore, paging *querybuilder.Paging) {
-	return dao.UserScoreDao.List(cnd)
+func (s *userScoreService) List(cnd *querybuilder.QueryBuilder) ([]model.UserScore, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *userScoreService) Create(t *model.UserScore) error {
-	return dao.UserScoreDao.Create(t)
+	return s.repo.Create(t)
 }
 
 func (s *userScoreService) Update(t *model.UserScore) error {
-	return dao.UserScoreDao.Update(t)
+	return s.repo.Update(t)
 }
 
 func (s *userScoreService) Updates(id int64, columns map[string]interface{}) error {
-	return dao.UserScoreDao.Updates(id, columns)
+	return s.repo.Updates(id, columns)
 }
 
 func (s *userScoreService) UpdateColumn(id int64, name string, value interface{}) error {
-	return dao.UserScoreDao.UpdateColumn(id, name, value)
+	return s.repo.UpdateColumn(id, name, value)
 }
 
 func (s *userScoreService) Delete(id int64) {
-	dao.UserScoreDao.Delete(id)
+	s.repo.Delete(id)
 }
 
 func (s *userScoreService) GetByUserId(userId int64) *model.UserScore {
@@ -66,12 +84,10 @@ func (s *userScoreService) GetByUserId(userId int64) *model.UserScore {
 func (s *userScoreService) CreateOrUpdate(t *model.UserScore) error {
 	if t.ID > 0 {
 		return s.Update(t)
-	} else {
-		return s.Create(t)
 	}
+	return s.Create(t)
 }
 
-// Increment 增加分数
 func (s *userScoreService) Increment(userId int64, score int, sourceType, sourceId, description string) error {
 	if score <= 0 {
 		return errors.New("分数必须为正数")
@@ -79,7 +95,6 @@ func (s *userScoreService) Increment(userId int64, score int, sourceType, source
 	return s.addScore(userId, score, sourceType, sourceId, description)
 }
 
-// Decrement 减少分数
 func (s *userScoreService) Decrement(userId int64, score int, sourceType, sourceId, description string) error {
 	if score <= 0 {
 		return errors.New("分数必须为正数")
@@ -87,7 +102,6 @@ func (s *userScoreService) Decrement(userId int64, score int, sourceType, source
 	return s.addScore(userId, -score, sourceType, sourceId, description)
 }
 
-// addScore 加分数，也可以加负数
 func (s *userScoreService) addScore(userId int64, score int, sourceType, sourceId, description string) error {
 	if score == 0 {
 		return errors.New("分数不能为0")
@@ -109,7 +123,7 @@ func (s *userScoreService) addScore(userId int64, score int, sourceType, sourceI
 	if score < 0 {
 		scoreType = model.ScoreTypeDecr
 	}
-	err := UserScoreLogService.Create(&model.UserScoreLog{
+	err := s.scoreLogSvc.Create(&model.UserScoreLog{
 		UserId:      userId,
 		SourceType:  sourceType,
 		SourceId:    sourceId,

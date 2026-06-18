@@ -22,57 +22,87 @@ import (
 
 type ScanUserCallback func(users []model.User)
 
-type userRepository interface {
-    Get(id int64) *model.User
+var (
+	errInvalidAccount = errors.New("账号或密码错误")
+	errInvalidCode    = errors.New("请输入正确验证码")
+	errAccountLocked  = errors.New("账号已被锁定,请联系管理员")
+)
+
+// UserServicer 用户业务契约
+type UserServicer interface {
+	Get(id int64) *model.User
+	GetBySlug(slug string) *model.User
+	Take(where ...interface{}) *model.User
+	Find(cnd *querybuilder.QueryBuilder) []model.User
+	FindOne(cnd *querybuilder.QueryBuilder) *model.User
+	List(cnd *querybuilder.QueryBuilder) ([]model.User, *querybuilder.Paging)
+	Count(cnd *querybuilder.QueryBuilder) int64
+	Update(req dto.UpdateUserRequest) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(slug string) error
+	Scan(cb ScanUserCallback)
+	Create(username, email, nickname, password, rePassword string) (*model.User, error)
+	SignInByLoginSource(loginSource *model.LoginSource) (*model.User, error)
+	HandleAvatar(userId int64, avatarUrl string) (string, error)
+	UpdateAvatar(userId int64, avatar string) error
+	SetUsername(userId int64, username string) error
+	SetEmail(userId int64, email string) error
+	SetPassword(userId int64, password, rePassword string) error
+	UpdatePassword(userId int64, oldPassword, password, rePassword string) error
+	IncrTopicCount(userId int64) int64
+	IncrCommentCount(userId int64) int64
+	SyncUserCount()
+	VerifyAndReturnUserInfo(username, password string) (bool, error, model.User)
 }
 
-func NewUserService(repo userRepository) *userService {
-    return &userService{repo: repo}
+func NewUserService(repo dao.UserRepository, postRepo dao.PostRepository) UserServicer {
+	return &userService{repo: repo, postRepo: postRepo}
 }
 
-type userService struct{
-	repo userRepository
+type userService struct {
+	repo     dao.UserRepository
+	postRepo dao.PostRepository
 }
 
 func (s *userService) Get(id int64) *model.User {
-	return dao.UserDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *userService) GetBySlug(slug string) *model.User {
-    id := hashid.Slug2Id[model.User](slug)
+	id := hashid.Slug2Id[model.User](slug)
 
-    user := cache.UserCache.Get(id)
-    if user == nil {
-        user = dao.UserDao.Get(id)
-    }
+	user := cache.UserCache.Get(id)
+	if user == nil {
+		user = s.repo.Get(id)
+	}
 
-    return user
+	return user
 }
 
 func (s *userService) Take(where ...interface{}) *model.User {
-	return dao.UserDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *userService) Find(cnd *querybuilder.QueryBuilder) []model.User {
-	return dao.UserDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
 func (s *userService) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
-	return dao.UserDao.FindOne(cnd)
+	return s.repo.FindOne(cnd)
 }
 
-func (s *userService) List(cnd *querybuilder.QueryBuilder) (list []model.User, paging *querybuilder.Paging) {
-	return dao.UserDao.List(cnd)
+func (s *userService) List(cnd *querybuilder.QueryBuilder) ([]model.User, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
-// Count 统计数量
-func (s *userService) Count(cnd *querybuilder.QueryBuilder) int64 { // ✅ int → int64
-	return dao.UserDao.Count(cnd)
+func (s *userService) Count(cnd *querybuilder.QueryBuilder) int64 {
+	return s.repo.Count(cnd)
 }
 
 func (s *userService) Update(req dto.UpdateUserRequest) error {
 	userID := hashid.Slug2Id[model.User](req.Slug)
-	err := dao.UserDao.Updates(userID, map[string]interface{}{
+	err := s.repo.Updates(userID, map[string]interface{}{
 		"nickname":    req.Nickname,
 		"description": req.Description,
 		"level":       req.Level,
@@ -83,32 +113,30 @@ func (s *userService) Update(req dto.UpdateUserRequest) error {
 }
 
 func (s *userService) Updates(id int64, columns map[string]interface{}) error {
-	err := dao.UserDao.Updates(id, columns)
+	err := s.repo.Updates(id, columns)
 	cache.UserCache.Invalidate(id)
 	return err
 }
 
 func (s *userService) UpdateColumn(id int64, name string, value interface{}) error {
-	err := dao.UserDao.UpdateColumn(id, name, value)
+	err := s.repo.UpdateColumn(id, name, value)
 	cache.UserCache.Invalidate(id)
 	return err
 }
 
-// Delete 删除用户
 func (s *userService) Delete(slug string) error {
 	id := hashid.Slug2Id[model.User](slug)
-	if err := dao.UserDao.Delete(id); err != nil {
+	if err := s.repo.Delete(id); err != nil {
 		return err
 	}
 	cache.UserCache.Invalidate(id)
 	return nil
 }
 
-// Scan 游标分页扫描全表
 func (s *userService) Scan(cb ScanUserCallback) {
 	var cursor int64
 	for {
-		list := dao.UserDao.Find(querybuilder.NewQueryBuilder().Where("id > ?", cursor).Asc("id").Limit(100))
+		list := s.repo.Find(querybuilder.NewQueryBuilder().Where("id > ?", cursor).Asc("id").Limit(100))
 		if len(list) == 0 {
 			break
 		}
@@ -117,7 +145,6 @@ func (s *userService) Scan(cb ScanUserCallback) {
 	}
 }
 
-// Create 注册用户
 func (s *userService) Create(username, email, nickname, password, rePassword string) (*model.User, error) {
 	username = strings.TrimSpace(username)
 	email = strings.TrimSpace(email)
@@ -135,7 +162,7 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 	if err := util.IsValidateEmail(email); err != nil {
 		return nil, err
 	}
-	if dao.UserDao.GetByEmail(email) != nil {
+	if s.repo.GetByEmail(email) != nil {
 		return nil, errors.New("邮箱：" + email + " 已被占用")
 	}
 	if err := util.IsValidateUsername(username); err != nil {
@@ -155,9 +182,7 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 		UpdateTime: util.NowTimestamp(),
 	}
 
-	// ✅ v2 事务 + 修复事务穿透
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
-		// 🔴 修复：原代码 dao.UserDao.Create 使用全局 db，不受 tx 控制
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
@@ -174,7 +199,6 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 			updateColumns["level"] = model.UserLevelAdmin
 		}
 
-		// 🔴 修复：原代码 dao.UserDao.Updates 使用全局 db
 		return tx.Model(&model.User{}).Where("id = ?", user.ID).Updates(updateColumns).Error
 	})
 
@@ -185,7 +209,6 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 	return user, nil
 }
 
-// SignInByLoginSource 第三方账号登录/注册
 func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*model.User, error) {
 	user := s.Get(loginSource.UserID.Int64)
 	if user != nil {
@@ -215,18 +238,14 @@ func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*mode
 		UpdateTime:  util.NowTimestamp(),
 	}
 
-	// ✅ v2 事务 + 修复三处事务穿透
 	err := dao.DB().Transaction(func(tx *gorm.DB) error {
-		// 🔴 修复1: CreateUser
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
-		// 🔴 修复2: UpdateLoginSource
 		if err := tx.Model(&model.LoginSource{}).Where("id = ?", loginSource.ID).
 			UpdateColumn("user_id", user.ID).Error; err != nil {
 			return err
 		}
-		// 🔴 修复3: UpdateAvatar
 		avatarUrl, err := s.HandleAvatar(user.ID, loginSource.Avatar)
 		if err != nil {
 			return err
@@ -242,7 +261,6 @@ func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*mode
 	return user, nil
 }
 
-// HandleAvatar 处理头像
 func (s *userService) HandleAvatar(userId int64, avatarUrl string) (string, error) {
 	if len(avatarUrl) > 0 {
 		return uploader.CopyImage(avatarUrl)
@@ -258,19 +276,17 @@ func (s *userService) isEmailExists(email string) bool {
 	if len(email) == 0 {
 		return false
 	}
-	return dao.UserDao.GetByEmail(email) != nil
+	return s.repo.GetByEmail(email) != nil
 }
 
 func (s *userService) isUsernameExists(username string) bool {
-	return dao.UserDao.GetByUsername(username) != nil
+	return s.repo.GetByUsername(username) != nil
 }
 
-// UpdateAvatar 更新头像
 func (s *userService) UpdateAvatar(userId int64, avatar string) error {
 	return s.UpdateColumn(userId, "avatar", avatar)
 }
 
-// SetUsername 设置用户名（仅允许设置一次）
 func (s *userService) SetUsername(userId int64, username string) error {
 	username = strings.TrimSpace(username)
 	if err := util.IsValidateUsername(username); err != nil {
@@ -289,7 +305,6 @@ func (s *userService) SetUsername(userId int64, username string) error {
 	return s.UpdateColumn(userId, "username", username)
 }
 
-// SetEmail 设置邮箱
 func (s *userService) SetEmail(userId int64, email string) error {
 	email = strings.TrimSpace(email)
 	if err := util.IsValidateEmail(email); err != nil {
@@ -301,7 +316,6 @@ func (s *userService) SetEmail(userId int64, email string) error {
 	return s.UpdateColumn(userId, "email", email)
 }
 
-// SetPassword 首次设置密码
 func (s *userService) SetPassword(userId int64, password, rePassword string) error {
 	if err := util.IsValidatePassword(password, rePassword); err != nil {
 		return err
@@ -316,7 +330,6 @@ func (s *userService) SetPassword(userId int64, password, rePassword string) err
 	return s.UpdateColumn(userId, "password", util.EncodePassword(password))
 }
 
-// UpdatePassword 修改密码
 func (s *userService) UpdatePassword(userId int64, oldPassword, password, rePassword string) error {
 	if err := util.IsValidatePassword(password, rePassword); err != nil {
 		return err
@@ -334,43 +347,37 @@ func (s *userService) UpdatePassword(userId int64, oldPassword, password, rePass
 	return s.UpdateColumn(userId, "password", util.EncodePassword(password))
 }
 
-// IncrTopicCount post_count + 1
-// ✅ 修复：原代码先查后写存在并发竞态，改为原子 SQL 自增
 func (s *userService) IncrTopicCount(userId int64) int64 {
-	if err := dao.UserDao.UpdateColumn(userId, "post_count", gorm.Expr("post_count + ?", 1)); err != nil {
+	if err := s.repo.UpdateColumn(userId, "post_count", gorm.Expr("post_count + ?", 1)); err != nil {
 		log.Error("IncrTopicCount failed: %v", err)
 		return 0
 	}
 	cache.UserCache.Invalidate(userId)
-	// 回查最新值返回
-	user := dao.UserDao.Get(userId)
+	user := s.repo.Get(userId)
 	if user == nil {
 		return 0
 	}
 	return user.TopicCount
 }
 
-// IncrCommentCount comment_count + 1
-// ✅ 修复：同上，改为原子 SQL 自增
 func (s *userService) IncrCommentCount(userId int64) int64 {
-	if err := dao.UserDao.UpdateColumn(userId, "comment_count", gorm.Expr("comment_count + ?", 1)); err != nil {
+	if err := s.repo.UpdateColumn(userId, "comment_count", gorm.Expr("comment_count + ?", 1)); err != nil {
 		log.Error("IncrCommentCount failed: %v", err)
 		return 0
 	}
 	cache.UserCache.Invalidate(userId)
-	user := dao.UserDao.Get(userId)
+	user := s.repo.Get(userId)
 	if user == nil {
 		return 0
 	}
 	return user.CommentCount
 }
 
-// SyncUserCount 同步用户计数
 func (s *userService) SyncUserCount() {
 	s.Scan(func(users []model.User) {
 		for _, user := range users {
-			topicCount := dao.PostDao.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
-			if err := dao.UserDao.UpdateColumn(user.ID, "post_count", topicCount); err != nil {
+			topicCount := s.postRepo.Count(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.StatusOk))
+			if err := s.repo.UpdateColumn(user.ID, "post_count", topicCount); err != nil {
 				log.Error("SyncUserCount update post_count failed for user %d: %v", user.ID, err)
 			}
 			cache.UserCache.Invalidate(user.ID)
@@ -378,19 +385,12 @@ func (s *userService) SyncUserCount() {
 	})
 }
 
-var (
-	errInvalidAccount = errors.New("账号或密码错误")
-	errInvalidCode    = errors.New("请输入正确验证码")
-	errAccountLocked  = errors.New("账号已被锁定,请联系管理员")
-)
-
-// VerifyAndReturnUserInfo 登录验证并返回用户信息
 func (s *userService) VerifyAndReturnUserInfo(username, password string) (bool, error, model.User) {
 	var userModel *model.User
 	if err := util.IsValidateEmail(username); err == nil {
-		userModel = dao.UserDao.GetByEmail(username)
+		userModel = s.repo.GetByEmail(username)
 	} else {
-		userModel = dao.UserDao.GetByUsername(username)
+		userModel = s.repo.GetByUsername(username)
 	}
 
 	if userModel == nil || userModel.ID < 1 {

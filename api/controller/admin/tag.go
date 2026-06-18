@@ -14,13 +14,18 @@ import (
 // TagController tag controller
 type TagController struct {
 	controller.BaseController
+	tagSvc service.TagServicer
+}
+
+func NewTagController(tagSvc service.TagServicer) *TagController {
+	return &TagController{tagSvc: tagSvc}
 }
 
 // Show show tag
 func (c *TagController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		tag := service.TagService.Get(gDto.ID)
+		tag := c.tagSvc.Get(gDto.ID)
 		if tag == nil {
 			c.Fail(ctx, util.NewErrorMsg("Tag not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -35,7 +40,7 @@ func (c *TagController) Store(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &tagForm) {
 		return
 	}
-	tag, err := service.TagService.Create(tagForm)
+	tag, err := c.tagSvc.Create(tagForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -49,13 +54,13 @@ func (c *TagController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &tagForm) {
 		return
 	}
-	tag := service.TagService.Get(tagForm.ID)
+	tag := c.tagSvc.Get(tagForm.ID)
 	if tag == nil {
 		c.Fail(ctx, util.NewErrorMsg("Tag not found, id="+strconv.FormatInt(tagForm.ID, 10)))
 		return
 	}
 
-	err := service.TagService.Update(tagForm.ID, tagForm)
+	err := c.tagSvc.Update(tagForm.ID, tagForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -69,7 +74,7 @@ func (c *TagController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.TagService.Delete(gDto.ID)
+	c.tagSvc.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -83,7 +88,7 @@ func (c *TagController) List(ctx *gin.Context) {
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
-	list, paging := service.TagService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.tagSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	c.Success(ctx, &querybuilder.PageResult{Results: list, Page: paging})
 }

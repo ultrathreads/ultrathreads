@@ -7,46 +7,62 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewNotificationDao(db *gorm.DB) *notificationDao {
-	return &notificationDao{db: db}
+// NotificationRepository 通知数据访问契约
+type NotificationRepository interface {
+	Get(id int64) *model.Notification
+	Take(where ...interface{}) *model.Notification
+	Find(cnd *querybuilder.QueryBuilder) []model.Notification
+	FindOne(cnd *querybuilder.QueryBuilder) *model.Notification
+	List(cnd *querybuilder.QueryBuilder) ([]model.Notification, *querybuilder.Paging)
+	Create(t *model.Notification) error
+	Update(t *model.Notification) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	GetUnReadCount(userId int64) int64
+	UpdateStatusBatch(userId int64) error
+	Delete(id int64)
 }
 
-type notificationDao struct {
+type notificationRepo struct {
 	db *gorm.DB
 }
 
-func (d *notificationDao) Get(id int64) *model.Notification {
+func NewNotificationDao(db *gorm.DB) NotificationRepository {
+	return &notificationRepo{db: db}
+}
+
+func (r *notificationRepo) Get(id int64) *model.Notification {
 	ret := &model.Notification{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *notificationDao) Take(where ...interface{}) *model.Notification {
+func (r *notificationRepo) Take(where ...interface{}) *model.Notification {
 	ret := &model.Notification{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *notificationDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Notification) {
-	cnd.Find(d.db, &list)
+func (r *notificationRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.Notification) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *notificationDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Notification {
+func (r *notificationRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.Notification {
 	ret := &model.Notification{}
-	if err := cnd.FindOne(d.db, ret); err != nil {
+	if err := cnd.FindOne(r.db, ret); err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *notificationDao) List(cnd *querybuilder.QueryBuilder) (list []model.Notification, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.Notification{})
+func (r *notificationRepo) List(cnd *querybuilder.QueryBuilder) (list []model.Notification, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.Notification{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -56,36 +72,31 @@ func (d *notificationDao) List(cnd *querybuilder.QueryBuilder) (list []model.Not
 	return
 }
 
-func (d *notificationDao) Create(t *model.Notification) (err error) {
-	err = d.db.Create(t).Error
+func (r *notificationRepo) Create(t *model.Notification) error {
+	return r.db.Create(t).Error
+}
+
+func (r *notificationRepo) Update(t *model.Notification) error {
+	return r.db.Save(t).Error
+}
+
+func (r *notificationRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.Notification{}).Where("id = ?", id).Updates(columns).Error
+}
+
+func (r *notificationRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.Notification{}).Where("id = ?", id).UpdateColumn(name, value).Error
+}
+
+func (r *notificationRepo) GetUnReadCount(userId int64) (count int64) {
+	r.db.Model(&model.Notification{}).Where("user_id = ? and status = ?", userId, model.NotificationStatusUnread).Count(&count)
 	return
 }
 
-func (d *notificationDao) Update(t *model.Notification) (err error) {
-	err = d.db.Save(t).Error
-	return
+func (r *notificationRepo) UpdateStatusBatch(userId int64) error {
+	return r.db.Model(&model.Notification{}).Where("user_id = ? and status = ?", userId, model.NotificationStatusUnread).Updates(model.Notification{Status: model.NotificationStatusReaded}).Error
 }
 
-func (d *notificationDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = d.db.Model(&model.Notification{}).Where("id = ?", id).Updates(columns).Error
-	return
-}
-
-func (d *notificationDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = d.db.Model(&model.Notification{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
-}
-
-func (d *notificationDao) GetUnReadCount(userId int64) (count int64) {
-	d.db.Model(&model.Notification{}).Where("user_id = ? and status = ?", userId, model.NotificationStatusUnread).Count(&count)
-	return
-}
-
-func (d *notificationDao) UpdateStatusBatch(userId int64) (err error) {
-	err = d.db.Model(&model.Notification{}).Where("user_id = ? and status = ?", userId, model.NotificationStatusUnread).Updates(model.Notification{Status: model.NotificationStatusReaded}).Error
-	return
-}
-
-func (d *notificationDao) Delete(id int64) {
-	d.db.Delete(&model.Notification{}, "id = ?", id)
+func (r *notificationRepo) Delete(id int64) {
+	r.db.Delete(&model.Notification{}, "id = ?", id)
 }

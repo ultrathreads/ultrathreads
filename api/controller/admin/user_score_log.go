@@ -15,13 +15,18 @@ import (
 // UserScoreLogController user score controller
 type UserScoreLogController struct {
 	controller.BaseController
+	userScoreLogSvc service.UserScoreLogServicer
+}
+
+func NewUserScoreLogController(userScoreLogSvc service.UserScoreLogServicer) *UserScoreLogController {
+	return &UserScoreLogController{userScoreLogSvc: userScoreLogSvc}
 }
 
 // Show 显示积分纪录
 func (c *UserScoreLogController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		userScoreLog := service.UserScoreLogService.Get(gDto.ID)
+		userScoreLog := c.userScoreLogSvc.Get(gDto.ID)
 		if userScoreLog == nil {
 			c.Fail(ctx, util.NewErrorMsg("User score log not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -53,7 +58,7 @@ func (c *UserScoreLogController) List(ctx *gin.Context) {
 		conditions.Eq("type", ltype)
 	}
 
-	list, paging := service.UserScoreLogService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.userScoreLogSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, userScoreLog := range list {

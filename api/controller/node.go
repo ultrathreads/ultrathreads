@@ -2,22 +2,24 @@ package controller
 
 import (
 	"strconv"
+
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/render"
 	"ultrathreads/dto"
 	"ultrathreads/model"
+	"ultrathreads/render"
 	"ultrathreads/service"
 	"ultrathreads/util"
 )
 
 type NodeController struct {
 	BaseController
-	nodeSvc service.NodeServicer 
+	nodeSvc          service.NodeServicer
+	userReadStateSvc service.UserReadStateServicer
 }
 
-func NewNodeController(svc service.NodeServicer) *NodeController {
-    return &NodeController{nodeSvc: svc}
+func NewNodeController(svc service.NodeServicer, userReadStateSvc service.UserReadStateServicer) *NodeController {
+	return &NodeController{nodeSvc: svc, userReadStateSvc: userReadStateSvc}
 }
 
 // List 节点列表
@@ -50,7 +52,7 @@ func (c *NodeController) MarkAsRead(ctx *gin.Context) {
 
 	user := c.GetCurrentUser(ctx)
 	now := util.NowTimestamp()
-	if err := service.UserReadStateService.MarkAsRead(user.ID, gDto.Slug, now); err != nil {
+	if err := c.userReadStateSvc.MarkAsRead(user.ID, gDto.Slug, now); err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
 	}

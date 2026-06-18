@@ -14,45 +14,60 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var LoginSourceService = newLoginSourceService()
+// LoginSourceServicer 登录来源业务契约
+type LoginSourceServicer interface {
+	Get(id int64) *model.LoginSource
+	List(cnd *querybuilder.QueryBuilder) ([]model.LoginSource, *querybuilder.Paging)
+	Create(t *model.LoginSource) error
+	Update(t *model.LoginSource) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
+	GetLoginSource(targetType string, targetID string) *model.LoginSource
+	GetOrCreate(provider, code, state string) (*model.LoginSource, error)
+	GetOrCreateByGithub(code, state string) (*model.LoginSource, error)
+	GetOrCreateByGitee(code, state string) (*model.LoginSource, error)
+	GetOrCreateByQQ(code, state string) (*model.LoginSource, error)
+}
 
-func newLoginSourceService() *loginSourceService {
-	return &loginSourceService{}
+func NewLoginSourceService(repo dao.LoginSourceRepository) LoginSourceServicer {
+	return &loginSourceService{repo: repo}
 }
 
 type loginSourceService struct {
+	repo dao.LoginSourceRepository
 }
 
 func (s *loginSourceService) Get(id int64) *model.LoginSource {
-	return dao.LoginSourceDao.Get(id)
+	return s.repo.Get(id)
 }
 
-func (s *loginSourceService) List(cnd *querybuilder.QueryBuilder) (list []model.LoginSource, paging *querybuilder.Paging) {
-	return dao.LoginSourceDao.List(cnd)
+func (s *loginSourceService) List(cnd *querybuilder.QueryBuilder) ([]model.LoginSource, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *loginSourceService) Create(t *model.LoginSource) error {
-	return dao.LoginSourceDao.Create(t)
+	return s.repo.Create(t)
 }
 
 func (s *loginSourceService) Update(t *model.LoginSource) error {
-	return dao.LoginSourceDao.Update(t)
+	return s.repo.Update(t)
 }
 
 func (s *loginSourceService) Updates(id int64, columns map[string]interface{}) error {
-	return dao.LoginSourceDao.Updates(id, columns)
+	return s.repo.Updates(id, columns)
 }
 
 func (s *loginSourceService) UpdateColumn(id int64, name string, value interface{}) error {
-	return dao.LoginSourceDao.UpdateColumn(id, name, value)
+	return s.repo.UpdateColumn(id, name, value)
 }
 
 func (s *loginSourceService) Delete(id int64) {
-	dao.LoginSourceDao.Delete(id)
+	s.repo.Delete(id)
 }
 
 func (s *loginSourceService) GetLoginSource(targetType string, targetID string) *model.LoginSource {
-	return dao.LoginSourceDao.Take("target_type = ? and target_id = ?", targetType, targetID)
+	return s.repo.Take("target_type = ? and target_id = ?", targetType, targetID)
 }
 
 func (s *loginSourceService) GetOrCreate(provider, code, state string) (*model.LoginSource, error) {
@@ -105,23 +120,18 @@ func (s *loginSourceService) GetOrCreateByGitee(code, state string) (*model.Logi
 		return nil, err
 	}
 
-	account := s.GetLoginSource(model.LoginSourceTypeGitee, strconv.FormatInt(userInfo.Id, 10))
+	account := s.GetLoginSource(model.LoginSourceTypeGitee, strconv.FormatInt(int64(userInfo.Id), 10))
 	if account != nil {
 		return account, nil
-	}
-
-	nickname := userInfo.Login
-	if len(userInfo.Name) > 0 {
-		nickname = strings.TrimSpace(userInfo.Name)
 	}
 
 	userInfoJson, _ := util.FormatJson(userInfo)
 	account = &model.LoginSource{
 		UserID:     sql.NullInt64{},
 		Avatar:     userInfo.AvatarUrl,
-		Nickname:   nickname,
+		Nickname:   userInfo.Login,
 		TargetType: model.LoginSourceTypeGitee,
-		TargetID:   strconv.FormatInt(userInfo.Id, 10),
+		TargetID:   strconv.FormatInt(int64(userInfo.Id), 10),
 		ExtraData:  userInfoJson,
 		CreateTime: util.NowTimestamp(),
 		UpdateTime: util.NowTimestamp(),
@@ -139,7 +149,7 @@ func (s *loginSourceService) GetOrCreateByQQ(code, state string) (*model.LoginSo
 		return nil, err
 	}
 
-	account := s.GetLoginSource(model.LoginSourceTypeQQ, userInfo.Unionid)
+	account := s.GetLoginSource(model.LoginSourceTypeQQ, userInfo.Openid)
 	if account != nil {
 		return account, nil
 	}
@@ -148,9 +158,9 @@ func (s *loginSourceService) GetOrCreateByQQ(code, state string) (*model.LoginSo
 	account = &model.LoginSource{
 		UserID:     sql.NullInt64{},
 		Avatar:     userInfo.FigureurlQQ1,
-		Nickname:   strings.TrimSpace(userInfo.Nickname),
+		Nickname:   userInfo.Nickname,
 		TargetType: model.LoginSourceTypeQQ,
-		TargetID:   userInfo.Unionid,
+		TargetID:   userInfo.Openid,
 		ExtraData:  userInfoJson,
 		CreateTime: util.NowTimestamp(),
 		UpdateTime: util.NowTimestamp(),

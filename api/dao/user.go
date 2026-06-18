@@ -9,18 +9,35 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewUserDao(db *gorm.DB) *userDao {
-	return &userDao{db: db}
+// UserRepository 用户数据访问契约
+type UserRepository interface {
+	Get(id int64) *model.User
+	FindByIds(ids []int64) []model.User
+	Take(where ...interface{}) *model.User
+	Find(cnd *querybuilder.QueryBuilder) []model.User
+	FindOne(cnd *querybuilder.QueryBuilder) *model.User
+	List(cnd *querybuilder.QueryBuilder) ([]model.User, *querybuilder.Paging)
+	Count(cnd *querybuilder.QueryBuilder) int64
+	Create(t *model.User) error
+	Update(t *model.User) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64) error
+	GetByEmail(email string) *model.User
+	GetByUsername(username string) *model.User
 }
 
-type userDao struct {
+type userRepo struct {
 	db *gorm.DB
 }
 
-// Get 根据 ID 获取用户，未找到返回 nil
-func (d *userDao) Get(id int64) *model.User {
+func NewUserDao(db *gorm.DB) UserRepository {
+	return &userRepo{db: db}
+}
+
+func (r *userRepo) Get(id int64) *model.User {
 	ret := &model.User{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -29,18 +46,17 @@ func (d *userDao) Get(id int64) *model.User {
 	return ret
 }
 
-func (d *userDao) FindByIds(ids []int64) []model.User {
+func (r *userRepo) FindByIds(ids []int64) []model.User {
 	if len(ids) == 0 {
 		return nil
 	}
 	qb := querybuilder.NewQueryBuilder().In("id", ids)
-	return d.Find(qb)
+	return r.Find(qb)
 }
 
-// Take 按条件获取单条记录（无排序保证），未找到返回 nil
-func (d *userDao) Take(where ...interface{}) *model.User {
+func (r *userRepo) Take(where ...interface{}) *model.User {
 	ret := &model.User{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -49,15 +65,14 @@ func (d *userDao) Take(where ...interface{}) *model.User {
 	return ret
 }
 
-func (d *userDao) Find(cnd *querybuilder.QueryBuilder) (list []model.User) {
-	cnd.Find(d.db, &list)
+func (r *userRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.User) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-// FindOne 通过 QueryBuilder 查询单条记录
-func (d *userDao) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
+func (r *userRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
 	ret := &model.User{}
-	if err := cnd.FindOne(d.db, ret); err != nil {
+	if err := cnd.FindOne(r.db, ret); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -66,9 +81,9 @@ func (d *userDao) FindOne(cnd *querybuilder.QueryBuilder) *model.User {
 	return ret
 }
 
-func (d *userDao) List(cnd *querybuilder.QueryBuilder) (list []model.User, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.User{})
+func (r *userRepo) List(cnd *querybuilder.QueryBuilder) (list []model.User, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.User{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -78,38 +93,34 @@ func (d *userDao) List(cnd *querybuilder.QueryBuilder) (list []model.User, pagin
 	return
 }
 
-// Count 统计数量
-func (d *userDao) Count(cnd *querybuilder.QueryBuilder) int64 {
-	return cnd.Count(d.db, &model.User{})
+func (r *userRepo) Count(cnd *querybuilder.QueryBuilder) int64 {
+	return cnd.Count(r.db, &model.User{})
 }
 
-func (d *userDao) Create(t *model.User) error {
-	return d.db.Create(t).Error
+func (r *userRepo) Create(t *model.User) error {
+	return r.db.Create(t).Error
 }
 
-func (d *userDao) Update(t *model.User) error {
-	return d.db.Save(t).Error
+func (r *userRepo) Update(t *model.User) error {
+	return r.db.Save(t).Error
 }
 
-func (d *userDao) Updates(id int64, columns map[string]interface{}) error {
-	return d.db.Model(&model.User{}).Where("id = ?", id).Updates(columns).Error
+func (r *userRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *userDao) UpdateColumn(id int64, name string, value interface{}) error {
-	return d.db.Model(&model.User{}).Where("id = ?", id).UpdateColumn(name, value).Error
+func (r *userRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-// Delete 根据 ID 删除
-func (d *userDao) Delete(id int64) error {
-	return d.db.Delete(&model.User{}, "id = ?", id).Error
+func (r *userRepo) Delete(id int64) error {
+	return r.db.Delete(&model.User{}, "id = ?", id).Error
 }
 
-// GetByEmail 根据邮箱获取用户
-func (d *userDao) GetByEmail(email string) *model.User {
-	return d.Take("email = ?", email)
+func (r *userRepo) GetByEmail(email string) *model.User {
+	return r.Take("email = ?", email)
 }
 
-// GetByUsername 根据用户名获取用户
-func (d *userDao) GetByUsername(username string) *model.User {
-	return d.Take("username = ?", username)
+func (r *userRepo) GetByUsername(username string) *model.User {
+	return r.Take("username = ?", username)
 }

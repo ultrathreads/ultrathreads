@@ -14,13 +14,18 @@ import (
 
 type TagController struct {
 	BaseController
+	tagSvc service.TagServicer
+}
+
+func NewTagController(tagSvc service.TagServicer) *TagController {
+	return &TagController{tagSvc: tagSvc}
 }
 
 // Show 标签详情
 func (c *TagController) Show(ctx *gin.Context) {
 	var gDto dto.SlugRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		tag := service.TagService.GetBySlug(gDto.Slug)
+		tag := c.tagSvc.GetBySlug(gDto.Slug)
 		if tag == nil {
 			c.Fail(ctx, util.ErrorTagNotFound)
 			return
@@ -33,7 +38,7 @@ func (c *TagController) Show(ctx *gin.Context) {
 func (c *TagController) List(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 
-	tags, paging := service.TagService.List(querybuilder.NewQueryBuilder().
+	tags, paging := c.tagSvc.List(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).
 		Page(page, 200).Desc("id"))
 
@@ -46,11 +51,11 @@ func (c *TagController) List(ctx *gin.Context) {
 // AutoComplete 标签自动完成
 func (c *TagController) AutoComplete(ctx *gin.Context) {
 	input := util.FormStringDefault(ctx, "input","")
-	tags := service.TagService.AutoComplete(input)
+	tags := c.tagSvc.AutoComplete(input)
 	c.Success(ctx, tags)
 }
 
-// HotTags 标签自动完成
+// HotTags 热门标签
 func (c *TagController) HotTags(ctx *gin.Context) {
 	tags := cache.TagCache.GetHot()
 

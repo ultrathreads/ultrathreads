@@ -14,13 +14,18 @@ import (
 // NodeController node controller
 type NodeController struct {
 	controller.BaseController
+	nodeSvc service.NodeServicer
+}
+
+func NewNodeController(nodeSvc service.NodeServicer) *NodeController {
+	return &NodeController{nodeSvc: nodeSvc}
 }
 
 // Show show node
 func (c *NodeController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		node := service.Srv.Node.Get(gDto.ID)
+		node := c.nodeSvc.Get(gDto.ID)
 		if node == nil {
 			c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -35,7 +40,7 @@ func (c *NodeController) Store(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
-	node, err := service.Srv.Node.Create(nodeForm)
+	node, err := c.nodeSvc.Create(nodeForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -49,13 +54,13 @@ func (c *NodeController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
-	node := service.Srv.Node.Get(nodeForm.ID)
+	node := c.nodeSvc.Get(nodeForm.ID)
 	if node == nil {
 		c.Fail(ctx, util.NewErrorMsg("Node not found, id="+strconv.FormatInt(nodeForm.ID, 10)))
 		return
 	}
 
-	err := service.Srv.Node.Update(nodeForm.ID, nodeForm)
+	err := c.nodeSvc.Update(nodeForm.ID, nodeForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -70,16 +75,6 @@ func (c *NodeController) Sort(ctx *gin.Context) {
         return
     }
 
-    // 批量更新 sort_no
-    /*
-    for _, item := range req.Items {
-        if err := service.nodeService.UpdateSort(item.ID, item.SortNo); err != nil {
-            ctx.JSON(500, gin.H{"code": 50001, "message": "排序保存失败"})
-            return
-        }
-    }
-    */
-
     ctx.JSON(200, gin.H{
         "data": gin.H{"updated": len(req.Items)},
     })
@@ -91,7 +86,7 @@ func (c *NodeController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.Srv.Node.Delete(gDto.ID)
+	c.nodeSvc.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -109,7 +104,7 @@ func (c *NodeController) List(ctx *gin.Context) {
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
-	list, paging := service.Srv.Node.List(conditions.Page(page, limit).Asc("sort_no"))
+	list, paging := c.nodeSvc.List(conditions.Page(page, limit).Asc("sort_no"))
 	var results []map[string]interface{}
 	for _, node := range list {
 		item := util.StructToMap(node)

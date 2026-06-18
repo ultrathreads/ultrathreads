@@ -8,19 +8,27 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var StatisticService = newStatisticService()
+// StatisticServicer 统计业务契约
+type StatisticServicer interface {
+	GenerateData()
+}
 
-func newStatisticService() *statisticService {
-	return &statisticService{}
+func NewStatisticService(userSvc UserServicer, postSvc PostServicer, settingSvc SettingServicer) StatisticServicer {
+	return &statisticService{
+		userSvc:    userSvc,
+		postSvc:    postSvc,
+		settingSvc: settingSvc,
+	}
 }
 
 type statisticService struct {
-	running atomic.Bool // ✅ 修复：bool → atomic.Bool，解决并发数据竞争
+	running    atomic.Bool
+	userSvc    UserServicer
+	postSvc    PostServicer
+	settingSvc SettingServicer
 }
 
-// GenerateData 生成统计数据
 func (s *statisticService) GenerateData() {
-	// ✅ 原子 CAS 操作，替代非线程安全的 bool 读写
 	if !s.running.CompareAndSwap(false, true) {
 		log.Info("statistic is in building")
 		return
@@ -28,16 +36,14 @@ func (s *statisticService) GenerateData() {
 	defer s.running.Store(false)
 
 	var (
-		// ✅ int → int64 适配：Count 返回 int64，strconv.FormatInt 替代 strconv.Itoa
-		statUserCount = strconv.FormatInt(Srv.User.Count(querybuilder.NewQueryBuilder()), 10)
-		statPostCount = strconv.FormatInt(Srv.Post.Count(querybuilder.NewQueryBuilder()), 10)
+		statUserCount = strconv.FormatInt(s.userSvc.Count(querybuilder.NewQueryBuilder()), 10)
+		statPostCount = strconv.FormatInt(s.postSvc.Count(querybuilder.NewQueryBuilder()), 10)
 	)
 
-	// 注意：Set 内部已有事务，此处无需额外包装
-	if err := SettingService.Set("statUserCount", statUserCount, "社区会员", "社区会员总数"); err != nil {
+	if err := s.settingSvc.Set("statUserCount", statUserCount, "社区会员", "社区会员总数"); err != nil {
 		log.Error("set statUserCount failed: %v", err)
 	}
-	if err := SettingService.Set("statPostCount", statPostCount, "帖子数", "主题总数"); err != nil {
+	if err := s.settingSvc.Set("statPostCount", statPostCount, "帖子数", "主题总数"); err != nil {
 		log.Error("set statPostCount failed: %v", err)
 	}
 }

@@ -27,8 +27,8 @@ func NewHandlers(services *service.Services, mgr *bus.Manager) *Handler {
 	}
 	
 	// 在构造阶段统一初始化，后续所有路由共享同一实例
-	h.jwtAuth = middleware.JwtAuth(middleware.LoginStandard)
-	h.jwtOAuth = middleware.JwtAuth(middleware.LoginOAuth)
+	h.jwtAuth = middleware.JwtAuth(middleware.LoginStandard, services.User, services.LoginSource)
+	h.jwtOAuth = middleware.JwtAuth(middleware.LoginOAuth, services.User, services.LoginSource)
 	
 	return h
 }

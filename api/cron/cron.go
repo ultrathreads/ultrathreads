@@ -8,26 +8,24 @@ import (
 	"ultrathreads/util/log"
 )
 
-// 将 cron 实例提升为包级变量，供 Stop() 使用
 var c *cron.Cron
 
-func Setup() {
+func Setup(articleSvc service.ArticleServicer, postSvc service.PostServicer) {
 	if !util.IsProd() {
 		log.Info("Not in a production enviroment!")
 		return
 	}
 
 	log.Info("Cron setup")
-	startSchedule()
+	startSchedule(articleSvc, postSvc)
 }
 
-func startSchedule() {
+func startSchedule(articleSvc service.ArticleServicer, postSvc service.PostServicer) {
 	c = cron.New()
 
-	// Generate RSS
 	addCronFunc(c, "@every 30m", func() {
-		service.ArticleService.GenerateRss()
-		service.Srv.Post.GenerateRss()
+		articleSvc.GenerateRss()
+		postSvc.GenerateRss()
 	})
 
 	c.Start()

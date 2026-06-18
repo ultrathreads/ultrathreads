@@ -15,13 +15,18 @@ import (
 // UserController user controller
 type UserController struct {
 	controller.BaseController
+	userSvc service.UserServicer
+}
+
+func NewUserController(userSvc service.UserServicer) *UserController {
+	return &UserController{userSvc: userSvc}
 }
 
 // Show show user
 func (c *UserController) Show(ctx *gin.Context) {
 	var req dto.SlugRequest
 	if c.BindAndValidate(ctx, &req) {
-		user := service.Srv.User.GetBySlug(req.Slug)
+		user := c.userSvc.GetBySlug(req.Slug)
 		if user == nil {
 			c.Fail(ctx, util.NewErrorMsg("User not found"))
 			return
@@ -41,14 +46,13 @@ func (c *UserController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
-	user := service.Srv.User.GetBySlug(req.Slug)
+	user := c.userSvc.GetBySlug(req.Slug)
 	if user == nil {
 		c.Fail(ctx, util.NewErrorMsg("User not found"))
 		return
 	}
 
-
-	err := service.Srv.User.Update(req)
+	err := c.userSvc.Update(req)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -62,7 +66,7 @@ func (c *UserController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &req) {
 		return
 	}
-	service.Srv.User.Delete(req.Slug)
+	c.userSvc.Delete(req.Slug)
 	c.Success(ctx, nil)
 }
 
@@ -84,7 +88,7 @@ func (c *UserController) List(ctx *gin.Context) {
 	if len(nickname) > 0 {
 		conditions.Like("nickname", nickname)
 	}
-	list, paging := service.Srv.User.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.userSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, user := range list {

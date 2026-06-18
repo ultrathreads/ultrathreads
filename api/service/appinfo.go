@@ -5,9 +5,12 @@ import (
 	"ultrathreads/model"
 )
 
-var AppinfoService = newAppinfoService()
+// AppinfoServicer 应用信息业务契约
+type AppinfoServicer interface {
+	GetAppinfo() *model.AppData
+}
 
-func newAppinfoService() *appinfoService {
+func NewAppinfoService() AppinfoServicer {
 	return &appinfoService{}
 }
 

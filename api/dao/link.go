@@ -9,17 +9,32 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewLinkDao(db *gorm.DB) *linkDao {
-	return &linkDao{db: db}
+// LinkRepository 链接数据访问契约
+type LinkRepository interface {
+	Get(id int64) *model.Link
+	Take(where ...interface{}) *model.Link
+	Find(cnd *querybuilder.QueryBuilder) []model.Link
+	FindOne(cnd *querybuilder.QueryBuilder) *model.Link
+	List(cnd *querybuilder.QueryBuilder) ([]model.Link, *querybuilder.Paging)
+	Count(cnd *querybuilder.QueryBuilder) int64
+	Create(t *model.Link) error
+	Update(t *model.Link) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64) error
 }
 
-type linkDao struct {
+type linkRepo struct {
 	db *gorm.DB
 }
 
-func (d *linkDao) Get(id int64) *model.Link {
+func NewLinkDao(db *gorm.DB) LinkRepository {
+	return &linkRepo{db: db}
+}
+
+func (r *linkRepo) Get(id int64) *model.Link {
 	ret := &model.Link{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -28,9 +43,9 @@ func (d *linkDao) Get(id int64) *model.Link {
 	return ret
 }
 
-func (d *linkDao) Take(where ...interface{}) *model.Link {
+func (r *linkRepo) Take(where ...interface{}) *model.Link {
 	ret := &model.Link{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -39,14 +54,14 @@ func (d *linkDao) Take(where ...interface{}) *model.Link {
 	return ret
 }
 
-func (d *linkDao) Find(cnd *querybuilder.QueryBuilder) (list []model.Link) {
-	cnd.Find(d.db, &list)
+func (r *linkRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.Link) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *linkDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Link {
+func (r *linkRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.Link {
 	ret := &model.Link{}
-	if err := cnd.FindOne(d.db, ret); err != nil {
+	if err := cnd.FindOne(r.db, ret); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -55,9 +70,9 @@ func (d *linkDao) FindOne(cnd *querybuilder.QueryBuilder) *model.Link {
 	return ret
 }
 
-func (d *linkDao) List(cnd *querybuilder.QueryBuilder) (list []model.Link, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.Link{})
+func (r *linkRepo) List(cnd *querybuilder.QueryBuilder) (list []model.Link, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.Link{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -67,26 +82,26 @@ func (d *linkDao) List(cnd *querybuilder.QueryBuilder) (list []model.Link, pagin
 	return
 }
 
-func (d *linkDao) Count(cnd *querybuilder.QueryBuilder) int64 {
-	return cnd.Count(d.db, &model.Link{})
+func (r *linkRepo) Count(cnd *querybuilder.QueryBuilder) int64 {
+	return cnd.Count(r.db, &model.Link{})
 }
 
-func (d *linkDao) Create(t *model.Link) error {
-	return d.db.Create(t).Error
+func (r *linkRepo) Create(t *model.Link) error {
+	return r.db.Create(t).Error
 }
 
-func (d *linkDao) Update(t *model.Link) error {
-	return d.db.Save(t).Error
+func (r *linkRepo) Update(t *model.Link) error {
+	return r.db.Save(t).Error
 }
 
-func (d *linkDao) Updates(id int64, columns map[string]interface{}) error {
-	return d.db.Model(&model.Link{}).Where("id = ?", id).Updates(columns).Error
+func (r *linkRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.Link{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *linkDao) UpdateColumn(id int64, name string, value interface{}) error {
-	return d.db.Model(&model.Link{}).Where("id = ?", id).UpdateColumn(name, value).Error
+func (r *linkRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.Link{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (d *linkDao) Delete(id int64) error {
-	return d.db.Delete(&model.Link{}, "id = ?", id).Error
+func (r *linkRepo) Delete(id int64) error {
+	return r.db.Delete(&model.Link{}, "id = ?", id).Error
 }

@@ -7,46 +7,60 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-func NewUserScoreDao(db *gorm.DB) *userScoreDao {
-	return &userScoreDao{db: db}
+// UserScoreRepository 用户积分数据访问契约
+type UserScoreRepository interface {
+	Get(id int64) *model.UserScore
+	Take(where ...interface{}) *model.UserScore
+	Find(cnd *querybuilder.QueryBuilder) []model.UserScore
+	FindOne(cnd *querybuilder.QueryBuilder) *model.UserScore
+	List(cnd *querybuilder.QueryBuilder) ([]model.UserScore, *querybuilder.Paging)
+	Create(t *model.UserScore) error
+	Update(t *model.UserScore) error
+	Updates(id int64, columns map[string]interface{}) error
+	UpdateColumn(id int64, name string, value interface{}) error
+	Delete(id int64)
 }
 
-type userScoreDao struct {
+type userScoreRepo struct {
 	db *gorm.DB
 }
 
-func (d *userScoreDao) Get(id int64) *model.UserScore {
+func NewUserScoreDao(db *gorm.DB) UserScoreRepository {
+	return &userScoreRepo{db: db}
+}
+
+func (r *userScoreRepo) Get(id int64) *model.UserScore {
 	ret := &model.UserScore{}
-	if err := d.db.First(ret, "id = ?", id).Error; err != nil {
+	if err := r.db.First(ret, "id = ?", id).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *userScoreDao) Take(where ...interface{}) *model.UserScore {
+func (r *userScoreRepo) Take(where ...interface{}) *model.UserScore {
 	ret := &model.UserScore{}
-	if err := d.db.Take(ret, where...).Error; err != nil {
+	if err := r.db.Take(ret, where...).Error; err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *userScoreDao) Find(cnd *querybuilder.QueryBuilder) (list []model.UserScore) {
-	cnd.Find(d.db, &list)
+func (r *userScoreRepo) Find(cnd *querybuilder.QueryBuilder) (list []model.UserScore) {
+	cnd.Find(r.db, &list)
 	return
 }
 
-func (d *userScoreDao) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScore {
+func (r *userScoreRepo) FindOne(cnd *querybuilder.QueryBuilder) *model.UserScore {
 	ret := &model.UserScore{}
-	if err := cnd.FindOne(d.db, ret); err != nil {
+	if err := cnd.FindOne(r.db, ret); err != nil {
 		return nil
 	}
 	return ret
 }
 
-func (d *userScoreDao) List(cnd *querybuilder.QueryBuilder) (list []model.UserScore, paging *querybuilder.Paging) {
-	cnd.Find(d.db, &list)
-	count := cnd.Count(d.db, &model.UserScore{})
+func (r *userScoreRepo) List(cnd *querybuilder.QueryBuilder) (list []model.UserScore, paging *querybuilder.Paging) {
+	cnd.Find(r.db, &list)
+	count := cnd.Count(r.db, &model.UserScore{})
 
 	paging = &querybuilder.Paging{
 		Page:     cnd.Paging.Page,
@@ -56,26 +70,22 @@ func (d *userScoreDao) List(cnd *querybuilder.QueryBuilder) (list []model.UserSc
 	return
 }
 
-func (d *userScoreDao) Create(t *model.UserScore) (err error) {
-	err = d.db.Create(t).Error
-	return
+func (r *userScoreRepo) Create(t *model.UserScore) error {
+	return r.db.Create(t).Error
 }
 
-func (d *userScoreDao) Update(t *model.UserScore) (err error) {
-	err = d.db.Save(t).Error
-	return
+func (r *userScoreRepo) Update(t *model.UserScore) error {
+	return r.db.Save(t).Error
 }
 
-func (d *userScoreDao) Updates(id int64, columns map[string]interface{}) (err error) {
-	err = d.db.Model(&model.UserScore{}).Where("id = ?", id).Updates(columns).Error
-	return
+func (r *userScoreRepo) Updates(id int64, columns map[string]interface{}) error {
+	return r.db.Model(&model.UserScore{}).Where("id = ?", id).Updates(columns).Error
 }
 
-func (d *userScoreDao) UpdateColumn(id int64, name string, value interface{}) (err error) {
-	err = d.db.Model(&model.UserScore{}).Where("id = ?", id).UpdateColumn(name, value).Error
-	return
+func (r *userScoreRepo) UpdateColumn(id int64, name string, value interface{}) error {
+	return r.db.Model(&model.UserScore{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (d *userScoreDao) Delete(id int64) {
-	d.db.Delete(&model.UserScore{}, "id = ?", id)
+func (r *userScoreRepo) Delete(id int64) {
+	r.db.Delete(&model.UserScore{}, "id = ?", id)
 }

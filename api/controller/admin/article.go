@@ -21,13 +21,18 @@ import (
 // ArticleController article controller
 type ArticleController struct {
 	controller.BaseController
+	articleSvc service.ArticleServicer
+}
+
+func NewArticleController(articleSvc service.ArticleServicer) *ArticleController {
+	return &ArticleController{articleSvc: articleSvc}
 }
 
 // Show show article
 func (c *ArticleController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		article := service.ArticleService.Get(gDto.ID)
+		article := c.articleSvc.Get(gDto.ID)
 		if article == nil {
 			c.Fail(ctx, util.NewErrorMsg("Article not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -42,7 +47,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	article := service.ArticleService.Get(gDto.ID)
+	article := c.articleSvc.Get(gDto.ID)
 	if article == nil {
 		c.Fail(ctx, util.NewErrorMsg("Article not found, id="+strconv.FormatInt(gDto.ID, 10)))
 		return
@@ -53,7 +58,7 @@ func (c *ArticleController) Update(ctx *gin.Context) {
 		return
 	}
 	articleForm.ID = gDto.ID
-	err := service.ArticleService.Update(articleForm)
+	err := c.articleSvc.Update(articleForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -67,7 +72,7 @@ func (c *ArticleController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.ArticleService.Delete(gDto.ID)
+	c.articleSvc.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -81,14 +86,13 @@ func (c *ArticleController) List(ctx *gin.Context) {
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
-	list, paging := service.ArticleService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.articleSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, article := range list {
 		item := util.StructToMap(article, "content")
 		item["user"] = render.ToDefaultUser(article.UserId)
 
-		// 简介
 		if article.ContentType == model.ContentTypeMarkdown {
 			mr := markdown.NewMd().Run(article.Content)
 			if len(article.Summary) == 0 {
@@ -102,7 +106,6 @@ func (c *ArticleController) List(ctx *gin.Context) {
 				}
 			}
 		}
-		// 标签
 		tagIds := cache.ArticleTagCache.Get(article.ID)
 		tags := cache.TagCache.GetList(tagIds)
 		item["tags"] = render.ToTags(tags)

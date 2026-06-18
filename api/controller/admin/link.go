@@ -14,13 +14,18 @@ import (
 // LinkController link controller
 type LinkController struct {
 	controller.BaseController
+	linkSvc service.LinkServicer
+}
+
+func NewLinkController(linkSvc service.LinkServicer) *LinkController {
+	return &LinkController{linkSvc: linkSvc}
 }
 
 // Show show link
 func (c *LinkController) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if c.BindAndValidate(ctx, &gDto) {
-		link := service.LinkService.Get(gDto.ID)
+		link := c.linkSvc.Get(gDto.ID)
 		if link == nil {
 			c.Fail(ctx, util.NewErrorMsg("Link not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
@@ -35,7 +40,7 @@ func (c *LinkController) Store(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &linkForm) {
 		return
 	}
-	link, err := service.LinkService.Create(linkForm)
+	link, err := c.linkSvc.Create(linkForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -49,7 +54,7 @@ func (c *LinkController) Update(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	link := service.LinkService.Get(gDto.ID)
+	link := c.linkSvc.Get(gDto.ID)
 	if link == nil {
 		c.Fail(ctx, util.NewErrorMsg("Link not found, id="+strconv.FormatInt(gDto.ID, 10)))
 		return
@@ -60,7 +65,7 @@ func (c *LinkController) Update(ctx *gin.Context) {
 		return
 	}
 	linkForm.ID = gDto.ID
-	err := service.LinkService.Update(linkForm)
+	err := c.linkSvc.Update(linkForm)
 	if err != nil {
 		c.Fail(ctx, util.FromError(err))
 		return
@@ -74,7 +79,7 @@ func (c *LinkController) Delete(ctx *gin.Context) {
 	if !c.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	service.LinkService.Delete(gDto.ID)
+	c.linkSvc.Delete(gDto.ID)
 	c.Success(ctx, nil)
 }
 
@@ -88,7 +93,7 @@ func (c *LinkController) List(ctx *gin.Context) {
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
-	list, paging := service.LinkService.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := c.linkSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	c.Success(ctx, &querybuilder.PageResult{Results: list, Page: paging})
 }

@@ -17,39 +17,52 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-var SettingService = newSettingService()
-
-func newSettingService() *settingService {
-	return &settingService{}
+// SettingServicer 系统设置业务契约
+type SettingServicer interface {
+	Get(id int64) *model.Setting
+	Take(where ...interface{}) *model.Setting
+	Find(cnd *querybuilder.QueryBuilder) []model.Setting
+	FindOne(cnd *querybuilder.QueryBuilder) *model.Setting
+	List(cnd *querybuilder.QueryBuilder) ([]model.Setting, *querybuilder.Paging)
+	GetAll() []model.Setting
+	SetAll(configStr string) error
+	SetAllFromStruct(req dto.SettingsRequest) error
+	Set(key, value, name, description string) error
+	GetSetting() *model.ConfigData
 }
 
-type settingService struct{}
+func NewSettingService(repo dao.SettingRepository) SettingServicer {
+	return &settingService{repo: repo}
+}
+
+type settingService struct {
+	repo dao.SettingRepository
+}
 
 func (s *settingService) Get(id int64) *model.Setting {
-	return dao.SettingDao.Get(id)
+	return s.repo.Get(id)
 }
 
 func (s *settingService) Take(where ...interface{}) *model.Setting {
-	return dao.SettingDao.Take(where...)
+	return s.repo.Take(where...)
 }
 
 func (s *settingService) Find(cnd *querybuilder.QueryBuilder) []model.Setting {
-	return dao.SettingDao.Find(cnd)
+	return s.repo.Find(cnd)
 }
 
 func (s *settingService) FindOne(cnd *querybuilder.QueryBuilder) *model.Setting {
-	return dao.SettingDao.FindOne(cnd)
+	return s.repo.FindOne(cnd)
 }
 
-func (s *settingService) List(cnd *querybuilder.QueryBuilder) (list []model.Setting, paging *querybuilder.Paging) {
-	return dao.SettingDao.List(cnd)
+func (s *settingService) List(cnd *querybuilder.QueryBuilder) ([]model.Setting, *querybuilder.Paging) {
+	return s.repo.List(cnd)
 }
 
 func (s *settingService) GetAll() []model.Setting {
-	return dao.SettingDao.Find(querybuilder.NewQueryBuilder().Asc("id"))
+	return s.repo.Find(querybuilder.NewQueryBuilder().Asc("id"))
 }
 
-// SetAll 批量设置配置
 func (s *settingService) SetAll(configStr string) error {
 	json := gjson.Parse(configStr)
 	configs, ok := json.Value().(map[string]interface{})
@@ -57,7 +70,7 @@ func (s *settingService) SetAll(configStr string) error {
 		return errors.New("配置数据格式错误")
 	}
 
-	return dao.DB().Transaction(func(tx *gorm.DB) error {
+	return s.repo.Transaction(func(tx *gorm.DB) error {
 		for k := range configs {
 			v := json.Get(k).String()
 			if err := s.setSingle(tx, k, v, "", ""); err != nil {
@@ -68,7 +81,6 @@ func (s *settingService) SetAll(configStr string) error {
 	})
 }
 
-// SetAllFromStruct 接收强类型表单结构体并批量保存配置
 func (s *settingService) SetAllFromStruct(req dto.SettingsRequest) error {
 	bytes, err := json.Marshal(req)
 	if err != nil {
@@ -78,20 +90,17 @@ func (s *settingService) SetAllFromStruct(req dto.SettingsRequest) error {
 	return s.SetAll(string(bytes))
 }
 
-// Set 设置单个配置，不存在则创建
 func (s *settingService) Set(key, value, name, description string) error {
-	return dao.DB().Transaction(func(tx *gorm.DB) error {
+	return s.repo.Transaction(func(tx *gorm.DB) error {
 		return s.setSingle(tx, key, value, name, description)
 	})
 }
 
-// setSingle 内部设置单个配置项
 func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description string) error {
 	if len(key) == 0 {
 		return errors.New("sys config key is null")
 	}
 
-	// ✅ 使用 tx 查询，而非全局 dao.SettingDao.GetByKey
 	var sysConfig model.Setting
 	err := tx.Where("`key` = ?", key).First(&sysConfig).Error
 	notFound := errors.Is(err, gorm.ErrRecordNotFound)
@@ -113,7 +122,6 @@ func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description st
 		if len(description) > 0 {
 			sysConfig.Description = description
 		}
-		// ✅ 使用 tx 创建
 		if err := tx.Create(&sysConfig).Error; err != nil {
 			return err
 		}
@@ -128,7 +136,6 @@ func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description st
 		if len(description) > 0 {
 			updates["description"] = description
 		}
-		// ✅ 使用 tx 更新
 		if err := tx.Model(&sysConfig).Updates(updates).Error; err != nil {
 			return err
 		}
@@ -138,7 +145,6 @@ func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description st
 	return nil
 }
 
-// GetSetting 获取站点基础配置
 func (s *settingService) GetSetting() *model.ConfigData {
 	var (
 		siteTitle        = cache.SettingCache.GetValue(model.SettingSiteTitle)

@@ -9,6 +9,11 @@ import (
 
 type FavoriteController struct {
 	BaseController
+	favoriteSvc service.FavoriteServicer
+}
+
+func NewFavoriteController(favoriteSvc service.FavoriteServicer) *FavoriteController {
+	return &FavoriteController{favoriteSvc: favoriteSvc}
 }
 
 // GetFavorited 是否收藏了
@@ -21,7 +26,7 @@ func (c *FavoriteController) GetFavorited(ctx *gin.Context) {
 	if user == nil || len(entityType) == 0 || entityID <= 0 {
 		data["favorited"] = false
 	} else {
-		tmp := service.FavoriteService.GetBy(user.ID, entityType, entityID)
+		tmp := c.favoriteSvc.GetBy(user.ID, entityType, entityID)
 		data["favorited"] = tmp != nil
 	}
 	c.Success(ctx, data)
@@ -38,9 +43,9 @@ func (c *FavoriteController) Delete(ctx *gin.Context) {
 	entityType := util.FormStringDefault(ctx, "entityType","")
 	entityID := util.FormInt64Default(ctx, "entityId", 0)
 
-	tmp := service.FavoriteService.GetBy(user.ID, entityType, entityID)
+	tmp := c.favoriteSvc.GetBy(user.ID, entityType, entityID)
 	if tmp != nil {
-		service.FavoriteService.Delete(tmp.ID)
+		c.favoriteSvc.Delete(tmp.ID)
 	}
 	c.Success(ctx, nil)
 }
