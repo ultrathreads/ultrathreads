@@ -1,19 +1,20 @@
-package controller
+package app
 
 import (
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/handler/base"
 	"ultrathreads/util/urls"
 )
 
-// CaptchaController captcha controller
-type CaptchaController struct {
-	BaseController
+// CaptchaHandler captcha controller
+type CaptchaHandler struct {
+	base.BaseHandler
 }
 
 // GetRequest request captcha id and url
-func (c *CaptchaController) GetRequest(ctx *gin.Context) {
+func (h *CaptchaHandler) GetRequest(ctx *gin.Context) {
 
 	captchaID := captcha.NewLen(4)
 	captchaURL := urls.AbsUrl("/api/captcha/show/" + captchaID)
@@ -22,11 +23,11 @@ func (c *CaptchaController) GetRequest(ctx *gin.Context) {
 	data["captchaId"] = captchaID
 	data["captchaUrl"] = captchaURL
 
-	c.Success(ctx, data)
+	h.Success(ctx, data)
 }
 
 // Show show captcha image
-func (c *CaptchaController) Show(ctx *gin.Context) {
+func (h *CaptchaHandler) Show(ctx *gin.Context) {
 	captchaID := ctx.Param("captchaId")
 	if captchaID == "" {
 		return

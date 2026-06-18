@@ -1,31 +1,33 @@
-package controller
+package app
 
 import (
-	"github.com/gin-gonic/gin"
 	"strings"
 
-	"ultrathreads/render"
+	"github.com/gin-gonic/gin"
+
 	"ultrathreads/dto"
+	"ultrathreads/handler/base"
 	"ultrathreads/model"
+	"ultrathreads/render"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
-type UserController struct {
-	BaseController
-	userSvc          service.UserServicer
-	postSvc          service.PostServicer
-	userScoreSvc     service.UserScoreServicer
-	userScoreLogSvc  service.UserScoreLogServicer
-	notificationSvc  service.NotificationServicer
-	favoriteSvc      service.FavoriteServicer
-	articleSvc       service.ArticleServicer
-	userWatchSvc     service.UserWatchServicer
-	rbacSvc          service.RbacServicer
+type UserHandler struct {
+	base.BaseHandler
+	userSvc         service.UserServicer
+	postSvc         service.PostServicer
+	userScoreSvc    service.UserScoreServicer
+	userScoreLogSvc service.UserScoreLogServicer
+	notificationSvc service.NotificationServicer
+	favoriteSvc     service.FavoriteServicer
+	articleSvc      service.ArticleServicer
+	userWatchSvc    service.UserWatchServicer
+	rbacSvc         service.RbacServicer
 }
 
-func NewUserController(
+func NewUserHandler(
 	userSvc service.UserServicer,
 	postSvc service.PostServicer,
 	userScoreSvc service.UserScoreServicer,
@@ -35,8 +37,8 @@ func NewUserController(
 	articleSvc service.ArticleServicer,
 	userWatchSvc service.UserWatchServicer,
 	rbacSvc service.RbacServicer,
-) *UserController {
-	return &UserController{
+) *UserHandler {
+	return &UserHandler{
 		userSvc:         userSvc,
 		postSvc:         postSvc,
 		userScoreSvc:    userScoreSvc,
@@ -50,118 +52,118 @@ func NewUserController(
 }
 
 // GetCurrent get current user
-func (c *UserController) GetCurrent(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) GetCurrent(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 
 	userInfo := render.ToUser(user)
-	userInfo.Permissions = c.rbacSvc.GetUserPermissions(user.ID)
-	userInfo.Roles = c.rbacSvc.GetUserRoles(user.ID)
+	userInfo.Permissions = h.rbacSvc.GetUserPermissions(user.ID)
+	userInfo.Roles = h.rbacSvc.GetUserRoles(user.ID)
 
-	c.Success(ctx, userInfo)
+	h.Success(ctx, userInfo)
 }
 
 // 用户详情
-func (c *UserController) Show(ctx *gin.Context) {
+func (h *UserHandler) Show(ctx *gin.Context) {
 	var req dto.SlugRequest
-	if c.BindAndValidate(ctx, &req) {
-		user := c.userSvc.GetBySlug(req.Slug)
+	if h.BindAndValidate(ctx, &req) {
+		user := h.userSvc.GetBySlug(req.Slug)
 		if user != nil && user.Status != model.StatusDeleted {
-			c.Success(ctx, render.ToUser(user))
+			h.Success(ctx, render.ToUser(user))
 		} else {
-			c.Fail(ctx, util.NewErrorMsg("用户不存在"))
+			h.Fail(ctx, util.NewErrorMsg("用户不存在"))
 		}
 	}
 }
 
 // Update 用户资料编辑
-func (c *UserController) Update(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) Update(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	if user == nil {
-		c.Fail(ctx, util.ErrorNotLogin)
+		h.Fail(ctx, util.ErrorNotLogin)
 		return
 	}
 
 	var req dto.UpdateUserRequest
-	if c.BindAndValidate(ctx, &req) {
+	if h.BindAndValidate(ctx, &req) {
 		if len(req.Website) > 0 && util.IsValidateUrl(req.Website) != nil {
-			c.Fail(ctx, util.NewErrorMsg("个人主页地址错误"))
+			h.Fail(ctx, util.NewErrorMsg("个人主页地址错误"))
 			return
 		}
-		err := c.userSvc.Updates(user.ID, map[string]interface{}{
+		err := h.userSvc.Updates(user.ID, map[string]interface{}{
 			"nickname":    req.Nickname,
 			"avatar":      req.Avatar,
 			"website":     req.Website,
 			"description": req.Description,
 		})
 		if err != nil {
-			c.Fail(ctx, util.FromError(err))
+			h.Fail(ctx, util.FromError(err))
 			return
 		}
-		c.Success(ctx, nil)
+		h.Success(ctx, nil)
 	}
 }
 
 // GetScoreRank 积分排行
-func (c *UserController) GetScoreRank(ctx *gin.Context) {
-	userScores := c.userScoreSvc.Find(querybuilder.NewQueryBuilder().Desc("score").Limit(10))
+func (h *UserHandler) GetScoreRank(ctx *gin.Context) {
+	userScores := h.userScoreSvc.Find(querybuilder.NewQueryBuilder().Desc("score").Limit(10))
 	var results []*model.UserInfo
 	for _, userScore := range userScores {
 		results = append(results, render.ToDefaultUser(userScore.UserId))
 	}
-	c.Success(ctx, results)
+	h.Success(ctx, results)
 }
 
 // GetScorelogs 用户积分记录
-func (c *UserController) GetScorelogs(ctx *gin.Context) {
+func (h *UserHandler) GetScorelogs(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
-	user := c.GetCurrentUser(ctx)
+	user := h.GetCurrentUser(ctx)
 
-	logs, paging := c.userScoreLogSvc.List(querybuilder.NewQueryBuilder().
+	logs, paging := h.userScoreLogSvc.List(querybuilder.NewQueryBuilder().
 		Eq("user_id", user.ID).
 		Page(page, 20).Desc("id"))
 
-	c.Success(ctx, gin.H{
+	h.Success(ctx, gin.H{
 		"results": logs,
 		"paging":  paging,
 	})
 }
 
 // GetNotificationsRecent 获取最近3条未读消息
-func (c *UserController) GetNotificationsRecent(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) GetNotificationsRecent(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	var count int64 = 0
 	var notifications []model.Notification
 	if user != nil {
-		count = c.notificationSvc.GetUnReadCount(user.ID)
-		notifications = c.notificationSvc.Find(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.NotificationStatusUnread).Limit(3).Desc("id"))
+		count = h.notificationSvc.GetUnReadCount(user.ID)
+		notifications = h.notificationSvc.Find(querybuilder.NewQueryBuilder().Eq("user_id", user.ID).Eq("status", model.NotificationStatusUnread).Limit(3).Desc("id"))
 	}
 	data := make(map[string]interface{})
 	data["count"] = count
 	data["notifications"] = render.ToNotifications(notifications)
-	c.Success(ctx, data)
+	h.Success(ctx, data)
 }
 
 // GetNotifications 用户通知
-func (c *UserController) GetNotifications(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) GetNotifications(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	page := util.FormIntDefault(ctx, "page", 1)
 
-	messages, paging := c.notificationSvc.List(querybuilder.NewQueryBuilder().
+	messages, paging := h.notificationSvc.List(querybuilder.NewQueryBuilder().
 		Eq("user_id", user.ID).
 		Page(page, 20).Desc("id"))
 
 	// 全部标记为已读
-	c.notificationSvc.MarkRead(user.ID)
+	h.notificationSvc.MarkRead(user.ID)
 
-	c.Success(ctx, gin.H{
+	h.Success(ctx, gin.H{
 		"results": render.ToNotifications(messages),
 		"paging":  paging,
 	})
 }
 
 // GetFavorites get favorites
-func (c *UserController) GetFavorites(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) GetFavorites(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	page := util.FormIntDefault(ctx, "page", 1)
 
 	// 1. 查询收藏列表
@@ -169,7 +171,7 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 		Eq("user_id", user.ID).
 		Page(page, 20).
 		Desc("id")
-	favorites, paging := c.favoriteSvc.List(qb)
+	favorites, paging := h.favoriteSvc.List(qb)
 
 	// 2. 收集需要预加载的实体 ID
 	var articleIDs, postIDs []int64
@@ -183,14 +185,14 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 	}
 
 	// 3. 批量查询文章
-	articles := c.articleSvc.GetArticleInIds(articleIDs)
+	articles := h.articleSvc.GetArticleInIds(articleIDs)
 	articleMap := make(map[int64]*model.Article, len(articles))
 	for i := range articles {
 		articleMap[articles[i].ID] = &articles[i]
 	}
 
 	// 4. 批量查询帖子
-	rawPostMap := c.postSvc.GetPostInIds(postIDs)
+	rawPostMap := h.postSvc.GetPostInIds(postIDs)
 	postMap := make(map[int64]*model.Post, len(rawPostMap))
 	for id, pst := range rawPostMap {
 		tmp := pst
@@ -208,7 +210,7 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 
 	userMap := make(map[int64]*model.User)
 	if len(userIDs) > 0 {
-		users := c.userSvc.Find(
+		users := h.userSvc.Find(
 			querybuilder.NewQueryBuilder().In("id", userIDs),
 		)
 		for i := range users {
@@ -236,29 +238,29 @@ func (c *UserController) GetFavorites(ctx *gin.Context) {
 	}
 
 	// 7. 纯渲染
-	c.Success(ctx, gin.H{
+	h.Success(ctx, gin.H{
 		"results": render.ToFavorites(favorites, contexts),
 		"page":    paging,
 	})
 }
 
 // Watch 关注
-func (c *UserController) Watch(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) Watch(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	var req dto.SlugRequest
-	if c.BindAndValidate(ctx, &req) {
-		err := c.userWatchSvc.Watch(req.Slug, user.ID)
+	if h.BindAndValidate(ctx, &req) {
+		err := h.userWatchSvc.Watch(req.Slug, user.ID)
 		if err != nil {
-			c.Fail(ctx, util.FromError(err))
+			h.Fail(ctx, util.FromError(err))
 			return
 		}
-		c.Success(ctx, nil)
+		h.Success(ctx, nil)
 	}
 }
 
 // GetWatched 是否关注了
-func (c *UserController) GetWatched(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) GetWatched(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 
 	userID := util.FormInt64Default(ctx, "userId", 0)
 
@@ -266,93 +268,93 @@ func (c *UserController) GetWatched(ctx *gin.Context) {
 	if user == nil || userID <= 0 {
 		data["watched"] = false
 	} else {
-		tmp := c.userWatchSvc.GetBy(userID, user.ID)
+		tmp := h.userWatchSvc.GetBy(userID, user.ID)
 		data["watched"] = tmp != nil
 	}
-	c.Success(ctx, data)
+	h.Success(ctx, data)
 }
 
 // WatchDelete 取消关注
-func (c *UserController) WatchDelete(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) WatchDelete(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 
 	userID := util.FormInt64Default(ctx, "userId", 0)
 
-	tmp := c.userWatchSvc.GetBy(userID, user.ID)
+	tmp := h.userWatchSvc.GetBy(userID, user.ID)
 	if tmp != nil {
-		c.userWatchSvc.Delete(tmp.ID)
+		h.userWatchSvc.Delete(tmp.ID)
 	}
-	c.Success(ctx, nil)
+	h.Success(ctx, nil)
 }
 
 // UpdateAvatar 修改头像
-func (c *UserController) UpdateAvatar(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) UpdateAvatar(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	avatar := strings.TrimSpace(ctx.Request.FormValue("avatar"))
 
-	err := c.userSvc.UpdateAvatar(user.ID, avatar)
+	err := h.userSvc.UpdateAvatar(user.ID, avatar)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, nil)
+	h.Success(ctx, nil)
 }
 
 // SetUsername 设置用户名
-func (c *UserController) SetUsername(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) SetUsername(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	username := strings.TrimSpace(ctx.Request.FormValue("username"))
 
-	err := c.userSvc.SetUsername(user.ID, username)
+	err := h.userSvc.SetUsername(user.ID, username)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, nil)
+	h.Success(ctx, nil)
 }
 
 // SetEmail 设置邮箱
-func (c *UserController) SetEmail(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) SetEmail(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	email := strings.TrimSpace(ctx.Request.FormValue("email"))
 
-	err := c.userSvc.SetEmail(user.ID, email)
+	err := h.userSvc.SetEmail(user.ID, email)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, nil)
+	h.Success(ctx, nil)
 }
 
 // SetPassword 设置密码
-func (c *UserController) SetPassword(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) SetPassword(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 
 	var (
 		password   = strings.TrimSpace(ctx.Request.FormValue("password"))
 		rePassword = strings.TrimSpace(ctx.Request.FormValue("rePassword"))
 	)
 
-	err := c.userSvc.SetPassword(user.ID, password, rePassword)
+	err := h.userSvc.SetPassword(user.ID, password, rePassword)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, nil)
+	h.Success(ctx, nil)
 }
 
 // ChangePassword 更改密码
-func (c *UserController) ChangePassword(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UserHandler) ChangePassword(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	var (
 		oldPassword = ctx.Request.FormValue("oldPassword")
 		password    = ctx.Request.FormValue("password")
 		rePassword  = ctx.Request.FormValue("rePassword")
 	)
-	err := c.userSvc.UpdatePassword(user.ID, oldPassword, password, rePassword)
+	err := h.userSvc.UpdatePassword(user.ID, oldPassword, password, rePassword)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, nil)
+	h.Success(ctx, nil)
 }

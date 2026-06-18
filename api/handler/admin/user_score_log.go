@@ -1,42 +1,43 @@
 package admin
 
 import (
-	"github.com/gin-gonic/gin"
 	"strconv"
 
-	"ultrathreads/render"
-	"ultrathreads/controller"
+	"github.com/gin-gonic/gin"
+
 	"ultrathreads/dto"
+	"ultrathreads/handler/base"
+	"ultrathreads/render"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
-// UserScoreLogController user score controller
-type UserScoreLogController struct {
-	controller.BaseController
+// UserScoreLogHandler user score controller
+type UserScoreLogHandler struct {
+	base.BaseHandler
 	userScoreLogSvc service.UserScoreLogServicer
 }
 
-func NewUserScoreLogController(userScoreLogSvc service.UserScoreLogServicer) *UserScoreLogController {
-	return &UserScoreLogController{userScoreLogSvc: userScoreLogSvc}
+func NewUserScoreLogHandler(userScoreLogSvc service.UserScoreLogServicer) *UserScoreLogHandler {
+	return &UserScoreLogHandler{userScoreLogSvc: userScoreLogSvc}
 }
 
 // Show 显示积分纪录
-func (c *UserScoreLogController) Show(ctx *gin.Context) {
+func (h *UserScoreLogHandler) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
-	if c.BindAndValidate(ctx, &gDto) {
-		userScoreLog := c.userScoreLogSvc.Get(gDto.ID)
+	if h.BindAndValidate(ctx, &gDto) {
+		userScoreLog := h.userScoreLogSvc.Get(gDto.ID)
 		if userScoreLog == nil {
-			c.Fail(ctx, util.NewErrorMsg("User score log not found, id="+strconv.FormatInt(gDto.ID, 10)))
+			h.Fail(ctx, util.NewErrorMsg("User score log not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
 		}
-		c.Success(ctx, userScoreLog)
+		h.Success(ctx, userScoreLog)
 	}
 }
 
 // List 显示积分列表
-func (c *UserScoreLogController) List(ctx *gin.Context) {
+func (h *UserScoreLogHandler) List(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	limit := util.FormIntDefault(ctx, "limit", 20)
 	userId := ctx.Request.FormValue("userId")
@@ -58,7 +59,7 @@ func (c *UserScoreLogController) List(ctx *gin.Context) {
 		conditions.Eq("type", ltype)
 	}
 
-	list, paging := c.userScoreLogSvc.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := h.userScoreLogSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, userScoreLog := range list {
@@ -67,5 +68,5 @@ func (c *UserScoreLogController) List(ctx *gin.Context) {
 		results = append(results, item)
 	}
 
-	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
+	h.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }

@@ -1,16 +1,17 @@
 package admin
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	"github.com/gin-gonic/gin"
 	"strconv"
 	"strings"
 
-	"ultrathreads/render"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-gonic/gin"
+
 	"ultrathreads/cache"
-	"ultrathreads/controller"
 	"ultrathreads/dto"
+	"ultrathreads/handler/base"
 	"ultrathreads/model"
+	"ultrathreads/render"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/markdown"
@@ -18,66 +19,66 @@ import (
 	"ultrathreads/util/strtrim"
 )
 
-// ArticleController article controller
-type ArticleController struct {
-	controller.BaseController
+// ArticleHandler article controller
+type ArticleHandler struct {
+	base.BaseHandler
 	articleSvc service.ArticleServicer
 }
 
-func NewArticleController(articleSvc service.ArticleServicer) *ArticleController {
-	return &ArticleController{articleSvc: articleSvc}
+func NewArticleHandler(articleSvc service.ArticleServicer) *ArticleHandler {
+	return &ArticleHandler{articleSvc: articleSvc}
 }
 
 // Show show article
-func (c *ArticleController) Show(ctx *gin.Context) {
+func (h *ArticleHandler) Show(ctx *gin.Context) {
 	var gDto dto.IdRequest
-	if c.BindAndValidate(ctx, &gDto) {
-		article := c.articleSvc.Get(gDto.ID)
+	if h.BindAndValidate(ctx, &gDto) {
+		article := h.articleSvc.Get(gDto.ID)
 		if article == nil {
-			c.Fail(ctx, util.NewErrorMsg("Article not found, id="+strconv.FormatInt(gDto.ID, 10)))
+			h.Fail(ctx, util.NewErrorMsg("Article not found, id="+strconv.FormatInt(gDto.ID, 10)))
 			return
 		}
-		c.Success(ctx, article)
+		h.Success(ctx, article)
 	}
 }
 
 // Update update a article
-func (c *ArticleController) Update(ctx *gin.Context) {
+func (h *ArticleHandler) Update(ctx *gin.Context) {
 	var gDto dto.IdRequest
-	if !c.BindAndValidate(ctx, &gDto) {
+	if !h.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	article := c.articleSvc.Get(gDto.ID)
+	article := h.articleSvc.Get(gDto.ID)
 	if article == nil {
-		c.Fail(ctx, util.NewErrorMsg("Article not found, id="+strconv.FormatInt(gDto.ID, 10)))
+		h.Fail(ctx, util.NewErrorMsg("Article not found, id="+strconv.FormatInt(gDto.ID, 10)))
 		return
 	}
 
 	var articleForm dto.ArticleUpdateForm
-	if !c.BindAndValidate(ctx, &articleForm) {
+	if !h.BindAndValidate(ctx, &articleForm) {
 		return
 	}
 	articleForm.ID = gDto.ID
-	err := c.articleSvc.Update(articleForm)
+	err := h.articleSvc.Update(articleForm)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, article)
+	h.Success(ctx, article)
 }
 
 // Delete delete article
-func (c *ArticleController) Delete(ctx *gin.Context) {
+func (h *ArticleHandler) Delete(ctx *gin.Context) {
 	var gDto dto.IdRequest
-	if !c.BindAndValidate(ctx, &gDto) {
+	if !h.BindAndValidate(ctx, &gDto) {
 		return
 	}
-	c.articleSvc.Delete(gDto.ID)
-	c.Success(ctx, nil)
+	h.articleSvc.Delete(gDto.ID)
+	h.Success(ctx, nil)
 }
 
 // List list articles
-func (c *ArticleController) List(ctx *gin.Context) {
+func (h *ArticleHandler) List(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	limit := util.FormIntDefault(ctx, "limit", 20)
 	name := ctx.Request.FormValue("name")
@@ -86,7 +87,7 @@ func (c *ArticleController) List(ctx *gin.Context) {
 	if len(name) > 0 {
 		conditions.Like("name", name)
 	}
-	list, paging := c.articleSvc.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := h.articleSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, article := range list {
@@ -113,5 +114,5 @@ func (c *ArticleController) List(ctx *gin.Context) {
 		results = append(results, item)
 	}
 
-	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
+	h.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }

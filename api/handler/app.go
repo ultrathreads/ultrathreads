@@ -3,7 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/controller"
+	"ultrathreads/handler/app"
 	"ultrathreads/middleware"
 )
 
@@ -12,38 +12,38 @@ func (h *Handler) initAppAPI(e *gin.Engine) {
 	api := e.Group("/api")
 	svc := h.services
 
-	// --- 创建所有 Controller 实例 ---
-	siteController := controller.NewSiteController(svc.Setting, svc.Appinfo, svc.UserReadState)
-	authController := controller.NewAuthController(svc.User)
-	oauthController := &controller.OAuthController{}
-	captchaController := &controller.CaptchaController{}
-	postController := controller.NewPostController(svc.Post, svc.User, svc.PostLike, svc.Favorite)
-	nodeController := controller.NewNodeController(svc.Node, svc.UserReadState)
-	tagController := controller.NewTagController(svc.Tag)
-	articleController := controller.NewArticleController(svc.Article, svc.Favorite)
-	userController := controller.NewUserController(svc.User, svc.Post, svc.UserScore, svc.UserScoreLog, svc.Notification, svc.Favorite, svc.Article, svc.UserWatch, svc.Rbac)
-	linkController := controller.NewLinkController(svc.Link)
-	favoriteController := controller.NewFavoriteController(svc.Favorite)
-	uploadController := &controller.UploadController{}
+	// --- 创建所有 Handler 实例 ---
+	siteHandler := app.NewSiteHandler(svc.Setting, svc.Appinfo, svc.UserReadState)
+	authHandler := app.NewAuthHandler(svc.User)
+	oauthHandler := &app.OAuthHandler{}
+	captchaHandler := &app.CaptchaHandler{}
+	postHandler := app.NewPostHandler(svc.Post, svc.User, svc.PostLike, svc.Favorite)
+	nodeHandler := app.NewNodeHandler(svc.Node, svc.UserReadState)
+	tagHandler := app.NewTagHandler(svc.Tag)
+	articleHandler := app.NewArticleHandler(svc.Article, svc.Favorite)
+	userHandler := app.NewUserHandler(svc.User, svc.Post, svc.UserScore, svc.UserScoreLog, svc.Notification, svc.Favorite, svc.Article, svc.UserWatch, svc.Rbac)
+	linkHandler := app.NewLinkHandler(svc.Link)
+	favoriteHandler := app.NewFavoriteHandler(svc.Favorite)
+	uploadHandler := &app.UploadHandler{}
 
 	// ---------- 公开接口（无需登录，也不需要 OptionalAuth） ----------
-	api.Any("/stat", siteController.Stat)
-	api.Any("/ping", siteController.Ping)
-	api.Any("/site/config", siteController.Config)
-	api.Any("/debug", siteController.Debug)
+	api.Any("/stat", siteHandler.Stat)
+	api.Any("/ping", siteHandler.Ping)
+	api.Any("/site/config", siteHandler.Config)
+	api.Any("/debug", siteHandler.Debug)
 
 	// Auth
 	api.POST("/auth/login", h.jwtAuth.LoginHandler)
 	api.POST("/auth/login/refresh", h.jwtAuth.RefreshHandler)
-	api.POST("/auth/register", authController.Register)
+	api.POST("/auth/register", authHandler.Register)
 
 	// OAuth
-	api.GET("/oauth/:provider/authorize", oauthController.Authorize)
+	api.GET("/oauth/:provider/authorize", oauthHandler.Authorize)
 	api.GET("/oauth/:provider/callback", h.jwtOAuth.LoginHandler)
 
 	// Captcha
-	api.GET("/captcha/request", captchaController.GetRequest)
-	api.GET("/captcha/show/:captchaId", captchaController.Show)
+	api.GET("/captcha/request", captchaHandler.GetRequest)
+	api.GET("/captcha/show/:captchaId", captchaHandler.Show)
 
 	// ---------- Optional Auth 组 ----------
 	optional := api.Group("/")
@@ -51,58 +51,58 @@ func (h *Handler) initAppAPI(e *gin.Engine) {
 	optional.Use(middleware.CurrentUserReadState(svc.UserReadState))
 	{
 		// Home
-		optional.GET("/threads", postController.ListThreads)
+		optional.GET("/threads", postHandler.ListThreads)
 
 		// Nodes
 		nodeGroup := optional.Group("/nodes")
 		{
-			nodeGroup.GET("", nodeController.List)
-			nodeGroup.GET("/:slug", nodeController.Show)
-			nodeGroup.GET("/:slug/threads", postController.ListThreads)
+			nodeGroup.GET("", nodeHandler.List)
+			nodeGroup.GET("/:slug", nodeHandler.Show)
+			nodeGroup.GET("/:slug/threads", postHandler.ListThreads)
 		}
 
 		// Posts
 		postApi := optional.Group("/posts")
 		{
-			postApi.GET("/:slug", postController.Show)
-			postApi.GET("/:slug/tree", postController.GetPostTree)
-			postApi.GET("/:slug/flat", postController.GetPostFlat)
+			postApi.GET("/:slug", postHandler.Show)
+			postApi.GET("/:slug/tree", postHandler.GetPostTree)
+			postApi.GET("/:slug/flat", postHandler.GetPostFlat)
 		}
-		optional.GET("/posts/user/recent/:id", postController.GetUserRecent)
-		optional.GET("/user/posts/:slug", postController.GetUserPosts)
+		optional.GET("/posts/user/recent/:id", postHandler.GetUserRecent)
+		optional.GET("/user/posts/:slug", postHandler.GetUserPosts)
 
 		// Tags
 		tagGroup := optional.Group("/tags")
 		{
-			tagGroup.GET("", tagController.List)
-			tagGroup.GET("/hot", tagController.HotTags)
-			tagGroup.GET("/:slug", tagController.Show)
-			tagGroup.GET("/:slug/threads", postController.ListTagThreads)
+			tagGroup.GET("", tagHandler.List)
+			tagGroup.GET("/hot", tagHandler.HotTags)
+			tagGroup.GET("/:slug", tagHandler.Show)
+			tagGroup.GET("/:slug/threads", postHandler.ListTagThreads)
 		}
 
 		// Users (public profile)
 		userGroup := optional.Group("/users/:slug")
 		{
-			userGroup.GET("/posts", postController.GetUserPosts)
+			userGroup.GET("/posts", postHandler.GetUserPosts)
 		}
 
 		// Articles
-		optional.GET("/articles", articleController.List)
-		optional.GET("/article/:id", articleController.Show)
-		optional.GET("/articles/related/:id", articleController.GetRelatedBy)
-		optional.GET("/articles/tag/:slug", articleController.GetTagArticles)
-		optional.GET("/articles/user/newest/:id", articleController.GetUserNewestBy)
-		optional.GET("/articles/recent", articleController.GetRecent)
-		optional.GET("/articles/user/recent/:id", articleController.GetUserRecent)
-		optional.GET("/user/articles/:id", articleController.GetUserArticles)
+		optional.GET("/articles", articleHandler.List)
+		optional.GET("/article/:id", articleHandler.Show)
+		optional.GET("/articles/related/:id", articleHandler.GetRelatedBy)
+		optional.GET("/articles/tag/:slug", articleHandler.GetTagArticles)
+		optional.GET("/articles/user/newest/:id", articleHandler.GetUserNewestBy)
+		optional.GET("/articles/recent", articleHandler.GetRecent)
+		optional.GET("/articles/user/recent/:id", articleHandler.GetUserRecent)
+		optional.GET("/user/articles/:id", articleHandler.GetUserArticles)
 
 		// User score & profile
-		optional.GET("/profile/:slug", userController.Show)
-		optional.GET("/user/score/rank", userController.GetScoreRank)
+		optional.GET("/profile/:slug", userHandler.Show)
+		optional.GET("/user/score/rank", userHandler.GetScoreRank)
 
 		// Links
-		optional.GET("/links/top", linkController.GetToplinks)
-		optional.GET("/links", linkController.List)
+		optional.GET("/links/top", linkHandler.GetToplinks)
+		optional.GET("/links", linkHandler.List)
 	}
 
 	// ---------- 需登录接口（强制鉴权） ----------
@@ -110,52 +110,52 @@ func (h *Handler) initAppAPI(e *gin.Engine) {
 	jwtApi.Use(h.jwtAuth.MiddlewareFunc(), middleware.CurrentUser)
 	{
 		// Nodes
-		jwtApi.POST("/nodes/:slug/mark-as-read", nodeController.MarkAsRead)
+		jwtApi.POST("/nodes/:slug/mark-as-read", nodeHandler.MarkAsRead)
 
 		// Posts (write)
 		postGroup := jwtApi.Group("/posts")
 		{
-			postGroup.POST("", postController.StoreRootPost)
-			postGroup.POST("/:slug/replies", postController.StoreReply)
-			postGroup.POST("/:slug", postController.UpdateRootPost)
-			postGroup.POST("/:slug/like", postController.Like)
-			postGroup.POST("/:slug/favorite", postController.Favorite)
-			postGroup.Any("/:slug/view-post", postController.ViewPost)
+			postGroup.POST("", postHandler.StoreRootPost)
+			postGroup.POST("/:slug/replies", postHandler.StoreReply)
+			postGroup.POST("/:slug", postHandler.UpdateRootPost)
+			postGroup.POST("/:slug/like", postHandler.Like)
+			postGroup.POST("/:slug/favorite", postHandler.Favorite)
+			postGroup.Any("/:slug/view-post", postHandler.ViewPost)
 		}
-		jwtApi.POST("/replies/:slug", postController.UpdateReply)
+		jwtApi.POST("/replies/:slug", postHandler.UpdateReply)
 
 		// Favorites
-		jwtApi.GET("/favorites/favorited", favoriteController.GetFavorited)
-		jwtApi.DELETE("/favorite/delete", favoriteController.Delete)
+		jwtApi.GET("/favorites/favorited", favoriteHandler.GetFavorited)
+		jwtApi.DELETE("/favorite/delete", favoriteHandler.Delete)
 
 		// Tags
-		jwtApi.POST("/tags/auto-complete", tagController.AutoComplete)
+		jwtApi.POST("/tags/auto-complete", tagHandler.AutoComplete)
 
 		// Articles (write)
-		jwtApi.POST("/articles", articleController.Store)
-		jwtApi.GET("/article/:id/edit", articleController.Edit)
-		jwtApi.PUT("/article/:id", articleController.Update)
-		jwtApi.POST("/article/:id/favorite", articleController.Favorite)
+		jwtApi.POST("/articles", articleHandler.Store)
+		jwtApi.GET("/article/:id/edit", articleHandler.Edit)
+		jwtApi.PUT("/article/:id", articleHandler.Update)
+		jwtApi.POST("/article/:id/favorite", articleHandler.Favorite)
 
 		// Users (personal)
-		jwtApi.PUT("/users/:slug", userController.Update)
-		jwtApi.GET("/user/current", userController.GetCurrent)
-		jwtApi.GET("/user/scorelogs", userController.GetScorelogs)
-		jwtApi.GET("/user/notifications/recent", userController.GetNotificationsRecent)
-		jwtApi.GET("/user/notifications", userController.GetNotifications)
-		jwtApi.GET("/user/favorites", userController.GetFavorites)
-		jwtApi.PUT("/user/update/avatar", userController.UpdateAvatar)
-		jwtApi.PUT("/user/set/username", userController.SetUsername)
-		jwtApi.PUT("/user/set/email", userController.SetEmail)
-		jwtApi.PUT("/user/set/password", userController.SetPassword)
-		jwtApi.PUT("/user/change/password", userController.ChangePassword)
-		jwtApi.POST("/users/:id/watch", userController.Watch)
-		jwtApi.GET("/watch/watched", userController.GetWatched)
-		jwtApi.DELETE("/watch/delete", userController.WatchDelete)
+		jwtApi.PUT("/users/:slug", userHandler.Update)
+		jwtApi.GET("/user/current", userHandler.GetCurrent)
+		jwtApi.GET("/user/scorelogs", userHandler.GetScorelogs)
+		jwtApi.GET("/user/notifications/recent", userHandler.GetNotificationsRecent)
+		jwtApi.GET("/user/notifications", userHandler.GetNotifications)
+		jwtApi.GET("/user/favorites", userHandler.GetFavorites)
+		jwtApi.PUT("/user/update/avatar", userHandler.UpdateAvatar)
+		jwtApi.PUT("/user/set/username", userHandler.SetUsername)
+		jwtApi.PUT("/user/set/email", userHandler.SetEmail)
+		jwtApi.PUT("/user/set/password", userHandler.SetPassword)
+		jwtApi.PUT("/user/change/password", userHandler.ChangePassword)
+		jwtApi.POST("/users/:id/watch", userHandler.Watch)
+		jwtApi.GET("/watch/watched", userHandler.GetWatched)
+		jwtApi.DELETE("/watch/delete", userHandler.WatchDelete)
 
 		// Upload
-		jwtApi.POST("/upload", uploadController.Upload)
-		jwtApi.POST("/upload/editor", uploadController.UploadFromEditor)
-		jwtApi.POST("/upload/fetch", uploadController.UploadFromURL)
+		jwtApi.POST("/upload", uploadHandler.Upload)
+		jwtApi.POST("/upload/editor", uploadHandler.UploadFromEditor)
+		jwtApi.POST("/upload/fetch", uploadHandler.UploadFromURL)
 	}
 }

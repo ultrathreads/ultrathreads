@@ -4,74 +4,74 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/cache"
-	"ultrathreads/controller"
 	"ultrathreads/dto"
+	"ultrathreads/handler/base"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
-// UserController user controller
-type UserController struct {
-	controller.BaseController
+// UserHandler user controller
+type UserHandler struct {
+	base.BaseHandler
 	userSvc service.UserServicer
 }
 
-func NewUserController(userSvc service.UserServicer) *UserController {
-	return &UserController{userSvc: userSvc}
+func NewUserHandler(userSvc service.UserServicer) *UserHandler {
+	return &UserHandler{userSvc: userSvc}
 }
 
 // Show show user
-func (c *UserController) Show(ctx *gin.Context) {
+func (h *UserHandler) Show(ctx *gin.Context) {
 	var req dto.SlugRequest
-	if c.BindAndValidate(ctx, &req) {
-		user := c.userSvc.GetBySlug(req.Slug)
+	if h.BindAndValidate(ctx, &req) {
+		user := h.userSvc.GetBySlug(req.Slug)
 		if user == nil {
-			c.Fail(ctx, util.NewErrorMsg("User not found"))
+			h.Fail(ctx, util.NewErrorMsg("User not found"))
 			return
 		}
-		c.Success(ctx, c.buildUserItem(user))
+		h.Success(ctx, h.buildUserItem(user))
 	}
 }
 
 // Store 创建用户
-func (c *UserController) Store(ctx *gin.Context) {
-	c.Success(ctx, nil)
+func (h *UserHandler) Store(ctx *gin.Context) {
+	h.Success(ctx, nil)
 }
 
 // Update 更新用户信息
-func (c *UserController) Update(ctx *gin.Context) {
+func (h *UserHandler) Update(ctx *gin.Context) {
 	var req dto.UpdateUserRequest
-	if !c.BindAndValidate(ctx, &req) {
+	if !h.BindAndValidate(ctx, &req) {
 		return
 	}
-	user := c.userSvc.GetBySlug(req.Slug)
+	user := h.userSvc.GetBySlug(req.Slug)
 	if user == nil {
-		c.Fail(ctx, util.NewErrorMsg("User not found"))
+		h.Fail(ctx, util.NewErrorMsg("User not found"))
 		return
 	}
 
-	err := c.userSvc.Update(req)
+	err := h.userSvc.Update(req)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
-	c.Success(ctx, user)
+	h.Success(ctx, user)
 }
 
 // Delete delete user
-func (c *UserController) Delete(ctx *gin.Context) {
+func (h *UserHandler) Delete(ctx *gin.Context) {
 	var req dto.SlugRequest
-	if !c.BindAndValidate(ctx, &req) {
+	if !h.BindAndValidate(ctx, &req) {
 		return
 	}
-	c.userSvc.Delete(req.Slug)
-	c.Success(ctx, nil)
+	h.userSvc.Delete(req.Slug)
+	h.Success(ctx, nil)
 }
 
 // List list users
-func (c *UserController) List(ctx *gin.Context) {
+func (h *UserHandler) List(ctx *gin.Context) {
 	page := util.FormIntDefault(ctx, "page", 1)
 	limit := util.FormIntDefault(ctx, "limit", 20)
 	id := ctx.Request.FormValue("id")
@@ -88,17 +88,17 @@ func (c *UserController) List(ctx *gin.Context) {
 	if len(nickname) > 0 {
 		conditions.Like("nickname", nickname)
 	}
-	list, paging := c.userSvc.List(conditions.Page(page, limit).Desc("id"))
+	list, paging := h.userSvc.List(conditions.Page(page, limit).Desc("id"))
 
 	var results []map[string]interface{}
 	for _, user := range list {
-		results = append(results, c.buildUserItem(&user))
+		results = append(results, h.buildUserItem(&user))
 	}
 
-	c.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
+	h.Success(ctx, &querybuilder.PageResult{Results: results, Page: paging})
 }
 
-func (c *UserController) buildUserItem(user *model.User) map[string]interface{} {
+func (h *UserHandler) buildUserItem(user *model.User) map[string]interface{} {
 	score := cache.UserCache.GetScore(user.ID)
 
 	result := make(map[string]interface{})

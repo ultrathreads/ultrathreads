@@ -1,4 +1,4 @@
-package controller
+package app
 
 import (
 	"fmt"
@@ -7,27 +7,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/handler/base"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
 	"ultrathreads/util/uploader"
 )
 
-type UploadController struct {
-	BaseController
+type UploadHandler struct {
+	base.BaseHandler
 }
 
 // Upload 单文件上传
-func (c *UploadController) Upload(ctx *gin.Context) {
+func (h *UploadHandler) Upload(ctx *gin.Context) {
 	file, header, err := ctx.Request.FormFile("image")
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
 	defer file.Close()
 
 	fileBytes, err := readAndValidateFile(file, header.Size)
 	if err != nil {
-		c.Fail(ctx, util.NewErrorMsg(err.Error()))
+		h.Fail(ctx, util.NewErrorMsg(err.Error()))
 		return
 	}
 
@@ -35,24 +36,24 @@ func (c *UploadController) Upload(ctx *gin.Context) {
 
 	url, err := uploader.PutImage(fileBytes)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
 
-	c.Success(ctx, gin.H{"url": url})
+	h.Success(ctx, gin.H{"url": url})
 }
 
 // UploadFromEditor 编辑器多文件上传
-func (c *UploadController) UploadFromEditor(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UploadHandler) UploadFromEditor(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	if user == nil {
-		c.Fail(ctx, util.ErrorNotLogin)
+		h.Fail(ctx, util.ErrorNotLogin)
 		return
 	}
 
 	mForm, err := ctx.MultipartForm()
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
 
@@ -90,40 +91,40 @@ func (c *UploadController) UploadFromEditor(ctx *gin.Context) {
 		succMap[fileHeader.Filename] = url
 	}
 
-	c.Success(ctx, gin.H{
+	h.Success(ctx, gin.H{
 		"errFiles": errFiles,
 		"succMap":  succMap,
 	})
 }
 
 // UploadFromURL 通过 URL 转存图片
-func (c *UploadController) UploadFromURL(ctx *gin.Context) {
-	user := c.GetCurrentUser(ctx)
+func (h *UploadHandler) UploadFromURL(ctx *gin.Context) {
+	user := h.GetCurrentUser(ctx)
 	if user == nil {
-		c.Fail(ctx, util.ErrorNotLogin)
+		h.Fail(ctx, util.ErrorNotLogin)
 		return
 	}
 
 	data := make(map[string]string)
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
 
 	rawURL := strings.TrimSpace(data["url"])
 	if rawURL == "" {
-		c.Fail(ctx, util.NewErrorMsg("url不能为空"))
+		h.Fail(ctx, util.NewErrorMsg("url不能为空"))
 		return
 	}
 
 	// SSRF 防护、大小限制等已在 uploader.CopyImage -> safeDownload 中统一处理
 	output, err := uploader.CopyImage(rawURL)
 	if err != nil {
-		c.Fail(ctx, util.FromError(err))
+		h.Fail(ctx, util.FromError(err))
 		return
 	}
 
-	c.Success(ctx, gin.H{
+	h.Success(ctx, gin.H{
 		"originalURL": rawURL,
 		"url":         output,
 	})

@@ -1,22 +1,23 @@
-package controller
+package app
 
 import (
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/handler/base"
 	"ultrathreads/oauth/gitee"
 	"ultrathreads/oauth/github"
 	"ultrathreads/oauth/qq"
 	"ultrathreads/util"
 )
 
-// OAuthController oauth controller
-type OAuthController struct {
-	BaseController
+// OAuthHandler oauth controller
+type OAuthHandler struct {
+	base.BaseHandler
 }
 
 // Authorize authorize
-func (c *OAuthController) Authorize(ctx *gin.Context) {
-	ref := util.FormStringDefault(ctx, "ref","")
+func (h *OAuthHandler) Authorize(ctx *gin.Context) {
+	ref := util.FormStringDefault(ctx, "ref", "")
 	provider := ctx.Param("provider")
 	params := map[string]string{"ref": ref}
 	var url string
@@ -28,7 +29,7 @@ func (c *OAuthController) Authorize(ctx *gin.Context) {
 		url = qq.AuthorizeUrl(params)
 	}
 
-	c.Success(ctx, gin.H{
+	h.Success(ctx, gin.H{
 		"url": url,
 	})
 }
