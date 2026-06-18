@@ -76,7 +76,7 @@ export default function MyFavoritesList({ initialFavorites, onDeleteFavoriteActi
                   </span>
                 )}
                 <span className="tail">
-                  <RelativeTime timestamp={item.createTime} />
+                  <RelativeTime timestamp={item.createdAt} />
                 </span>
                 
                 {/* 删除按钮 */}

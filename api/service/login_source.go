@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strconv"
 	"strings"
+	"time"
 
 	"ultrathreads/model"
 	"ultrathreads/oauth/gitee"
@@ -104,8 +105,8 @@ func (s *loginSourceService) GetOrCreateByGithub(code, state string) (*model.Log
 		TargetType: model.LoginSourceTypeGithub,
 		TargetID:   strconv.FormatInt(userInfo.Id, 10),
 		ExtraData:  userInfoJson,
-		CreateTime: util.NowTimestamp(),
-		UpdateTime: util.NowTimestamp(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 	err = s.Create(account)
 	if err != nil {
@@ -133,8 +134,8 @@ func (s *loginSourceService) GetOrCreateByGitee(code, state string) (*model.Logi
 		TargetType: model.LoginSourceTypeGitee,
 		TargetID:   strconv.FormatInt(int64(userInfo.Id), 10),
 		ExtraData:  userInfoJson,
-		CreateTime: util.NowTimestamp(),
-		UpdateTime: util.NowTimestamp(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 	err = s.Create(account)
 	if err != nil {
@@ -162,8 +163,8 @@ func (s *loginSourceService) GetOrCreateByQQ(code, state string) (*model.LoginSo
 		TargetType: model.LoginSourceTypeQQ,
 		TargetID:   userInfo.Openid,
 		ExtraData:  userInfoJson,
-		CreateTime: util.NowTimestamp(),
-		UpdateTime: util.NowTimestamp(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 	err = s.Create(account)
 	if err != nil {

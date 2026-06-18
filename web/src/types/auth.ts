@@ -41,7 +41,7 @@ export interface CurrentUser {
   commentCount: number;
   passwordSet: boolean;
   status: number;
-  createTime: number; // Unix 毫秒时间戳
+  createdAt: string;
 
   roles?: string[];
   permissions?: string[];

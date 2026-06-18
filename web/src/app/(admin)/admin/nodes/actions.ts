@@ -25,7 +25,7 @@ export interface NodeItem {
   sortNo: number;
   status: number;
   topicCount: number;
-  createTime: number;
+  createdAt: string;
 }
 
 // 统一异常处理

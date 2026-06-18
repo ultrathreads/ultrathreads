@@ -50,7 +50,7 @@ export function buildThreadTree(
 
   // 3. 递归转换为视图模型，每层子节点固定按时间正序
   function toThreadView(treeItem: PostTreeItem): ThreadViewItem {
-    treeItem.children.sort((a, b) => a.createTime - b.createTime);
+    treeItem.children.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     const lookupKey = String(treeItem.nodeSlug);
 

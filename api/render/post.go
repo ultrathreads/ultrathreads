@@ -23,8 +23,8 @@ func basePostFields(rsp *model.PostSimpleResponse, post *domain.Post) {
 	rsp.IsRoot = post.IsRoot()
 	rsp.Title = post.Title
 	rsp.IsPinned = post.IsPinned
-	rsp.LastCommentTime = post.LastCommentTime
-	rsp.CreateTime = post.CreateTime
+	rsp.LastRepliedAt = post.LastRepliedAt
+	rsp.CreatedAt = post.CreatedAt
 	rsp.ViewCount = post.ViewCount
 	rsp.LikeCount = post.LikeCount
 }

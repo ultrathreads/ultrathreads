@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 // Setting 系统配置领域模型
 type Setting struct {
 	ID          int64
@@ -7,8 +9,8 @@ type Setting struct {
 	Value       string
 	Name        string
 	Description string
-	CreateTime  int64
-	UpdateTime  int64
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 // SiteNav 站点导航

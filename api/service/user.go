@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
@@ -108,7 +109,7 @@ func (s *userService) Update(req dto.UpdateUserRequest) error {
 		"nickname":    req.Nickname,
 		"description": req.Description,
 		"level":       req.Level,
-		"update_time": util.NowTimestamp(),
+		"updated_at":  time.Now(),
 	})
 	s.userCache.Invalidate(userID)
 	return err
@@ -175,13 +176,13 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 	}
 
 	user := &model.User{
-		Username:   util.SqlNullString(username),
-		Email:      util.SqlNullString(email),
-		Nickname:   nickname,
-		Password:   util.EncodePassword(password),
-		Status:     model.StatusOk,
-		CreateTime: util.NowTimestamp(),
-		UpdateTime: util.NowTimestamp(),
+		Username:  util.SqlNullString(username),
+		Email:     util.SqlNullString(email),
+		Nickname:  nickname,
+		Password:  util.EncodePassword(password),
+		Status:    model.StatusOk,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -236,8 +237,8 @@ func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*mode
 		Status:      model.StatusOk,
 		Website:     website,
 		Description: description,
-		CreateTime:  util.NowTimestamp(),
-		UpdateTime:  util.NowTimestamp(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {

@@ -10,8 +10,8 @@ interface Props {
 
 export default function UserProfileCard({ user }: Props) {
   // 格式化时间为 YYYY/MM/DD 格式，避免时区和地区差异
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -70,8 +70,8 @@ export default function UserProfileCard({ user }: Props) {
 
         {/* 注册日期和最后登录时间 */}
         <div className="profile-meta-info">
-          {user.createTime && (
-            <span>注册于: {formatDate(user.createTime)}</span>
+          {user.createdAt && (
+            <span>注册于: {formatDate(user.createdAt)}</span>
           )}
           {user.lastLoginTime && (
             <span>最后登录: {formatDate(user.lastLoginTime)}</span>

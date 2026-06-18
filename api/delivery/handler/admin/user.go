@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util"
@@ -111,8 +111,8 @@ func (h *UserHandler) buildUserItem(user *model.User) map[string]interface{} {
 	result["avatar"] = user.Avatar
 	result["email"] = user.Email.String
 	result["score"] = score
-	result["createTime"] = user.CreateTime
-	result["updateTime"] = user.UpdateTime
+	result["createdAt"] = user.CreatedAt
+	result["updatedAt"] = user.UpdatedAt
 
 	return result
 }

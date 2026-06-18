@@ -56,9 +56,9 @@ function JsonLd({ post, totalReplyCount }: { post: AssembledPost; totalReplyCoun
     '@type': 'DiscussionForumPosting',
     headline: post.title || '无标题',
     articleBody: post.content?.slice(0, 5000),
-    // ✅ 兼容 createTime/createdAt 两种命名
-    datePublished: post.createdAt ?? post.createTime,
-    dateModified: post.updatedAt ?? post.lastCommentTime,
+    // ✅ 使用 createdAt 字段
+    datePublished: post.createdAt,
+    dateModified: post.updatedAt ?? post.lastRepliedAt,
     author: post.user
       ? { '@type': 'Person' as const, name: post.user.nickname || post.user.username }
       : undefined,

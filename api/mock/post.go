@@ -69,8 +69,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 			}
 
 			nodeId := int64(RandInt(1, 5))
-			ts := timeToUnix(cursor)
-			post := postFactory(0, 0, nodeId, ts, ts, false)
+			post := postFactory(0, 0, nodeId, cursor, cursor, false)
 			if err := postDao.Create(post); err != nil {
 				fmt.Printf("mock root post error: %v\n", err)
 				continue
@@ -85,7 +84,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 	}
 
 	for _, root := range rootPosts {
-		rootTime := unixToTime(root.CreateTime)
+		rootTime := root.CreatedAt
 		ageHours := now.Sub(rootTime).Hours()
 
 		replyCount := calcReplyCount(ageHours)
@@ -94,7 +93,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 		}
 
 		threadCursor := rootTime
-		lastCommentTs := root.CreateTime
+		lastReplyTs := root.CreatedAt
 
 		for j := 0; j < replyCount; j++ {
 			var replyTime time.Time
@@ -114,15 +113,14 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 				replyTime = now.Add(-time.Duration(RandInt(1, 60)) * time.Second)
 			}
 
-			replyTs := timeToUnix(replyTime)
-			reply := postFactory(root.ID, root.ID, root.NodeId, replyTs, replyTs, true)
+			reply := postFactory(root.ID, root.ID, root.NodeId, replyTime, replyTime, true)
 			if err := postDao.Create(reply); err != nil {
 				fmt.Printf("mock reply error: %v\n", err)
 				continue
 			}
 
-			if replyTs > lastCommentTs {
-				lastCommentTs = replyTs
+			if replyTime.After(lastReplyTs) {
+				lastReplyTs = replyTime
 			}
 
 			if RandInt(0, 3) == 0 {
@@ -130,21 +128,20 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 				if subReplyTime.After(now) {
 					subReplyTime = now.Add(-time.Duration(RandInt(1, 60)) * time.Second)
 				}
-				subTs := timeToUnix(subReplyTime)
-				subReply := postFactory(reply.ID, root.ID, root.NodeId, subTs, subTs, true)
+				subReply := postFactory(reply.ID, root.ID, root.NodeId, subReplyTime, subReplyTime, true)
 				if err := postDao.Create(subReply); err != nil {
 					fmt.Printf("mock sub-reply error: %v\n", err)
 				}
-				if subTs > lastCommentTs {
-					lastCommentTs = subTs
+				if subReplyTime.After(lastReplyTs) {
+					lastReplyTs = subReplyTime
 				}
 			}
 		}
 
-		if lastCommentTs != root.CreateTime {
-			root.LastCommentTime = lastCommentTs
+		if lastReplyTs != root.CreatedAt {
+			root.LastRepliedAt = lastReplyTs
 			if err := postDao.Update(root); err != nil {
-				fmt.Printf("mock update last_comment_time error: %v\n", err)
+				fmt.Printf("mock update last_replied_at error: %v\n", err)
 			}
 		}
 	}
@@ -389,32 +386,21 @@ func advanceCursorTime(cursor *time.Time, minSecs, maxSecs int) time.Time {
 	return *cursor
 }
 
-func postFactory(parentId, threadId, nodeId int64, createTime, lastCommentTime int64, isReply bool) *model.Post {
-	minValidTs := int64(1577808000)
-	if TIMESTAMP_MILLI {
-		minValidTs *= 1000
-	}
-	if createTime < minValidTs || lastCommentTime < minValidTs {
-		panic(fmt.Sprintf(
-			"invalid timestamp! create=%d, last_comment=%d. Check TIMESTAMP_MILLI.",
-			createTime, lastCommentTime,
-		))
-	}
-
+func postFactory(parentId, threadId, nodeId int64, createdAt, lastRepliedAt time.Time, isReply bool) *model.Post {
 	content := generateRealisticContent()
 	if isReply {
 		content = generateReplyContent()
 	}
 
 	return &model.Post{
-		Title:           generateRealisticTitle(),
-		Content:         content,
-		UserId:          int64(RandInt(1, 10)),
-		NodeId:          nodeId,
-		ParentId:        parentId,
-		ThreadId:        threadId,
-		CreateTime:      createTime,
-		LastCommentTime: lastCommentTime,
+		Title:         generateRealisticTitle(),
+		Content:       content,
+		UserId:        int64(RandInt(1, 10)),
+		NodeId:        nodeId,
+		ParentId:      parentId,
+		ThreadId:      threadId,
+		CreatedAt:     createdAt,
+		LastRepliedAt: lastRepliedAt,
 	}
 }
 

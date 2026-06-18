@@ -153,7 +153,8 @@ func (h *UserHandler) GetNotifications(ctx *gin.Context) {
 		Eq("user_id", user.ID).
 		Page(page, 20).Desc("id"))
 
-	// 全部标记为已�?	h.notificationSvc.MarkRead(user.ID)
+	// 全部标记为已读
+	h.notificationSvc.MarkRead(user.ID)
 
 	h.Success(ctx, gin.H{
 		"results": render.ToNotifications(messages),
@@ -173,7 +174,7 @@ func (h *UserHandler) GetFavorites(ctx *gin.Context) {
 		Desc("id")
 	favorites, paging := h.favoriteSvc.List(qb)
 
-	// 2. 收集需要预加载的实�?ID
+	// 2. 收集需要预加载的实体 ID
 	var articleIDs, postIDs []int64
 	for _, fav := range favorites {
 		switch fav.EntityType {

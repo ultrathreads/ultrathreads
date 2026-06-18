@@ -85,7 +85,7 @@ func runWeb(c *cli.Context) error {
 				Eq("recommend", true).
 				Eq("status", model.StatusOk).
 				Limit(20).
-				Desc("last_comment_time"))
+				Desc("last_replied_at"))
 		},
 		TagLoader: func(tagId int64) *model.Tag {
 			return repos.Tag.Get(tagId)

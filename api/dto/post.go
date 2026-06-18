@@ -2,6 +2,7 @@ package dto
 
 import (
 	"html/template"
+	"time"
 )
 
 // ==================== 请求 DTO (Request) ====================
@@ -28,7 +29,7 @@ type UpdateRootPostRequest struct {
 
 // CreateReplyRequest 创建回复请求
 type CreateReplyRequest struct {
-	Slug 	   string   `uri:"slug" binding:"required"`
+	Slug       string   `uri:"slug" binding:"required"`
 	Content    string   `json:"content" binding:"required"`
 	ImageList  []string `json:"imageList"`
 	ParentSlug string   `json:"parentSlug,omitempty"`
@@ -44,25 +45,25 @@ type UpdateReplyRequest struct {
 
 // PostLiteResponse 帖子信息（轻量）
 type PostLiteResponse struct {
-	Slug            string        `json:"slug"`
-	ThreadSlug      string        `json:"threadSlug"`
-	ParentSlug      string        `json:"parentSlug"`
-	IsRoot          bool          `json:"isRoot"`
-	Type            int           `json:"type"`
-	Title           string        `json:"title"`
-	IsPinned        bool          `json:"isPinned"`
-	LastCommentTime int64         `json:"lastCommentTime"`
-	ViewCount       int64         `json:"viewCount"`
-	LikeCount       int64         `json:"likeCount"`
-	CreatedAt       int64         `json:"createdAt"`
-	NodeSlug        string        `json:"nodeSlug"`
+	Slug          string    `json:"slug"`
+	ThreadSlug    string    `json:"threadSlug"`
+	ParentSlug    string    `json:"parentSlug"`
+	IsRoot        bool      `json:"isRoot"`
+	Type          int       `json:"type"`
+	Title         string    `json:"title"`
+	IsPinned      bool      `json:"isPinned"`
+	LastRepliedAt time.Time `json:"lastRepliedAt"`
+	ViewCount     int64     `json:"viewCount"`
+	LikeCount     int64     `json:"likeCount"`
+	CreatedAt     time.Time `json:"createdAt"`
+	NodeSlug      string    `json:"nodeSlug"`
 }
 
 // PostResponse 帖子详情（完整）
 type PostResponse struct {
-	PostLiteResponse                   // 复用基础字段
-	RawContent string             `json:"rawContent"`
-	Content    template.HTML      `json:"content"`
-	Toc        template.HTML      `json:"toc"`
-	ImageList  []string           `json:"imageList"`
+	PostLiteResponse               // 复用基础字段
+	RawContent       string        `json:"rawContent"`
+	Content          template.HTML `json:"content"`
+	Toc              template.HTML `json:"toc"`
+	ImageList        []string      `json:"imageList"`
 }

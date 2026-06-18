@@ -44,13 +44,13 @@ export function adaptToThreadView(
       ? (post.user?.avatar || undefined)
       : (listItem.user?.avatar || undefined);
 
-  // ✅ 提取用于判断已读的基准时间（优先用 updateTime，回退到 createTime）
+  // ✅ 提取用于判断已读的基准时间（优先用 updatedAt，回退到 createdAt）
   let contentTimestamp: number | string | undefined;
   if (isPostEntity) {
-    contentTimestamp = post.updateTime ?? post.createTime;
+    contentTimestamp = post.updatedAt ?? new Date(post.createdAt).getTime();
   } else {
-    // 列表项：如果有最后评论时间且业务上"新回复=未读"，则用它；否则用 createTime
-    contentTimestamp = listItem.lastCommentTime || listItem.createTime;
+    // 列表项：如果有最后评论时间且业务上"新回复=未读"，则用它；否则用 createdAt
+    contentTimestamp = listItem.lastRepliedAt ? new Date(listItem.lastRepliedAt).getTime() : new Date(listItem.createdAt).getTime();
   }
 
   const contentTime = typeof contentTimestamp === 'number'

@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"time"
 )
 
 // User 用户模型
@@ -18,35 +19,35 @@ type User struct {
 	TopicCount   int64          `gorm:"column:post_count;not null" json:"topicCount" form:"topicCount"`            // ✅ int→int64 + 列名映射
 	CommentCount int64          `gorm:"not null" json:"commentCount" form:"commentCount"`                          // ✅ int→int64
 	Level        int            `gorm:"not null" json:"level" form:"level"`                                        // 用户等级
-	CreateTime   int64          `json:"createTime" form:"createTime"`                                              // 创建时间
-	UpdateTime   int64          `json:"updateTime" form:"updateTime"`                                              // 更新时间
+	CreatedAt    time.Time      `json:"createdAt" form:"createdAt"`                                                // 创建时间
+	UpdatedAt    time.Time      `json:"updatedAt" form:"updatedAt"`                                                // 更新时间
 }
 
 // UserScore 用户积分
 type UserScore struct {
 	Model
-	UserId     int64 `gorm:"uniqueIndex;not null" json:"userId" form:"userId"` // ✅ unique → uniqueIndex
-	Score      int   `gorm:"not null" json:"score" form:"score"`               // 积分
-	CreateTime int64 `json:"createTime" form:"createTime"`                     // 创建时间
-	UpdateTime int64 `json:"updateTime" form:"updateTime"`                     // 更新时间
+	UserId    int64     `gorm:"uniqueIndex;not null" json:"userId" form:"userId"` // ✅ unique → uniqueIndex
+	Score     int       `gorm:"not null" json:"score" form:"score"`               // 积分
+	CreatedAt time.Time `json:"createdAt" form:"createdAt"`                       // 创建时间
+	UpdatedAt time.Time `json:"updatedAt" form:"updatedAt"`                       // 更新时间
 }
 
 // UserWatch 用户关注
 type UserWatch struct {
 	Model
-	UserID     int64 `gorm:"not null;index:idx_user_watch_user_id" json:"userId" form:"userId"`          // 用户
-	WatcherID  int64 `gorm:"not null;index:idx_user_watch_watcher_id" json:"watcherId" form:"watcherId"` // 关注者编号
-	CreateTime int64 `json:"createTime" form:"createTime"`                                               // 创建时间
+	UserID    int64     `gorm:"not null;index:idx_user_watch_user_id" json:"userId" form:"userId"`          // 用户
+	WatcherID int64     `gorm:"not null;index:idx_user_watch_watcher_id" json:"watcherId" form:"watcherId"` // 关注者编号
+	CreatedAt time.Time `json:"createdAt" form:"createdAt"`                                                 // 创建时间
 }
 
 // UserScoreLog 用户积分流水
 type UserScoreLog struct {
 	Model
-	UserId      int64  `gorm:"not null;index:idx_user_score_log_user_id" json:"userId" form:"userId"`             // 用户编号
-	SourceType  string `gorm:"not null;index:idx_user_score_source,priority:1" json:"sourceType" form:"sourceType"` // ✅ 复合索引 priority
-	SourceId    string `gorm:"not null;index:idx_user_score_source,priority:2" json:"sourceId" form:"sourceId"`     // ✅ 复合索引 priority
-	Description string `json:"description" form:"description"`                                                     // 描述
-	Type        int    `json:"type" form:"type"`                                                                   // 类型(增加、减少)
-	Score       int    `json:"score" form:"score"`                                                                 // 积分
-	CreateTime  int64  `json:"createTime" form:"createTime"`                                                       // 创建时间
+	UserId      int64     `gorm:"not null;index:idx_user_score_log_user_id" json:"userId" form:"userId"`             // 用户编号
+	SourceType  string    `gorm:"not null;index:idx_user_score_source,priority:1" json:"sourceType" form:"sourceType"` // ✅ 复合索引 priority
+	SourceId    string    `gorm:"not null;index:idx_user_score_source,priority:2" json:"sourceId" form:"sourceId"`     // ✅ 复合索引 priority
+	Description string    `json:"description" form:"description"`                                                     // 描述
+	Type        int       `json:"type" form:"type"`                                                                   // 类型(增加、减少)
+	Score       int       `json:"score" form:"score"`                                                                 // 积分
+	CreatedAt   time.Time `json:"createdAt" form:"createdAt"`                                                         // 创建时间
 }

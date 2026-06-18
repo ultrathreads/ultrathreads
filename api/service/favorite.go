@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"ultrathreads/model"
 	"ultrathreads/repository"
-	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
@@ -108,6 +108,6 @@ func (s *favoriteService) addFavorite(userId int64, entityType string, entityId 
 		UserId:     userId,
 		EntityType: entityType,
 		EntityId:   entityId,
-		CreateTime: util.NowTimestamp(),
+		CreatedAt:  time.Now(),
 	})
 }

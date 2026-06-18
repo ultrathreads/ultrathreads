@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
@@ -112,10 +113,10 @@ func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description st
 
 	if notFound {
 		sysConfig = model.Setting{
-			Key:        key,
-			Value:      value,
-			CreateTime: util.NowTimestamp(),
-			UpdateTime: util.NowTimestamp(),
+			Key:       key,
+			Value:     value,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		}
 		if len(name) > 0 {
 			sysConfig.Name = name
@@ -128,8 +129,8 @@ func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description st
 		}
 	} else {
 		updates := map[string]interface{}{
-			"value":       value,
-			"update_time": util.NowTimestamp(),
+			"value":      value,
+			"updated_at": time.Now(),
 		}
 		if len(name) > 0 {
 			updates["name"] = name

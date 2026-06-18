@@ -2,6 +2,7 @@ package service
 
 import (
 	"sync"
+	"time"
 
 	"ultrathreads/cache"
 	"ultrathreads/model"
@@ -174,7 +175,7 @@ func (s *notificationService) Produce(fromId, toId int64, content, quoteContent 
 		Type:         msgType,
 		ExtraData:    extraData,
 		Status:       model.NotificationStatusUnread,
-		CreateTime:   util.NowTimestamp(),
+		CreatedAt:    time.Now(),
 	}
 }
 

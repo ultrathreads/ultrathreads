@@ -7,9 +7,9 @@ import (
 
 	"ultrathreads/domain"
 	"ultrathreads/model"
+	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/strtrim"
-	"ultrathreads/util"
 	"ultrathreads/util/urls"
 )
 
@@ -31,7 +31,7 @@ func ToFavorite(favorite *model.Favorite, ctx *FavoriteContext) *model.FavoriteR
 		Slug:       hashid.Id2Slug[model.Favorite](favorite.ID),
 		EntityType: favorite.EntityType,
 		EntityId:   favorite.EntityId,
-		CreateTime: favorite.CreateTime,
+		CreatedAt:  favorite.CreatedAt,
 	}
 
 	// 没有上下文 → 关联实体已被删除或查询失败

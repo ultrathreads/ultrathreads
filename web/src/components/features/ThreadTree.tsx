@@ -31,8 +31,8 @@ function sortThreads(threads: ThreadViewItem[], sortType: string): ThreadViewIte
     switch (sortType) {
       case 'latest': return new Date(b.date).getTime() - new Date(a.date).getTime();
       case 'reply': {
-        const diff = b.lastCommentTime - a.lastCommentTime;
-        return diff !== 0 ? diff : b.createTime - a.createTime;
+        const diff = new Date(b.lastRepliedAt).getTime() - new Date(a.lastRepliedAt).getTime();
+        return diff !== 0 ? diff : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       case 'most': return (b.replies?.length || 0) - (a.replies?.length || 0);
       case 'hot': {

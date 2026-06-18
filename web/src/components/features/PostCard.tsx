@@ -122,7 +122,7 @@ export default function PostCard({
           authorSlug={post.user.slug}
           className="author-name"
         />
-        <RelativeTime timestamp={post.createTime} />
+        <RelativeTime timestamp={post.createdAt} />
 
         {isRoot && (
           <>

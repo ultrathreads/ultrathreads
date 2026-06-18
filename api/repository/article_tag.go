@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 
 	"ultrathreads/model"
-	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -92,9 +93,9 @@ func (r *articleTagRepo) AddArticleTags(articleId int64, tagIds []int64) {
 
 	for _, tagId := range tagIds {
 		_ = r.Create(&model.ArticleTag{
-			ArticleId:  articleId,
-			TagId:      tagId,
-			CreateTime: util.NowTimestamp(),
+			ArticleId: articleId,
+			TagId:     tagId,
+			CreatedAt: time.Now(),
 		})
 	}
 }

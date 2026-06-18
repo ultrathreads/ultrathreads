@@ -1,9 +1,9 @@
 package service
 
 import (
+	"time"
 	"ultrathreads/model"
 	"ultrathreads/repository"
-	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -82,8 +82,8 @@ func (s *postLikeService) Like(userID, postID int64) error {
 		return s.repo.Delete(tmp.ID)
 	}
 	return s.repo.Create(&model.PostLike{
-		UserId:     userID,
-		PostId:     postID,
-		CreateTime: util.NowTimestamp(),
+		UserId:    userID,
+		PostId:    postID,
+		CreatedAt: time.Now(),
 	})
 }

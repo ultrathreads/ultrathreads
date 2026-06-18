@@ -63,7 +63,7 @@ export default function MyPostsList({ initialPosts, user, tab }: Props) {
                   </Link>
                   )}
                   <span className="tail">
-                    <RelativeTime timestamp={item.createTime} />
+                    <RelativeTime timestamp={item.createdAt} />
                   </span>
                 </span>
               </div>

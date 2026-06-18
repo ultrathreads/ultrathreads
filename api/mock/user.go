@@ -2,6 +2,8 @@ package mock
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Pallinder/go-randomdata"
 	"github.com/bluele/factory-go/factory"
 
@@ -45,11 +47,11 @@ func userFactory(i int) *factory.Factory {
 	}
 
 	u := &model.User{
-		Username:   util.SqlNullString(username),
-		Password:   util.EncodePassword(password),
-		Status:     model.StatusOk,
-		CreateTime: util.NowTimestamp(),
-		UpdateTime: util.NowTimestamp(),
+		Username:  util.SqlNullString(username),
+		Password:  util.EncodePassword(password),
+		Status:    model.StatusOk,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	r := RandInt(0, len(avatars)-1)

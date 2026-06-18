@@ -3,11 +3,11 @@ package service
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/repository"
-	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -44,11 +44,11 @@ func (s *linkService) List(cnd *querybuilder.QueryBuilder) ([]model.Link, *query
 
 func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
 	link := &model.Link{
-		Title:      req.Title,
-		Url:        req.URL,
-		Summary:    req.Summary,
-		Logo:       req.Logo,
-		CreateTime: util.NowTimestamp(),
+		Title:     req.Title,
+		Url:       req.URL,
+		Summary:   req.Summary,
+		Logo:      req.Logo,
+		CreatedAt: time.Now(),
 	}
 	if err := s.repo.Create(link); err != nil {
 		return nil, err
@@ -58,12 +58,12 @@ func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
 
 func (s *linkService) Update(req dto.LinkUpdateForm) error {
 	return s.repo.Updates(req.ID, map[string]interface{}{
-		"title":       req.Title,
-		"url":         req.URL,
-		"summary":     req.Summary,
-		"logo":        req.Logo,
-		"status":      req.Status,
-		"update_time": util.NowTimestamp(),
+		"title":      req.Title,
+		"url":        req.URL,
+		"summary":    req.Summary,
+		"logo":       req.Logo,
+		"status":     req.Status,
+		"updated_at": time.Now(),
 	})
 }
 
@@ -85,12 +85,12 @@ func (s *linkService) Submit(url, title, summary, logo string) (*model.Link, err
 	}
 
 	link := &model.Link{
-		Url:        url,
-		Title:      title,
-		Summary:    summary,
-		Logo:       logo,
-		Status:     model.StatusPending,
-		CreateTime: util.NowTimestamp(),
+		Url:       url,
+		Title:     title,
+		Summary:   summary,
+		Logo:      logo,
+		Status:    model.StatusPending,
+		CreatedAt: time.Now(),
 	}
 
 	if err := s.repo.Create(link); err != nil {

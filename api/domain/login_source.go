@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 // LoginSource 第三方登录源领域模型
 type LoginSource struct {
 	ID         int64
@@ -9,6 +11,6 @@ type LoginSource struct {
 	TargetType string
 	TargetID   string
 	ExtraData  string
-	CreateTime int64
-	UpdateTime int64
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

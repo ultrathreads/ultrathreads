@@ -58,7 +58,7 @@ func ToNotification(notification *model.Notification) *model.NotificationRespons
 		DetailUrl:    detailUrl,
 		ExtraData:    notification.ExtraData,
 		Status:       notification.Status,
-		CreateTime:   notification.CreateTime,
+		CreatedAt:    notification.CreatedAt,
 	}
 }
 

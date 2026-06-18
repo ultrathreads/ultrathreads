@@ -50,11 +50,11 @@ func (h *LinkHandler) GetToplinks(ctx *gin.Context) {
 
 func (h *LinkHandler) buildLink(link model.Link) map[string]interface{} {
 	return map[string]interface{}{
-		"linkId":     link.ID,
-		"url":        link.Url,
-		"title":      link.Title,
-		"summary":    link.Summary,
-		"logo":       link.Logo,
-		"createTime": link.CreateTime,
+		"linkId":    link.ID,
+		"url":       link.Url,
+		"title":     link.Title,
+		"summary":   link.Summary,
+		"logo":      link.Logo,
+		"createdAt": link.CreatedAt,
 	}
 }

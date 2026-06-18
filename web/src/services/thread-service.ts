@@ -17,8 +17,8 @@ export interface ThreadListItem {
   threadSlug: string;
   parentSlug: string;
   title: string;
-  createTime: number;
-  lastCommentTime: number;
+  createdAt: string;
+  lastRepliedAt: string;
   viewCount: number;
   commentCount: number;
 

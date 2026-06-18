@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 // Notification 消息领域模型
 type Notification struct {
 	ID           int64
@@ -10,5 +12,5 @@ type Notification struct {
 	Type         int
 	ExtraData    string
 	Status       int
-	CreateTime   int64
+	CreatedAt    time.Time
 }

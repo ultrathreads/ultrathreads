@@ -135,15 +135,15 @@ func ToSimplePostsWithIncluded(
 		}
 
 		rsp := model.PostItem{
-			Slug:            postSlug,
-			ParentSlug:      parentSlug,
-			ThreadSlug:      threadSlug,
-			UserSlug:        userSlug,
-			NodeSlug:        nodeSlug,
-			TagSlugs:        tagSlugs,
-			CreateTime:      p.CreateTime,
-			Title:           p.Title,
-			LastCommentTime: p.LastCommentTime,
+			Slug:          postSlug,
+			ParentSlug:    parentSlug,
+			ThreadSlug:    threadSlug,
+			UserSlug:      userSlug,
+			NodeSlug:      nodeSlug,
+			TagSlugs:      tagSlugs,
+			CreatedAt:     p.CreatedAt,
+			Title:         p.Title,
+			LastRepliedAt: p.LastRepliedAt,
 
 			IsRoot:   p.IsRoot(),
 			IsPinned: p.IsPinned,
@@ -159,8 +159,8 @@ func ToSimplePostsWithIncluded(
 			rsp.ViewCount = p.ViewCount
 		}
 
-		rsp.LastCommentTime = p.LastCommentTime
-		rsp.CreateTime = p.CreateTime
+		rsp.LastRepliedAt = p.LastRepliedAt
+		rsp.CreatedAt = p.CreatedAt
 		respList = append(respList, rsp)
 	}
 

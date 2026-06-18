@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"time"
 )
 
 type LoginSource struct {
@@ -12,6 +13,6 @@ type LoginSource struct {
 	TargetType string        `gorm:"size:32;not null;unique_index:idx_user_id_target_type,idx_target;" json:"targetType" form:"targetType"` // 第三方类型
 	TargetID   string        `gorm:"size:64;not null;unique_index:idx_target;" json:"targetId" form:"targetId"`                             // 第三方唯一标识，例如：openId,unionId
 	ExtraData  string        `gorm:"type:longtext" json:"extraData" form:"extraData"`                                                       // 扩展数据
-	CreateTime int64         `json:"createTime" form:"createTime"`                                                                          // 创建时间
-	UpdateTime int64         `json:"updateTime" form:"updateTime"`                                                                          // 更新时间
+	CreatedAt  time.Time     `json:"createdAt" form:"createdAt"`                                                                            // 创建时间
+	UpdatedAt  time.Time     `json:"updatedAt" form:"updatedAt"`                                                                            // 更新时间
 }

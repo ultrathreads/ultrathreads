@@ -57,6 +57,7 @@ func dropAndCreateTable(table interface{}) {
 
 // Mock 执行所有数据填充
 func Mock(db *gorm.DB) {
+	mockDB = db
 	UserTableSeeder(true, 10)
 	RbacTableSeeder(true)
 	NodeTableSeeder(db, true, 4)

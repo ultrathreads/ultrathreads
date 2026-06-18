@@ -9,8 +9,8 @@ export interface ThreadViewItem {
   author: string;
   authorSlug: string;
   avatar?: string; 
-  date: number;            // Unix timestamp (ms)
-  lastCommentTime: number;
+  date: string;            // ISO 8601 时间字符串
+  lastRepliedAt: string;
   isPinned?: boolean;
   node?: { slug: string; name: string; };
   tags?: { slug: string; name: string }[];

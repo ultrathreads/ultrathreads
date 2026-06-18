@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
+	"time"
 	"ultrathreads/model"
 	"ultrathreads/repository"
-	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
 )
@@ -87,9 +87,9 @@ func (s *userWatchService) Watch(userSlug string, userID int64) error {
 		return nil
 	}
 	return s.repo.Create(&model.UserWatch{
-		UserID:     userID,
-		WatcherID:  watchedUserID,
-		CreateTime: util.NowTimestamp(),
+		UserID:    userID,
+		WatcherID: watchedUserID,
+		CreatedAt: time.Now(),
 	})
 }
 

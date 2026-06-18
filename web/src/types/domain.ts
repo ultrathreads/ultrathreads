@@ -18,12 +18,12 @@ export interface PostEntity {
   tags: TagEntity[] | null;
   title: string;
   imageList: string[] | null;
-  lastCommentUser: UserEntity | null;
-  lastCommentTime: number;
+  lastReplyUser: UserEntity | null;
+  lastRepliedAt: string;
   viewCount: number;
   commentCount: number;
   likeCount: number;
-  createTime: number;
+  createdAt: string;
   content?: string;
   rawContent?: string;
   toc?: string;
@@ -42,7 +42,7 @@ export interface UserEntity {
   commentCount: number;
   passwordSet: boolean;
   status: number;
-  createTime: number;
+  createdAt: string;
 }
 
 export interface TagEntity {

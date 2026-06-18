@@ -109,7 +109,7 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]do
 
 	rootCnd = rootCnd.
 		Desc("is_pinned").
-		Desc("last_comment_time").
+		Desc("last_replied_at").
 		Page(page, limit)
 
 	rootPosts, paging := s.repo.List(rootCnd)
@@ -117,31 +117,7 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]do
 		return []domain.Post{}, paging
 	}
 
-	threadIds := make([]int64, 0, len(rootPosts))
-	for _, p := range rootPosts {
-		threadIds = append(threadIds, p.ID)
-	}
-
-	allCnd := querybuilder.NewQueryBuilder().
-		In("thread_id", threadIds).
-		Eq("status", model.StatusOk).
-		Asc("create_time")
-
-	allPosts := s.repo.Find(allCnd)
-
-	postMap := make(map[int64][]model.Post, len(threadIds))
-	for _, p := range allPosts {
-		postMap[p.ThreadId] = append(postMap[p.ThreadId], p)
-	}
-
-	result := make([]model.Post, 0, len(allPosts))
-	for _, tid := range threadIds {
-		if posts, ok := postMap[tid]; ok {
-			result = append(result, posts...)
-		}
-	}
-
-	return toDomainPosts(result), paging
+	return s.expandThreadPosts(rootPosts), paging
 }
 
 func (s *postService) GetTagThreadsFull(tagSlug string, page int) ([]domain.Post, *querybuilder.Paging) {
@@ -155,7 +131,7 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) ([]domain.Post
 		Eq("parent_id", 0).
 		Eq("status", model.StatusOk).
 		Where("id IN (?)", subQuery).
-		Desc("last_comment_time").
+		Desc("last_replied_at").
 		Page(page, 20)
 
 	rootPosts, paging := s.repo.List(rootCnd)
@@ -163,17 +139,20 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) ([]domain.Post
 		return []domain.Post{}, paging
 	}
 
+	return s.expandThreadPosts(rootPosts), paging
+}
+
+// expandThreadPosts 根据根帖列表，查询并组装完整的帖子树（含回帖），保持根帖顺序
+func (s *postService) expandThreadPosts(rootPosts []model.Post) []domain.Post {
 	threadIds := make([]int64, 0, len(rootPosts))
 	for _, p := range rootPosts {
 		threadIds = append(threadIds, p.ID)
 	}
 
-	allCnd := querybuilder.NewQueryBuilder().
+	allPosts := s.repo.Find(querybuilder.NewQueryBuilder().
 		In("thread_id", threadIds).
 		Eq("status", model.StatusOk).
-		Asc("create_time")
-
-	allPosts := s.repo.Find(allCnd)
+		Asc("created_at"))
 
 	postMap := make(map[int64][]model.Post, len(threadIds))
 	for _, p := range allPosts {
@@ -187,7 +166,7 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) ([]domain.Post
 		}
 	}
 
-	return toDomainPosts(result), paging
+	return toDomainPosts(result)
 }
 
 func (s *postService) GetPostTree(postSlug string) (*domain.Post, []domain.Post, error) {
@@ -206,7 +185,7 @@ func (s *postService) GetPostTree(postSlug string) (*domain.Post, []domain.Post,
 		cnd := querybuilder.NewQueryBuilder().
 			Eq("thread_id", currentPost.ThreadId).
 			Eq("status", model.StatusOk).
-			Asc("create_time")
+			Asc("created_at")
 		posts = s.repo.Find(cnd)
 	}
 
@@ -226,7 +205,7 @@ func (s *postService) GetPostsByThreadId(slug string) ([]domain.Post, error) {
 	cnd := querybuilder.NewQueryBuilder().
 		Eq("thread_id", threadId).
 		Eq("status", model.StatusOk).
-		Asc("create_time")
+		Asc("created_at")
 
 	posts := s.repo.Find(cnd)
 	if posts == nil {
@@ -287,16 +266,16 @@ func (s *postService) CreateRootPost(userID int64, cmd domain.CreatePostCommand)
 		return nil, errors.New("节点不存在或已禁用")
 	}
 
-	now := util.NowTimestamp()
+	now := time.Now()
 	post := &model.Post{
-		Type:            model.PostTypeNormal,
-		UserId:          userID,
-		NodeId:          nodeID,
-		Title:           cmd.Title,
-		Content:         cmd.Content,
-		Status:          model.StatusOk,
-		LastCommentTime: now,
-		CreateTime:      now,
+		Type:          model.PostTypeNormal,
+		UserId:        userID,
+		NodeId:        nodeID,
+		Title:         cmd.Title,
+		Content:       cmd.Content,
+		Status:        model.StatusOk,
+		LastRepliedAt: now,
+		CreatedAt:     now,
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -350,14 +329,14 @@ func (s *postService) CreateReply(userID int64, cmd domain.CreateReplyCommand) (
 	}
 
 	title := util.ExtractReplyTitle(cmd.Content, 20)
-	now := util.NowTimestamp()
+	now := time.Now()
 	post := &model.Post{
-		Type:       model.PostTypeNormal,
-		UserId:     userID,
-		Title:      title,
-		Content:    cmd.Content,
-		Status:     model.StatusOk,
-		CreateTime: now,
+		Type:      model.PostTypeNormal,
+		UserId:    userID,
+		Title:     title,
+		Content:   cmd.Content,
+		Status:    model.StatusOk,
+		CreatedAt: now,
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -380,7 +359,7 @@ func (s *postService) CreateReply(userID int64, cmd domain.CreateReplyCommand) (
 
 		if err := tx.Model(&model.Post{}).
 			Where("id = ?", threadId).
-			UpdateColumn("last_comment_time", now).Error; err != nil {
+			UpdateColumn("last_replied_at", now).Error; err != nil {
 			return fmt.Errorf("更新根帖最后评论时间失败: %w", err)
 		}
 
@@ -391,7 +370,7 @@ func (s *postService) CreateReply(userID int64, cmd domain.CreateReplyCommand) (
 		return nil, err
 	}
 
-	return s.toDomainPost(post), nil
+	return toDomainPost(post), nil
 }
 
 func (s *postService) UpdateReply(cmd domain.UpdateReplyCommand) error {
@@ -444,26 +423,25 @@ func toDomainPost(m *model.Post) *domain.Post {
 		return nil
 	}
 	return &domain.Post{
-		ID:                m.ID,
-		ThreadId:          m.ThreadId,
-		ParentId:          m.ParentId,
-		Type:              m.Type,
-		NodeId:            m.NodeId,
-		UserId:            m.UserId,
-		Title:             m.Title,
-		Content:           m.Content,
-		ImageList:         m.ImageList,
-		IsPinned:          m.IsPinned,
-		Recommend:         m.Recommend,
-		ViewCount:         m.ViewCount,
-		LikeCount:         m.LikeCount,
-		Status:            m.Status,
-		LastCommentUserId: m.LastCommentUserId,
-		LastCommentTime:   m.LastCommentTime,
-		CreateTime:        m.CreateTime,
-		CreatedAt:         m.CreatedAt,
-		UpdatedAt:         m.UpdatedAt,
-		ExtraData:         m.ExtraData,
+		ID:              m.ID,
+		ThreadId:        m.ThreadId,
+		ParentId:        m.ParentId,
+		Type:            m.Type,
+		NodeId:          m.NodeId,
+		UserId:          m.UserId,
+		Title:           m.Title,
+		Content:         m.Content,
+		ImageList:       m.ImageList,
+		IsPinned:        m.IsPinned,
+		Recommend:       m.Recommend,
+		ViewCount:       m.ViewCount,
+		LikeCount:       m.LikeCount,
+		Status:          m.Status,
+		LastReplyUserId: m.LastReplyUserId,
+		LastRepliedAt:   m.LastRepliedAt,
+		CreatedAt:       m.CreatedAt,
+		UpdatedAt:       m.UpdatedAt,
+		ExtraData:       m.ExtraData,
 	}
 }
 
@@ -492,14 +470,14 @@ func (s *postService) IncrViewCount(postId int64) {
 func (s *postService) OnComment(postId, lastCommentUserId, lastCommentTime int64) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postId).Updates(map[string]interface{}{
-			"comment_count":        gorm.Expr("comment_count + ?", 1),
-			"last_comment_user_id": lastCommentUserId,
-			"last_comment_time":    lastCommentTime,
+			"comment_count":      gorm.Expr("comment_count + ?", 1),
+			"last_reply_user_id": lastCommentUserId,
+			"last_replied_at":    lastCommentTime,
 		}).Error; err != nil {
 			return err
 		}
 		if err := tx.Model(&model.PostTag{}).Where("post_id = ?", postId).Updates(map[string]interface{}{
-			"last_comment_time": lastCommentTime,
+			"last_replied_at": lastCommentTime,
 		}).Error; err != nil {
 			return err
 		}
@@ -527,7 +505,7 @@ func (s *postService) GenerateRss() {
 			Link:        &feeds.Link{Href: postUrl},
 			Description: util.GetMarkdownSummary(post.Content),
 			Author:      &feeds.Author{Name: user.Avatar, Email: user.Email.String},
-			Created:     util.TimeFromTimestamp(post.CreateTime),
+			Created:     post.CreatedAt,
 		}
 		items = append(items, item)
 	}
@@ -565,42 +543,13 @@ func (s *postService) ScanDesc(dateFrom, dateTo int64, cb ScanPostCallback) {
 	for {
 		list := s.repo.Find(querybuilder.NewQueryBuilder().
 			Lt("id", cursor).
-			Gte("create_time", dateFrom).
-			Lt("create_time", dateTo).
+			Gte("created_at", dateFrom).
+			Lt("created_at", dateTo).
 			Desc("id").Limit(1000))
 		if len(list) == 0 {
 			break
 		}
 		cursor = list[len(list)-1].ID
 		cb(toDomainPosts(list))
-	}
-}
-
-// toDomainPost 将 model.Post 转换为 domain.Post
-func (s *postService) toDomainPost(m *model.Post) *domain.Post {
-	if m == nil {
-		return nil
-	}
-	return &domain.Post{
-		ID:                m.ID,
-		ThreadId:          m.ThreadId,
-		ParentId:          m.ParentId,
-		Type:              m.Type,
-		NodeId:            m.NodeId,
-		UserId:            m.UserId,
-		Title:             m.Title,
-		Content:           m.Content,
-		ImageList:         m.ImageList,
-		IsPinned:          m.IsPinned,
-		Recommend:         m.Recommend,
-		ViewCount:         m.ViewCount,
-		LikeCount:         m.LikeCount,
-		Status:            m.Status,
-		LastCommentUserId: m.LastCommentUserId,
-		LastCommentTime:   m.LastCommentTime,
-		CreateTime:        m.CreateTime,
-		CreatedAt:         m.CreatedAt,
-		UpdatedAt:         m.UpdatedAt,
-		ExtraData:         m.ExtraData,
 	}
 }

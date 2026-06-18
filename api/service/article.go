@@ -88,8 +88,8 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 		Status:      model.StatusOk,
 		Share:       false,
 		SourceUrl:   "",
-		CreateTime:  util.NowTimestamp(),
-		UpdateTime:  util.NowTimestamp(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -109,9 +109,9 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 func (s *articleService) Update(req dto.ArticleUpdateForm) error {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Article{}).Where("id = ?", req.ID).Updates(map[string]interface{}{
-			"title":       req.Title,
-			"content":     req.Content,
-			"update_time": util.NowTimestamp(),
+			"title":      req.Title,
+			"content":    req.Content,
+			"updated_at": time.Now(),
 		}).Error; err != nil {
 			return err
 		}
@@ -223,8 +223,8 @@ func (s *articleService) GetUserNewestArticles(userId int64) []model.Article {
 func (s *articleService) ScanDesc(dateFrom, dateTo int64, cb ScanArticleCallback) {
 	var cursor int64 = math.MaxInt64
 	for {
-		list := s.repo.Find(querybuilder.NewQueryBuilder("id", "status", "create_time", "update_time").
-			Lt("id", cursor).Gte("create_time", dateFrom).Lt("create_time", dateTo).Desc("id").Limit(1000))
+		list := s.repo.Find(querybuilder.NewQueryBuilder("id", "status", "created_at", "updated_at").
+			Lt("id", cursor).Gte("created_at", dateFrom).Lt("created_at", dateTo).Desc("id").Limit(1000))
 		if len(list) == 0 {
 			break
 		}
@@ -255,7 +255,7 @@ func (s *articleService) GenerateRss() {
 			Link:        &feeds.Link{Href: articleUrl},
 			Description: description,
 			Author:      &feeds.Author{Name: user.Avatar, Email: user.Email.String},
-			Created:     util.TimeFromTimestamp(article.CreateTime),
+			Created:     article.CreatedAt,
 		}
 		items = append(items, item)
 	}

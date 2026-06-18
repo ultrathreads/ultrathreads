@@ -36,7 +36,7 @@ func ToUser(user *model.User) *model.UserInfo {
 		CommentCount: user.CommentCount,
 		PasswordSet:  len(user.Password) > 0,
 		Status:       user.Status,
-		CreateTime:   user.CreateTime,
+		CreatedAt:    user.CreatedAt,
 	}
 
 	// 黑名单用户脱敏处理

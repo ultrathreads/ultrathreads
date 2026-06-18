@@ -15,7 +15,7 @@ export interface MyRootPostListItem {
   slug: string;
   threadSlug: string;
   title: string;
-  createTime: number;
+  createdAt: string;
   user: Pick<UserEntity, 'slug' | 'username' | 'nickname'>;
   node: Pick<NodeEntity, 'slug' | 'name'> | null;
 }
@@ -29,7 +29,7 @@ export interface MyReplyPostListItem {
   parentSlug: string | null;
   parentTitle: string | null;
   content: string;
-  createTime: number;
+  createdAt: string;
   user: Pick<UserEntity, 'slug' | 'username' | 'nickname'>;
   node: Pick<NodeEntity, 'slug' | 'name'> | null;
 }

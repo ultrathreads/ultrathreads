@@ -2,11 +2,11 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"ultrathreads/cache"
 	"ultrathreads/model"
 	"ultrathreads/repository"
-	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -110,12 +110,12 @@ func (s *userScoreService) addScore(userId int64, score int, sourceType, sourceI
 	userScore := s.GetByUserId(userId)
 	if userScore == nil {
 		userScore = &model.UserScore{
-			UserId:     userId,
-			CreateTime: util.NowTimestamp(),
+			UserId:    userId,
+			CreatedAt: time.Now(),
 		}
 	}
 	userScore.Score = userScore.Score + score
-	userScore.UpdateTime = util.NowTimestamp()
+	userScore.UpdatedAt = time.Now()
 	if err := s.CreateOrUpdate(userScore); err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (s *userScoreService) addScore(userId int64, score int, sourceType, sourceI
 		Description: description,
 		Type:        scoreType,
 		Score:       score,
-		CreateTime:  util.NowTimestamp(),
+		CreatedAt:   time.Now(),
 	})
 	if err == nil {
 		s.userCache.InvalidateScore(userId)

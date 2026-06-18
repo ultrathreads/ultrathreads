@@ -2,12 +2,12 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"ultrathreads/cache"
 	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/repository"
-	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
@@ -61,7 +61,7 @@ func (s *nodeService) Create(req dto.NodeCreateForm) (*model.Node, error) {
 		Icon:        req.Icon,
 		SortNo:      req.SortNo,
 		Status:      req.Status,
-		CreateTime:  util.NowTimestamp(),
+		CreatedAt:   time.Now(),
 	}
 	if err := s.repo.Create(node); err != nil {
 		return nil, errors.New("创建节点失败")

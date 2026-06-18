@@ -5,9 +5,9 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/model"
+	"ultrathreads/util/hashid"
 	"ultrathreads/util/markdown"
 	"ultrathreads/util/strtrim"
-	"ultrathreads/util/hashid"
 )
 
 func ToArticle(article *model.Article, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *model.ArticleResponse {
@@ -22,7 +22,7 @@ func ToArticle(article *model.Article, articleTagCache cache.ArticleTagCacheInte
 	rsp.Share = article.Share
 	rsp.SourceUrl = article.SourceUrl
 	rsp.ViewCount = article.ViewCount
-	rsp.CreateTime = article.CreateTime
+	rsp.CreatedAt = article.CreatedAt
 
 	//rsp.User = ToUserDefaultIfNull(article.UserId)
 
@@ -71,7 +71,7 @@ func ToSimpleArticle(article *model.Article, articleTagCache cache.ArticleTagCac
 	rsp.Share = article.Share
 	rsp.SourceUrl = article.SourceUrl
 	rsp.ViewCount = article.ViewCount
-	rsp.CreateTime = article.CreateTime
+	rsp.CreatedAt = article.CreatedAt
 
 	//rsp.User = ToUserDefaultIfNull(article.UserId)
 
