@@ -7,8 +7,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// PostLikeServicer 点赞业务契约
-type PostLikeServicer interface {
+// PostLikeService 点赞业务契约
+type PostLikeService interface {
 	Get(id int64) *model.PostLike
 	Take(where ...interface{}) *model.PostLike
 	Find(cnd *querybuilder.QueryBuilder) []model.PostLike
@@ -23,7 +23,7 @@ type PostLikeServicer interface {
 	Like(userID, postID int64) error
 }
 
-func NewPostLikeService(repo repository.PostLikeRepository) PostLikeServicer {
+func NewPostLikeService(repo repository.PostLikeRepository) PostLikeService {
 	return &postLikeService{repo: repo}
 }
 

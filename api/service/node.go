@@ -14,7 +14,7 @@ import (
 )
 
 // Controller 层依赖的业务接口
-type NodeServicer interface {
+type NodeService interface {
 	Get(id int64) *model.Node
 	GetBySlug(slug string) *model.Node
 	List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
@@ -26,7 +26,7 @@ type NodeServicer interface {
 	GetNodes() []model.Node
 }
 
-func NewNodeService(repo repository.NodeRepository, nodeCache cache.NodeCacheInterface) NodeServicer {
+func NewNodeService(repo repository.NodeRepository, nodeCache cache.NodeCacheInterface) NodeService {
 	return &nodeService{
 		repo:      repo,
 		nodeCache: nodeCache,
@@ -113,7 +113,7 @@ func (s *nodeService) GetRecommendNodes() []model.Node {
 }
 
 func (s *nodeService) GetNodes() []model.Node {
-	// 获取全量节点可以走 GetAll 缓存
+	// 获取全量节点，优先走 GetAll 缓存
 	if nodes := s.nodeCache.GetAll(); len(nodes) > 0 {
 		return nodes
 	}

@@ -12,13 +12,13 @@ import (
 
 type SiteHandler struct {
 	base.BaseHandler
-	settingSvc       service.SettingServicer
-	appinfoSvc       service.AppinfoServicer
-	userReadStateSvc service.UserReadStateServicer
+	settingSvc       service.SettingService
+	appinfoSvc       service.AppinfoService
+	userReadStateSvc service.UserReadStateService
 	statCache        cache.StatCacheInterface
 }
 
-func NewSiteHandler(settingSvc service.SettingServicer, appinfoSvc service.AppinfoServicer, userReadStateSvc service.UserReadStateServicer, statCache cache.StatCacheInterface) *SiteHandler {
+func NewSiteHandler(settingSvc service.SettingService, appinfoSvc service.AppinfoService, userReadStateSvc service.UserReadStateService, statCache cache.StatCacheInterface) *SiteHandler {
 	return &SiteHandler{settingSvc: settingSvc, appinfoSvc: appinfoSvc, userReadStateSvc: userReadStateSvc, statCache: statCache}
 }
 

@@ -11,8 +11,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// LinkServicer 链接业务契约
-type LinkServicer interface {
+// LinkService 链接业务契约
+type LinkService interface {
 	Get(id int64) *model.Link
 	Find(cnd *querybuilder.QueryBuilder) []model.Link
 	List(cnd *querybuilder.QueryBuilder) ([]model.Link, *querybuilder.Paging)
@@ -22,7 +22,7 @@ type LinkServicer interface {
 	Submit(url, title, summary, logo string) (*model.Link, error)
 }
 
-func NewLinkService(repo repository.LinkRepository) LinkServicer {
+func NewLinkService(repo repository.LinkRepository) LinkService {
 	return &linkService{repo: repo}
 }
 

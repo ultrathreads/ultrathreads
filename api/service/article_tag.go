@@ -6,8 +6,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// ArticleTagServicer 文章标签关联业务契约
-type ArticleTagServicer interface {
+// ArticleTagService 文章标签关联业务契约
+type ArticleTagService interface {
 	Get(id int64) *model.ArticleTag
 	Take(where ...interface{}) *model.ArticleTag
 	Find(cnd *querybuilder.QueryBuilder) []model.ArticleTag
@@ -19,7 +19,7 @@ type ArticleTagServicer interface {
 	DeleteByArticleId(postId int64)
 }
 
-func NewArticleTagService(repo repository.ArticleTagRepository) ArticleTagServicer {
+func NewArticleTagService(repo repository.ArticleTagRepository) ArticleTagService {
 	return &articleTagService{repo: repo}
 }
 

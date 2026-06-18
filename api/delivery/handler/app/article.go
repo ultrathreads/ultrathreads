@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/render"
 	"ultrathreads/service"
@@ -18,13 +18,13 @@ import (
 
 type ArticleHandler struct {
 	base.BaseHandler
-	articleSvc      service.ArticleServicer
-	favoriteSvc     service.FavoriteServicer
+	articleSvc      service.ArticleService
+	favoriteSvc     service.FavoriteService
 	articleTagCache cache.ArticleTagCacheInterface
 	tagCache        cache.TagCacheInterface
 }
 
-func NewArticleHandler(articleSvc service.ArticleServicer, favoriteSvc service.FavoriteServicer, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *ArticleHandler {
+func NewArticleHandler(articleSvc service.ArticleService, favoriteSvc service.FavoriteService, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *ArticleHandler {
 	return &ArticleHandler{
 		articleSvc:      articleSvc,
 		favoriteSvc:     favoriteSvc,
@@ -82,7 +82,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 			return
 		}
 		if article.UserId != user.ID {
-			h.Fail(ctx, util.NewErrorMsg("无权限"))
+			h.Fail(ctx, util.NewErrorMsg("无权操作"))
 			return
 		}
 
@@ -123,7 +123,7 @@ func (h *ArticleHandler) Update(ctx *gin.Context) {
 	}
 
 	if article.UserId != user.ID {
-		h.Fail(ctx, util.NewErrorMsg("无权限"))
+		h.Fail(ctx, util.NewErrorMsg("无权操作"))
 		return
 	}
 

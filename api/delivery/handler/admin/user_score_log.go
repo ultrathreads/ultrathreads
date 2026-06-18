@@ -16,10 +16,10 @@ import (
 // UserScoreLogHandler user score controller
 type UserScoreLogHandler struct {
 	base.BaseHandler
-	userScoreLogSvc service.UserScoreLogServicer
+	userScoreLogSvc service.UserScoreLogService
 }
 
-func NewUserScoreLogHandler(userScoreLogSvc service.UserScoreLogServicer) *UserScoreLogHandler {
+func NewUserScoreLogHandler(userScoreLogSvc service.UserScoreLogService) *UserScoreLogHandler {
 	return &UserScoreLogHandler{userScoreLogSvc: userScoreLogSvc}
 }
 

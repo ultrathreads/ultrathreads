@@ -17,8 +17,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// SettingServicer 系统设置业务契约
-type SettingServicer interface {
+// SettingService 系统设置业务契约
+type SettingService interface {
 	Get(id int64) *model.Setting
 	Take(where ...interface{}) *model.Setting
 	Find(cnd *querybuilder.QueryBuilder) []model.Setting
@@ -31,7 +31,7 @@ type SettingServicer interface {
 	GetSetting() *model.ConfigData
 }
 
-func NewSettingService(repo repository.SettingRepository, settingCache cache.SettingCacheInterface) SettingServicer {
+func NewSettingService(repo repository.SettingRepository, settingCache cache.SettingCacheInterface) SettingService {
 	return &settingService{repo: repo, settingCache: settingCache}
 }
 

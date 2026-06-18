@@ -9,7 +9,7 @@ import (
 )
 
 // AdminRequired 校验用户是否具有超级管理员权限或后台管理准入资格
-func AdminRequired(rbacSvc service.RbacServicer) gin.HandlerFunc {
+func AdminRequired(rbacSvc service.RbacService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user := GetCurrent(ctx)
 		if user == nil {

@@ -22,12 +22,12 @@ import (
 // ArticleHandler article controller
 type ArticleHandler struct {
 	base.BaseHandler
-	articleSvc      service.ArticleServicer
+	articleSvc      service.ArticleService
 	articleTagCache cache.ArticleTagCacheInterface
 	tagCache        cache.TagCacheInterface
 }
 
-func NewArticleHandler(articleSvc service.ArticleServicer, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *ArticleHandler {
+func NewArticleHandler(articleSvc service.ArticleService, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *ArticleHandler {
 	return &ArticleHandler{
 		articleSvc:      articleSvc,
 		articleTagCache: articleTagCache,

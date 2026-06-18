@@ -7,8 +7,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// UserReadStateServicer 用户阅读状态业务契约
-type UserReadStateServicer interface {
+// UserReadStateService 用户阅读状态业务契约
+type UserReadStateService interface {
 	Get(id int64) *model.UserReadState
 	Take(where ...interface{}) *model.UserReadState
 	Find(cnd *querybuilder.QueryBuilder) []model.UserReadState
@@ -23,7 +23,7 @@ type UserReadStateServicer interface {
 	MarkAsRead(userID int64, nodeSlug string, now int64) error
 }
 
-func NewUserReadStateService(repo repository.UserReadStateRepository) UserReadStateServicer {
+func NewUserReadStateService(repo repository.UserReadStateRepository) UserReadStateService {
 	return &userReadStateService{repo: repo}
 }
 

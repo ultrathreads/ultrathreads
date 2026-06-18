@@ -42,7 +42,7 @@ type LoginResponseData struct {
 }
 
 // JwtAuth 初始化 JWT 中间件
-func JwtAuth(loginType int, userSvc service.UserServicer, loginSourceSvc service.LoginSourceServicer) *jwt.GinJWTMiddleware {
+func JwtAuth(loginType int, userSvc service.UserService, loginSourceSvc service.LoginSourceService) *jwt.GinJWTMiddleware {
 	jwtMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "Jwt",
 		Key:         []byte(viper.GetString("jwt.key")),
@@ -124,7 +124,7 @@ func JwtAuth(loginType int, userSvc service.UserServicer, loginSourceSvc service
 }
 
 // authenticator 标准用户名密码登录验证
-func authenticator(c *gin.Context, userSvc service.UserServicer) (interface{}, error) {
+func authenticator(c *gin.Context, userSvc service.UserService) (interface{}, error) {
 	var loginDto LoginDto
 	if err := binding.Bind(c, &loginDto); err != nil {
 		return "", err
@@ -143,7 +143,7 @@ func authenticator(c *gin.Context, userSvc service.UserServicer) (interface{}, e
 }
 
 // authenticatorOAuth OAuth 第三方登录验证
-func authenticatorOAuth(c *gin.Context, userSvc service.UserServicer, loginSourceSvc service.LoginSourceServicer) (interface{}, error) {
+func authenticatorOAuth(c *gin.Context, userSvc service.UserService, loginSourceSvc service.LoginSourceService) (interface{}, error) {
 	provider := c.Param("provider")
 
 	var oauthDto LoginOAuthDto

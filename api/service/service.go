@@ -9,26 +9,26 @@ import (
 
 // Services 聚合所有服务实例，作为统一的服务访问入口
 type Services struct {
-	Node          NodeServicer
-	Post          PostServicer
-	User          UserServicer
-	Article       ArticleServicer
-	ArticleTag    ArticleTagServicer
-	Favorite      FavoriteServicer
-	Link          LinkServicer
-	LoginSource   LoginSourceServicer
-	Notification  NotificationServicer
-	PostLike      PostLikeServicer
-	PostTag       PostTagServicer
-	Rbac          RbacServicer
-	Setting       SettingServicer
-	Tag           TagServicer
-	UserReadState UserReadStateServicer
-	UserScore     UserScoreServicer
-	UserScoreLog  UserScoreLogServicer
-	UserWatch     UserWatchServicer
-	Appinfo       AppinfoServicer
-	Statistic     StatisticServicer
+	Node          NodeService
+	Post          PostService
+	User          UserService
+	Article       ArticleService
+	ArticleTag    ArticleTagService
+	Favorite      FavoriteService
+	Link          LinkService
+	LoginSource   LoginSourceService
+	Notification  NotificationService
+	PostLike      PostLikeService
+	PostTag       PostTagService
+	Rbac          RbacService
+	Setting       SettingService
+	Tag           TagService
+	UserReadState UserReadStateService
+	UserScore     UserScoreService
+	UserScoreLog  UserScoreLogService
+	UserWatch     UserWatchService
+	Appinfo       AppinfoService
+	Statistic     StatisticService
 }
 
 // NewServices 集中初始化所有服务
@@ -50,7 +50,7 @@ func NewServices(repos *repository.Repositories, caches *cache.Caches, db *gorm.
 	favoriteSvc := NewFavoriteService(repos.Favorite, repos.Article, repos.Post)
 	userScoreSvc := NewUserScoreService(repos.UserScore, scoreLogSvc, caches.User)
 
-	// 创建依赖其他服务的服务
+	// 创建依赖其他服务
 	postSvc := NewPostService(repos.Post, repos.Node, postTagSvc, settingSvc, caches.Tag, caches.User, caches.Setting, db)
 	userSvc := NewUserService(repos.User, repos.Post, caches.User, db)
 	articleSvc := NewArticleService(repos.Article, repos.Tag, repos.ArticleTag, articleTagSvc, caches.ArticleTag, caches.Tag, caches.User, caches.Setting, db)

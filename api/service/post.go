@@ -24,8 +24,8 @@ import (
 
 type ScanPostCallback func(posts []domain.Post)
 
-// PostServicer 帖子业务契约
-type PostServicer interface {
+// PostService 帖子业务契约
+type PostService interface {
 	Get(id int64) *domain.Post
 	GetBySlug(slug string) *domain.Post
 	Find(cnd *querybuilder.QueryBuilder) []domain.Post
@@ -51,7 +51,7 @@ type PostServicer interface {
 	ScanDesc(dateFrom, dateTo int64, cb ScanPostCallback)
 }
 
-func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepository, postTagSvc PostTagServicer, settingSvc SettingServicer, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) PostServicer {
+func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepository, postTagSvc PostTagService, settingSvc SettingService, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) PostService {
 	return &postService{
 		repo:         repo,
 		nodeRepo:     nodeRepo,
@@ -67,8 +67,8 @@ func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepo
 type postService struct {
 	repo         repository.PostRepository
 	nodeRepo     repository.NodeRepository
-	postTagSvc   PostTagServicer
-	settingSvc   SettingServicer
+	postTagSvc   PostTagService
+	settingSvc   SettingService
 	tagCache     cache.TagCacheInterface
 	userCache    cache.UserCacheInterface
 	settingCache cache.SettingCacheInterface

@@ -9,8 +9,8 @@ import (
 // 后台管理准入权限码（与数据库 permissions.code 对应）
 const PermAdminPanelAccess = "admin:panel:access"
 
-// RbacServicer RBAC 业务契约
-type RbacServicer interface {
+// RbacService RBAC 业务契约
+type RbacService interface {
 	CanAccessAdminPanel(userID int64) bool
 	HasPermission(userID int64, code string) bool
 	GetUserRoles(userID int64) []string
@@ -18,7 +18,7 @@ type RbacServicer interface {
 	InvalidateUserCache(userID int64)
 }
 
-func NewRbacService(repo repository.RbacRepository) RbacServicer {
+func NewRbacService(repo repository.RbacRepository) RbacService {
 	return &rbacService{
 		repo:  repo,
 		cache: make(map[int64]*permCacheEntry),

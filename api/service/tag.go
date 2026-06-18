@@ -14,8 +14,8 @@ import (
 
 type ScanTagCallback func(tags []model.Tag) bool
 
-// TagServicer 标签业务契约
-type TagServicer interface {
+// TagService 标签业务契约
+type TagService interface {
 	Get(id int64) *model.Tag
 	GetBySlug(slug string) *model.Tag
 	Take(where ...interface{}) *model.Tag
@@ -33,7 +33,7 @@ type TagServicer interface {
 	Scan(cb ScanTagCallback)
 }
 
-func NewTagService(repo repository.TagRepository, tagCache cache.TagCacheInterface) TagServicer {
+func NewTagService(repo repository.TagRepository, tagCache cache.TagCacheInterface) TagService {
 	return &tagService{repo: repo, tagCache: tagCache}
 }
 

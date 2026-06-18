@@ -5,12 +5,12 @@ import (
 	"ultrathreads/model"
 )
 
-// AppinfoServicer 应用信息业务契约
-type AppinfoServicer interface {
+// AppinfoService 应用信息业务契约
+type AppinfoService interface {
 	GetAppinfo() *model.AppData
 }
 
-func NewAppinfoService() AppinfoServicer {
+func NewAppinfoService() AppinfoService {
 	return &appinfoService{}
 }
 

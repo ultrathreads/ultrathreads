@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/bus/event"
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/domain"
 	"ultrathreads/dto"
-	"ultrathreads/delivery/handler/base"
 	"ultrathreads/model"
 	"ultrathreads/render"
 	"ultrathreads/service"
@@ -18,13 +18,13 @@ import (
 
 type PostHandler struct {
 	base.BaseHandler
-	postSvc     service.PostServicer
-	userSvc     service.UserServicer
-	postLikeSvc service.PostLikeServicer
-	favoriteSvc service.FavoriteServicer
+	postSvc     service.PostService
+	userSvc     service.UserService
+	postLikeSvc service.PostLikeService
+	favoriteSvc service.FavoriteService
 }
 
-func NewPostHandler(postSvc service.PostServicer, userSvc service.UserServicer, postLikeSvc service.PostLikeServicer, favoriteSvc service.FavoriteServicer) *PostHandler {
+func NewPostHandler(postSvc service.PostService, userSvc service.UserService, postLikeSvc service.PostLikeService, favoriteSvc service.FavoriteService) *PostHandler {
 	return &PostHandler{
 		postSvc:     postSvc,
 		userSvc:     userSvc,
@@ -244,7 +244,7 @@ func (h *PostHandler) UpdateRootPost(ctx *gin.Context) {
 	}
 
 	if post.UserId != user.ID {
-		h.Fail(ctx, util.NewErrorMsg("无权限"))
+		h.Fail(ctx, util.NewErrorMsg("无权操作"))
 		return
 	}
 
@@ -317,7 +317,7 @@ func (h *PostHandler) UpdateReply(ctx *gin.Context) {
 	}
 
 	if post.UserId != user.ID {
-		h.Fail(ctx, util.NewErrorMsg("无权限"))
+		h.Fail(ctx, util.NewErrorMsg("无权操作"))
 		return
 	}
 

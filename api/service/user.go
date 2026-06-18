@@ -28,8 +28,8 @@ var (
 	errAccountLocked  = errors.New("账号已被锁定,请联系管理员")
 )
 
-// UserServicer 用户业务契约
-type UserServicer interface {
+// UserService 用户业务契约
+type UserService interface {
 	Get(id int64) *model.User
 	GetBySlug(slug string) *model.User
 	Take(where ...interface{}) *model.User
@@ -56,7 +56,7 @@ type UserServicer interface {
 	VerifyAndReturnUserInfo(username, password string) (bool, error, model.User)
 }
 
-func NewUserService(repo repository.UserRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, db *gorm.DB) UserServicer {
+func NewUserService(repo repository.UserRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, db *gorm.DB) UserService {
 	return &userService{repo: repo, postRepo: postRepo, userCache: userCache, db: db}
 }
 
@@ -165,7 +165,7 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 		return nil, err
 	}
 	if s.repo.GetByEmail(email) != nil {
-		return nil, errors.New("邮箱：" + email + " 已被占用")
+		return nil, errors.New("邮箱" + email + " 已被占用")
 	}
 	if err := util.IsValidateUsername(username); err != nil {
 		return nil, err
@@ -299,7 +299,7 @@ func (s *userService) SetUsername(userId int64, username string) error {
 		return errors.New("用户不存在")
 	}
 	if len(user.Username.String) > 0 {
-		return errors.New("你已设置了用户名，无法重复设置。")
+		return errors.New("你已设置了用户名，无法重复设置")
 	}
 	if s.isUsernameExists(username) {
 		return errors.New("用户名：" + username + " 已被占用")
@@ -313,7 +313,7 @@ func (s *userService) SetEmail(userId int64, email string) error {
 		return err
 	}
 	if s.isEmailExists(email) {
-		return errors.New("邮箱：" + email + " 已被占用")
+		return errors.New("邮箱" + email + " 已被占用")
 	}
 	return s.UpdateColumn(userId, "email", email)
 }
@@ -327,7 +327,7 @@ func (s *userService) SetPassword(userId int64, password, rePassword string) err
 		return errors.New("用户不存在")
 	}
 	if len(user.Password) > 0 {
-		return errors.New("你已设置了密码，如需修改请前往修改页面。")
+		return errors.New("你已设置了密码，如需修改请前往修改页面")
 	}
 	return s.UpdateColumn(userId, "password", util.EncodePassword(password))
 }

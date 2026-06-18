@@ -20,11 +20,11 @@ import (
 // PostHandler post controller
 type PostHandler struct {
 	base.BaseHandler
-	postSvc service.PostServicer
-	nodeSvc service.NodeServicer
+	postSvc service.PostService
+	nodeSvc service.NodeService
 }
 
-func NewPostHandler(postSvc service.PostServicer, nodeSvc service.NodeServicer) *PostHandler {
+func NewPostHandler(postSvc service.PostService, nodeSvc service.NodeService) *PostHandler {
 	return &PostHandler{postSvc: postSvc, nodeSvc: nodeSvc}
 }
 

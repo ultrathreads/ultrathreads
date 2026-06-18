@@ -8,12 +8,12 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// StatisticServicer 统计业务契约
-type StatisticServicer interface {
+// StatisticService 统计业务契约
+type StatisticService interface {
 	GenerateData()
 }
 
-func NewStatisticService(userSvc UserServicer, postSvc PostServicer, settingSvc SettingServicer) StatisticServicer {
+func NewStatisticService(userSvc UserService, postSvc PostService, settingSvc SettingService) StatisticService {
 	return &statisticService{
 		userSvc:    userSvc,
 		postSvc:    postSvc,
@@ -23,9 +23,9 @@ func NewStatisticService(userSvc UserServicer, postSvc PostServicer, settingSvc 
 
 type statisticService struct {
 	running    atomic.Bool
-	userSvc    UserServicer
-	postSvc    PostServicer
-	settingSvc SettingServicer
+	userSvc    UserService
+	postSvc    PostService
+	settingSvc SettingService
 }
 
 func (s *statisticService) GenerateData() {

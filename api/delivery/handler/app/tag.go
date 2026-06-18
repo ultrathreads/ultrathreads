@@ -15,11 +15,11 @@ import (
 
 type TagHandler struct {
 	base.BaseHandler
-	tagSvc   service.TagServicer
+	tagSvc   service.TagService
 	tagCache cache.TagCacheInterface
 }
 
-func NewTagHandler(tagSvc service.TagServicer, tagCache cache.TagCacheInterface) *TagHandler {
+func NewTagHandler(tagSvc service.TagService, tagCache cache.TagCacheInterface) *TagHandler {
 	return &TagHandler{tagSvc: tagSvc, tagCache: tagCache}
 }
 

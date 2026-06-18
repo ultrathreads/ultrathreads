@@ -9,8 +9,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// UserWatchServicer 用户关注业务契约
-type UserWatchServicer interface {
+// UserWatchService 用户关注业务契约
+type UserWatchService interface {
 	Get(id int64) *model.UserWatch
 	Take(where ...interface{}) *model.UserWatch
 	Find(cnd *querybuilder.QueryBuilder) []model.UserWatch
@@ -25,7 +25,7 @@ type UserWatchServicer interface {
 	GetBy(userID, watchedUserID int64) *model.UserWatch
 }
 
-func NewUserWatchService(repo repository.UserWatchRepository) UserWatchServicer {
+func NewUserWatchService(repo repository.UserWatchRepository) UserWatchService {
 	return &userWatchService{repo: repo}
 }
 

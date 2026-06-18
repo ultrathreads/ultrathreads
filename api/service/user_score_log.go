@@ -6,8 +6,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// UserScoreLogServicer 用户积分日志业务契约
-type UserScoreLogServicer interface {
+// UserScoreLogService 用户积分日志业务契约
+type UserScoreLogService interface {
 	Get(id int64) *model.UserScoreLog
 	Take(where ...interface{}) *model.UserScoreLog
 	Find(cnd *querybuilder.QueryBuilder) []model.UserScoreLog
@@ -20,7 +20,7 @@ type UserScoreLogServicer interface {
 	Delete(id int64)
 }
 
-func NewUserScoreLogService(repo repository.UserScoreLogRepository) UserScoreLogServicer {
+func NewUserScoreLogService(repo repository.UserScoreLogRepository) UserScoreLogService {
 	return &userScoreLogService{repo: repo}
 }
 

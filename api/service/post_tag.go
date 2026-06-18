@@ -6,8 +6,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// PostTagServicer 帖子标签关联业务契约
-type PostTagServicer interface {
+// PostTagService 帖子标签关联业务契约
+type PostTagService interface {
 	Get(id int64) *model.PostTag
 	Take(where ...interface{}) *model.PostTag
 	Find(cnd *querybuilder.QueryBuilder) []model.PostTag
@@ -24,7 +24,7 @@ type PostTagServicer interface {
 	UndeleteByPostId(postId int64)
 }
 
-func NewPostTagService(repo repository.PostTagRepository) PostTagServicer {
+func NewPostTagService(repo repository.PostTagRepository) PostTagService {
 	return &postTagService{repo: repo}
 }
 

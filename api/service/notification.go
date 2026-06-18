@@ -13,8 +13,8 @@ import (
 	"ultrathreads/util/urls"
 )
 
-// NotificationServicer 通知业务契约
-type NotificationServicer interface {
+// NotificationService 通知业务契约
+type NotificationService interface {
 	Get(id int64) *model.Notification
 	Take(where ...interface{}) *model.Notification
 	Find(cnd *querybuilder.QueryBuilder) []model.Notification
@@ -34,7 +34,7 @@ type NotificationServicer interface {
 	SendEmailNotice(notification *model.Notification)
 }
 
-func NewNotificationService(repo repository.NotificationRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface) NotificationServicer {
+func NewNotificationService(repo repository.NotificationRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface) NotificationService {
 	return &notificationService{
 		repo:              repo,
 		postRepo:          postRepo,
@@ -201,7 +201,6 @@ func (s *notificationService) SendEmailNotice(notification *model.Notification) 
 	if user != nil && len(user.Email.String) > 0 {
 		siteTitle := s.settingCache.GetValue(model.SettingSiteTitle)
 		emailTitle := siteTitle + " 新消息提醒"
-
 		email.SendTemplateEmail(user.Email.String, emailTitle, emailTitle, notification.Content,
 			notification.QuoteContent, urls.AbsUrl("/user/notifications"))
 		log.Info("发送邮件...email=%s", user.Email)

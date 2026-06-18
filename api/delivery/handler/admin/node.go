@@ -15,10 +15,10 @@ import (
 // NodeHandler node controller
 type NodeHandler struct {
 	base.BaseHandler
-	nodeSvc service.NodeServicer
+	nodeSvc service.NodeService
 }
 
-func NewNodeHandler(nodeSvc service.NodeServicer) *NodeHandler {
+func NewNodeHandler(nodeSvc service.NodeService) *NodeHandler {
 	return &NodeHandler{nodeSvc: nodeSvc}
 }
 

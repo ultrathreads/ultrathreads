@@ -22,8 +22,8 @@ import (
 
 type ScanArticleCallback func(articles []model.Article)
 
-// ArticleServicer 文章业务契约
-type ArticleServicer interface {
+// ArticleService 文章业务契约
+type ArticleService interface {
 	Get(id int64) *model.Article
 	Find(cnd *querybuilder.QueryBuilder) []model.Article
 	List(cnd *querybuilder.QueryBuilder) ([]model.Article, *querybuilder.Paging)
@@ -40,7 +40,7 @@ type ArticleServicer interface {
 	GenerateRss()
 }
 
-func NewArticleService(repo repository.ArticleRepository, tagRepo repository.TagRepository, articleTagRepo repository.ArticleTagRepository, articleTagSvc ArticleTagServicer, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) ArticleServicer {
+func NewArticleService(repo repository.ArticleRepository, tagRepo repository.TagRepository, articleTagRepo repository.ArticleTagRepository, articleTagSvc ArticleTagService, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) ArticleService {
 	return &articleService{
 		repo:            repo,
 		tagRepo:         tagRepo,
@@ -58,7 +58,7 @@ type articleService struct {
 	repo            repository.ArticleRepository
 	tagRepo         repository.TagRepository
 	articleTagRepo  repository.ArticleTagRepository
-	articleTagSvc   ArticleTagServicer
+	articleTagSvc   ArticleTagService
 	articleTagCache cache.ArticleTagCacheInterface
 	tagCache        cache.TagCacheInterface
 	userCache       cache.UserCacheInterface

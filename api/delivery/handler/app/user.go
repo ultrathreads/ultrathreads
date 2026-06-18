@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/domain"
 	"ultrathreads/dto"
-	"ultrathreads/delivery/handler/base"
 	"ultrathreads/model"
 	"ultrathreads/render"
 	"ultrathreads/service"
@@ -17,27 +17,27 @@ import (
 
 type UserHandler struct {
 	base.BaseHandler
-	userSvc         service.UserServicer
-	postSvc         service.PostServicer
-	userScoreSvc    service.UserScoreServicer
-	userScoreLogSvc service.UserScoreLogServicer
-	notificationSvc service.NotificationServicer
-	favoriteSvc     service.FavoriteServicer
-	articleSvc      service.ArticleServicer
-	userWatchSvc    service.UserWatchServicer
-	rbacSvc         service.RbacServicer
+	userSvc         service.UserService
+	postSvc         service.PostService
+	userScoreSvc    service.UserScoreService
+	userScoreLogSvc service.UserScoreLogService
+	notificationSvc service.NotificationService
+	favoriteSvc     service.FavoriteService
+	articleSvc      service.ArticleService
+	userWatchSvc    service.UserWatchService
+	rbacSvc         service.RbacService
 }
 
 func NewUserHandler(
-	userSvc service.UserServicer,
-	postSvc service.PostServicer,
-	userScoreSvc service.UserScoreServicer,
-	userScoreLogSvc service.UserScoreLogServicer,
-	notificationSvc service.NotificationServicer,
-	favoriteSvc service.FavoriteServicer,
-	articleSvc service.ArticleServicer,
-	userWatchSvc service.UserWatchServicer,
-	rbacSvc service.RbacServicer,
+	userSvc service.UserService,
+	postSvc service.PostService,
+	userScoreSvc service.UserScoreService,
+	userScoreLogSvc service.UserScoreLogService,
+	notificationSvc service.NotificationService,
+	favoriteSvc service.FavoriteService,
+	articleSvc service.ArticleService,
+	userWatchSvc service.UserWatchService,
+	rbacSvc service.RbacService,
 ) *UserHandler {
 	return &UserHandler{
 		userSvc:         userSvc,
@@ -129,7 +129,7 @@ func (h *UserHandler) GetScorelogs(ctx *gin.Context) {
 	})
 }
 
-// GetNotificationsRecent 获取最近3条未读消息
+// GetNotificationsRecent 获取最新条未读消息
 func (h *UserHandler) GetNotificationsRecent(ctx *gin.Context) {
 	user := h.GetCurrentUser(ctx)
 	var count int64 = 0
@@ -153,8 +153,7 @@ func (h *UserHandler) GetNotifications(ctx *gin.Context) {
 		Eq("user_id", user.ID).
 		Page(page, 20).Desc("id"))
 
-	// 全部标记为已读
-	h.notificationSvc.MarkRead(user.ID)
+	// 全部标记为已�?	h.notificationSvc.MarkRead(user.ID)
 
 	h.Success(ctx, gin.H{
 		"results": render.ToNotifications(messages),
@@ -174,7 +173,7 @@ func (h *UserHandler) GetFavorites(ctx *gin.Context) {
 		Desc("id")
 	favorites, paging := h.favoriteSvc.List(qb)
 
-	// 2. 收集需要预加载的实体 ID
+	// 2. 收集需要预加载的实�?ID
 	var articleIDs, postIDs []int64
 	for _, fav := range favorites {
 		switch fav.EntityType {
@@ -259,7 +258,7 @@ func (h *UserHandler) Watch(ctx *gin.Context) {
 	}
 }
 
-// GetWatched 是否关注了
+// GetWatched 是否关注
 func (h *UserHandler) GetWatched(ctx *gin.Context) {
 	user := h.GetCurrentUser(ctx)
 

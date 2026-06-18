@@ -12,10 +12,10 @@ import (
 
 type LinkHandler struct {
 	base.BaseHandler
-	linkSvc service.LinkServicer
+	linkSvc service.LinkService
 }
 
-func NewLinkHandler(linkSvc service.LinkServicer) *LinkHandler {
+func NewLinkHandler(linkSvc service.LinkService) *LinkHandler {
 	return &LinkHandler{linkSvc: linkSvc}
 }
 
@@ -36,7 +36,7 @@ func (h *LinkHandler) List(ctx *gin.Context) {
 	})
 }
 
-// 前10个链接
+// Top10个链接
 func (h *LinkHandler) GetToplinks(ctx *gin.Context) {
 	links := h.linkSvc.Find(querybuilder.NewQueryBuilder().
 		Eq("status", model.StatusOk).Limit(10).Asc("id"))

@@ -15,10 +15,10 @@ import (
 // LinkHandler link controller
 type LinkHandler struct {
 	base.BaseHandler
-	linkSvc service.LinkServicer
+	linkSvc service.LinkService
 }
 
-func NewLinkHandler(linkSvc service.LinkServicer) *LinkHandler {
+func NewLinkHandler(linkSvc service.LinkService) *LinkHandler {
 	return &LinkHandler{linkSvc: linkSvc}
 }
 

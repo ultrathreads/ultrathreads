@@ -10,8 +10,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// FavoriteServicer 收藏业务契约
-type FavoriteServicer interface {
+// FavoriteService 收藏业务契约
+type FavoriteService interface {
 	Get(id int64) *model.Favorite
 	Take(where ...interface{}) *model.Favorite
 	Find(cnd *querybuilder.QueryBuilder) []model.Favorite
@@ -27,7 +27,7 @@ type FavoriteServicer interface {
 	AddPostFavorite(userId int64, postSlug string) error
 }
 
-func NewFavoriteService(repo repository.FavoriteRepository, articleRepo repository.ArticleRepository, postRepo repository.PostRepository) FavoriteServicer {
+func NewFavoriteService(repo repository.FavoriteRepository, articleRepo repository.ArticleRepository, postRepo repository.PostRepository) FavoriteService {
 	return &favoriteService{repo: repo, articleRepo: articleRepo, postRepo: postRepo}
 }
 

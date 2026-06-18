@@ -15,11 +15,11 @@ import (
 // UserHandler user controller
 type UserHandler struct {
 	base.BaseHandler
-	userSvc   service.UserServicer
+	userSvc   service.UserService
 	userCache cache.UserCacheInterface
 }
 
-func NewUserHandler(userSvc service.UserServicer, userCache cache.UserCacheInterface) *UserHandler {
+func NewUserHandler(userSvc service.UserService, userCache cache.UserCacheInterface) *UserHandler {
 	return &UserHandler{userSvc: userSvc, userCache: userCache}
 }
 

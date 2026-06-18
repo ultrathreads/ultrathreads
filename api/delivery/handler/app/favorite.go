@@ -10,14 +10,14 @@ import (
 
 type FavoriteHandler struct {
 	base.BaseHandler
-	favoriteSvc service.FavoriteServicer
+	favoriteSvc service.FavoriteService
 }
 
-func NewFavoriteHandler(favoriteSvc service.FavoriteServicer) *FavoriteHandler {
+func NewFavoriteHandler(favoriteSvc service.FavoriteService) *FavoriteHandler {
 	return &FavoriteHandler{favoriteSvc: favoriteSvc}
 }
 
-// GetFavorited 是否收藏了
+// GetFavorited 是否收藏
 func (h *FavoriteHandler) GetFavorited(ctx *gin.Context) {
 	user := h.GetCurrentUser(ctx)
 	entityType := util.FormStringDefault(ctx, "entityType", "")

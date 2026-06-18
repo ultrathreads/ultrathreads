@@ -20,8 +20,8 @@ func ShouldReturnLastRead(c *gin.Context) bool {
 }
 
 // CurrentUserReadState 仅当请求包含 nodeId 或 tagId（路径参数或查询参数）时，
-// 才注入当前用户该节点的已读时间戳，避免无关接口产生无效 DB 查询
-func CurrentUserReadState(userReadStateSvc service.UserReadStateServicer) gin.HandlerFunc {
+// 才注入当前用户该节点的已读时间戳，避免无关接口产生无谓的 DB 查询
+func CurrentUserReadState(userReadStateSvc service.UserReadStateService) gin.HandlerFunc {
 	const readStatesKey = "CurrentUserReadStates"
 
 	return func(c *gin.Context) {

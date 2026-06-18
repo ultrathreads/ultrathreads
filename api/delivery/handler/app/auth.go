@@ -14,10 +14,10 @@ import (
 // AuthHandler auth controller
 type AuthHandler struct {
 	base.BaseHandler
-	userSvc service.UserServicer
+	userSvc service.UserService
 }
 
-func NewAuthHandler(userSvc service.UserServicer) *AuthHandler {
+func NewAuthHandler(userSvc service.UserService) *AuthHandler {
 	return &AuthHandler{userSvc: userSvc}
 }
 

@@ -15,10 +15,10 @@ import (
 // TagHandler tag controller
 type TagHandler struct {
 	base.BaseHandler
-	tagSvc service.TagServicer
+	tagSvc service.TagService
 }
 
-func NewTagHandler(tagSvc service.TagServicer) *TagHandler {
+func NewTagHandler(tagSvc service.TagService) *TagHandler {
 	return &TagHandler{tagSvc: tagSvc}
 }
 

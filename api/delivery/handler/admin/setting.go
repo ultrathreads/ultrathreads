@@ -12,10 +12,10 @@ import (
 // SettingHandler setting controller
 type SettingHandler struct {
 	base.BaseHandler
-	settingSvc service.SettingServicer
+	settingSvc service.SettingService
 }
 
-func NewSettingHandler(settingSvc service.SettingServicer) *SettingHandler {
+func NewSettingHandler(settingSvc service.SettingService) *SettingHandler {
 	return &SettingHandler{settingSvc: settingSvc}
 }
 

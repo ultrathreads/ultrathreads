@@ -14,8 +14,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// LoginSourceServicer 登录来源业务契约
-type LoginSourceServicer interface {
+// LoginSourceService 登录来源业务契约
+type LoginSourceService interface {
 	Get(id int64) *model.LoginSource
 	List(cnd *querybuilder.QueryBuilder) ([]model.LoginSource, *querybuilder.Paging)
 	Create(t *model.LoginSource) error
@@ -30,7 +30,7 @@ type LoginSourceServicer interface {
 	GetOrCreateByQQ(code, state string) (*model.LoginSource, error)
 }
 
-func NewLoginSourceService(repo repository.LoginSourceRepository) LoginSourceServicer {
+func NewLoginSourceService(repo repository.LoginSourceRepository) LoginSourceService {
 	return &loginSourceService{repo: repo}
 }
 

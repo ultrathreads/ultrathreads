@@ -10,7 +10,7 @@ import (
 
 var c *cron.Cron
 
-func Setup(articleSvc service.ArticleServicer, postSvc service.PostServicer) {
+func Setup(articleSvc service.ArticleService, postSvc service.PostService) {
 	if !util.IsProd() {
 		log.Info("Not in a production enviroment!")
 		return
@@ -20,7 +20,7 @@ func Setup(articleSvc service.ArticleServicer, postSvc service.PostServicer) {
 	startSchedule(articleSvc, postSvc)
 }
 
-func startSchedule(articleSvc service.ArticleServicer, postSvc service.PostServicer) {
+func startSchedule(articleSvc service.ArticleService, postSvc service.PostService) {
 	c = cron.New()
 
 	addCronFunc(c, "@every 30m", func() {

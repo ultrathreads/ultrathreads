@@ -10,8 +10,8 @@ import (
 	"ultrathreads/util/querybuilder"
 )
 
-// UserScoreServicer 用户积分业务契约
-type UserScoreServicer interface {
+// UserScoreService 用户积分业务契约
+type UserScoreService interface {
 	Get(id int64) *model.UserScore
 	Take(where ...interface{}) *model.UserScore
 	Find(cnd *querybuilder.QueryBuilder) []model.UserScore
@@ -28,13 +28,13 @@ type UserScoreServicer interface {
 	Decrement(userId int64, score int, sourceType, sourceId, description string) error
 }
 
-func NewUserScoreService(repo repository.UserScoreRepository, scoreLogSvc UserScoreLogServicer, userCache cache.UserCacheInterface) UserScoreServicer {
+func NewUserScoreService(repo repository.UserScoreRepository, scoreLogSvc UserScoreLogService, userCache cache.UserCacheInterface) UserScoreService {
 	return &userScoreService{repo: repo, scoreLogSvc: scoreLogSvc, userCache: userCache}
 }
 
 type userScoreService struct {
 	repo        repository.UserScoreRepository
-	scoreLogSvc UserScoreLogServicer
+	scoreLogSvc UserScoreLogService
 	userCache   cache.UserCacheInterface
 }
 
