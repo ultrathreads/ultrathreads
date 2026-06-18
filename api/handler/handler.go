@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/bus"
+	"ultrathreads/handler/admin"
+	"ultrathreads/handler/app"
 	"ultrathreads/middleware"
 	"ultrathreads/service"
 )
@@ -14,8 +16,7 @@ import (
 type Handler struct {
 	services *service.Services
 	mgr      *bus.Manager
-	
-	// 将 JWT 中间件作为 Handler 的成员变量，保证全局单例
+
 	jwtAuth  *jwt.GinJWTMiddleware
 	jwtOAuth *jwt.GinJWTMiddleware
 }
@@ -25,15 +26,14 @@ func NewHandlers(services *service.Services, mgr *bus.Manager) *Handler {
 		services: services,
 		mgr:      mgr,
 	}
-	
-	// 在构造阶段统一初始化，后续所有路由共享同一实例
+
 	h.jwtAuth = middleware.JwtAuth(middleware.LoginStandard, services.User, services.LoginSource)
 	h.jwtOAuth = middleware.JwtAuth(middleware.LoginOAuth, services.User, services.LoginSource)
-	
+
 	return h
 }
 
-// Init 组装引擎、全局中间件，并调用 setupApp 注册所有路由
+// Init 组装引擎、全局中间件，并注册所有路由
 func (h *Handler) Init() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
@@ -43,7 +43,6 @@ func (h *Handler) Init() *gin.Engine {
 		c.Next()
 	})
 
-	// Init router
 	router.Any("/", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "UltraThreads API\n")
 	})
@@ -51,8 +50,16 @@ func (h *Handler) Init() *gin.Engine {
 		c.String(http.StatusOK, "pong")
 	})
 
-	h.initAppAPI(router)
-	h.initAdminAPI(router)
+	// 创建 /api 路由组
+	api := router.Group("/api")
+
+	// 注册前台路由
+	appHandler := app.NewHandler(h.services, h.jwtAuth, h.jwtOAuth)
+	appHandler.Init(api)
+
+	// 注册后台管理路由
+	adminHandler := admin.NewHandler(h.services, h.jwtAuth)
+	adminHandler.Init(api)
 
 	return router
 }
