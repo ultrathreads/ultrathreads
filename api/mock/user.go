@@ -6,7 +6,6 @@ import (
 	"github.com/bluele/factory-go/factory"
 
 	"ultrathreads/model"
-	"ultrathreads/dao"
 	"ultrathreads/util"
 )
 
@@ -102,7 +101,7 @@ func UserTableSeeder(needCleanTable bool, totalUsers int) {
 	for i := 0; i < totalUsers; i++ {
 		user := userFactory(i).MustCreate().(*model.User)
 		fmt.Println("Email:", user.Email)
-		if err := dao.UserDao.Create(user); err != nil {
+		if err := userDao.Create(user); err != nil {
 			fmt.Printf("mock user error： %v\n", err)
 		}
 	}

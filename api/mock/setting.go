@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"ultrathreads/cache"
-	"ultrathreads/dao"
 	"ultrathreads/model"
 )
 
@@ -16,7 +14,7 @@ func SettingTableSeeder(needCleanTable bool) {
 	}
 
 	// ✅ GetHot() 返回 []model.Tag，需先提取 Name 字段转为 []string
-	hotTagEntities := cache.TagCache.GetHot()
+	hotTagEntities := tagCache.GetHot()
 	tagNames := make([]string, 0, len(hotTagEntities))
 	for _, t := range hotTagEntities {
 		if t.Name != "" { // 过滤空名称，避免存入无效标签
@@ -38,7 +36,7 @@ func SettingTableSeeder(needCleanTable bool) {
 	}
 
 	for _, n := range ns {
-		if err := dao.SettingDao.Create(n); err != nil {
+		if err := settingDao.Create(n); err != nil {
 			fmt.Printf("mock setting error: %v\n", err)
 		}
 	}

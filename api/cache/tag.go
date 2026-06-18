@@ -5,30 +5,30 @@ import (
 
 	"github.com/goburrow/cache"
 
-	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/util/log"
-	"ultrathreads/util/querybuilder"
-)
-
-var (
-	hotTagsCacheKey = "hot_tags_cache"
 )
 
 type tagCache struct {
 	cache         cache.LoadingCache
-	hotCache 	  cache.LoadingCache
+	hotCache      cache.LoadingCache
 	postTagsCache cache.LoadingCache
 }
 
-var TagCache = newTagCache()
-
-func newTagCache() *tagCache {
+// NewTagCache 创建 TagCache 实例
+// tagLoader 负责根据 tagId 加载单个 tag
+// hotTagsLoader 负责加载热门 tags 列表
+// postTagsLoader 负责根据 postId 加载该帖子的所有 tags
+func NewTagCache(
+	tagLoader func(tagId int64) *model.Tag,
+	hotTagsLoader func() []model.Tag,
+	postTagsLoader func(postId int64) []model.Tag,
+) *tagCache {
 	c := &tagCache{}
 
 	c.cache = cache.NewLoadingCache(
 		func(key cache.Key) (value cache.Value, e error) {
-			value = dao.TagDao.Get(key2Int64(key))
+			value = tagLoader(key2Int64(key))
 			return
 		},
 		cache.WithMaximumSize(1000),
@@ -37,7 +37,7 @@ func newTagCache() *tagCache {
 
 	c.hotCache = cache.NewLoadingCache(
 		func(key cache.Key) (value cache.Value, e error) {
-			value = dao.TagDao.Find(querybuilder.NewQueryBuilder().Eq("status", model.StatusOk).Desc("id").Limit(10))
+			value = hotTagsLoader()
 			return
 		},
 		cache.WithMaximumSize(10),
@@ -47,17 +47,7 @@ func newTagCache() *tagCache {
 	c.postTagsCache = cache.NewLoadingCache(
 		func(key cache.Key) (value cache.Value, e error) {
 			postId := key2Int64(key)
-			postTags := dao.PostTagDao.Find(
-				querybuilder.NewQueryBuilder().Where("post_id = ?", postId),
-			)
-			var tags []model.Tag
-			for _, pt := range postTags {
-				// 通过局部实例 c 访问单标签缓存
-				if tag := c.Get(pt.TagId); tag != nil {
-					tags = append(tags, *tag)
-				}
-			}
-			value = tags
+			value = postTagsLoader(postId)
 			return
 		},
 		cache.WithMaximumSize(5000),
@@ -96,7 +86,6 @@ func (c *tagCache) Invalidate(tagId int64) {
 	c.cache.Invalidate(tagId)
 }
 
-// GetPostTags 获取帖子的标签列表（带缓存）
 func (c *tagCache) GetPostTags(postId int64) []model.Tag {
 	val, err := c.postTagsCache.Get(postId)
 	if err != nil {
@@ -109,7 +98,6 @@ func (c *tagCache) GetPostTags(postId int64) []model.Tag {
 	return nil
 }
 
-// InvalidatePostTags 清除指定帖子的标签缓存
 func (c *tagCache) InvalidatePostTags(postId int64) {
 	c.postTagsCache.Invalidate(postId)
 }
@@ -128,3 +116,20 @@ func (c *tagCache) GetHot() []model.Tag {
 func (c *tagCache) InvalidateHot() {
 	c.hotCache.Invalidate(hotTagsCacheKey)
 }
+
+// TagCacheInterface 定义 TagCache 的接口
+type TagCacheInterface interface {
+	Get(tagId int64) *model.Tag
+	GetList(tagIds []int64) []model.Tag
+	Invalidate(tagId int64)
+	GetPostTags(postId int64) []model.Tag
+	InvalidatePostTags(postId int64)
+	GetHot() []model.Tag
+	InvalidateHot()
+}
+
+// 确保 tagCache 实现接口
+var _ TagCacheInterface = (*tagCache)(nil)
+
+// 为了向后兼容，保留类型别名
+type TagCache = tagCache

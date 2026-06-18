@@ -2,17 +2,17 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
-	"ultrathreads/model"
 	"ultrathreads/dto"
+	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
@@ -31,12 +31,13 @@ type SettingServicer interface {
 	GetSetting() *model.ConfigData
 }
 
-func NewSettingService(repo dao.SettingRepository) SettingServicer {
-	return &settingService{repo: repo}
+func NewSettingService(repo repository.SettingRepository, settingCache cache.SettingCacheInterface) SettingServicer {
+	return &settingService{repo: repo, settingCache: settingCache}
 }
 
 type settingService struct {
-	repo dao.SettingRepository
+	repo         repository.SettingRepository
+	settingCache cache.SettingCacheInterface
 }
 
 func (s *settingService) Get(id int64) *model.Setting {
@@ -141,16 +142,16 @@ func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description st
 		}
 	}
 
-	cache.SettingCache.Invalidate(key)
+	s.settingCache.Invalidate(key)
 	return nil
 }
 
 func (s *settingService) GetSetting() *model.ConfigData {
 	var (
-		siteTitle        = cache.SettingCache.GetValue(model.SettingSiteTitle)
-		siteDescription  = cache.SettingCache.GetValue(model.SettingSiteDescription)
-		defaultNodeIdStr = cache.SettingCache.GetValue(model.SettingDefaultNodeId)
-		recommendTags    = cache.SettingCache.GetValue(model.SettingRecommendTags)
+		siteTitle        = s.settingCache.GetValue(model.SettingSiteTitle)
+		siteDescription  = s.settingCache.GetValue(model.SettingSiteDescription)
+		defaultNodeIdStr = s.settingCache.GetValue(model.SettingDefaultNodeId)
+		recommendTags    = s.settingCache.GetValue(model.SettingRecommendTags)
 	)
 
 	var recommendTagsArr []string

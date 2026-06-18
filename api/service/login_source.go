@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"ultrathreads/dao"
 	"ultrathreads/model"
 	"ultrathreads/oauth/gitee"
 	"ultrathreads/oauth/github"
 	"ultrathreads/oauth/qq"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
@@ -30,12 +30,12 @@ type LoginSourceServicer interface {
 	GetOrCreateByQQ(code, state string) (*model.LoginSource, error)
 }
 
-func NewLoginSourceService(repo dao.LoginSourceRepository) LoginSourceServicer {
+func NewLoginSourceService(repo repository.LoginSourceRepository) LoginSourceServicer {
 	return &loginSourceService{repo: repo}
 }
 
 type loginSourceService struct {
-	repo dao.LoginSourceRepository
+	repo repository.LoginSourceRepository
 }
 
 func (s *loginSourceService) Get(id int64) *model.LoginSource {

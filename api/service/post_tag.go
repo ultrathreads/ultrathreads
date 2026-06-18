@@ -1,8 +1,8 @@
 package service
 
 import (
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -24,12 +24,12 @@ type PostTagServicer interface {
 	UndeleteByPostId(postId int64)
 }
 
-func NewPostTagService(repo dao.PostTagRepository) PostTagServicer {
+func NewPostTagService(repo repository.PostTagRepository) PostTagServicer {
 	return &postTagService{repo: repo}
 }
 
 type postTagService struct {
-	repo dao.PostTagRepository
+	repo repository.PostTagRepository
 }
 
 func (s *postTagService) Get(id int64) *model.PostTag {

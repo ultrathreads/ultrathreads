@@ -11,9 +11,9 @@ import (
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
 	"ultrathreads/dto"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
@@ -40,20 +40,30 @@ type ArticleServicer interface {
 	GenerateRss()
 }
 
-func NewArticleService(repo dao.ArticleRepository, tagRepo dao.TagRepository, articleTagRepo dao.ArticleTagRepository, articleTagSvc ArticleTagServicer) ArticleServicer {
+func NewArticleService(repo repository.ArticleRepository, tagRepo repository.TagRepository, articleTagRepo repository.ArticleTagRepository, articleTagSvc ArticleTagServicer, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) ArticleServicer {
 	return &articleService{
-		repo:           repo,
-		tagRepo:        tagRepo,
-		articleTagRepo: articleTagRepo,
-		articleTagSvc:  articleTagSvc,
+		repo:            repo,
+		tagRepo:         tagRepo,
+		articleTagRepo:  articleTagRepo,
+		articleTagSvc:   articleTagSvc,
+		articleTagCache: articleTagCache,
+		tagCache:        tagCache,
+		userCache:       userCache,
+		settingCache:    settingCache,
+		db:              db,
 	}
 }
 
 type articleService struct {
-	repo           dao.ArticleRepository
-	tagRepo        dao.TagRepository
-	articleTagRepo dao.ArticleTagRepository
-	articleTagSvc  ArticleTagServicer
+	repo            repository.ArticleRepository
+	tagRepo         repository.TagRepository
+	articleTagRepo  repository.ArticleTagRepository
+	articleTagSvc   ArticleTagServicer
+	articleTagCache cache.ArticleTagCacheInterface
+	tagCache        cache.TagCacheInterface
+	userCache       cache.UserCacheInterface
+	settingCache    cache.SettingCacheInterface
+	db              *gorm.DB
 }
 
 func (s *articleService) Get(id int64) *model.Article {
@@ -82,7 +92,7 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 		UpdateTime:  util.NowTimestamp(),
 	}
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		tagIDs := s.tagRepo.GetOrCreates(util.ParseTagsToArray(req.Tags))
 
 		if err := tx.Create(article).Error; err != nil {
@@ -97,7 +107,7 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 }
 
 func (s *articleService) Update(req dto.ArticleUpdateForm) error {
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Article{}).Where("id = ?", req.ID).Updates(map[string]interface{}{
 			"title":       req.Title,
 			"content":     req.Content,
@@ -112,7 +122,7 @@ func (s *articleService) Update(req dto.ArticleUpdateForm) error {
 		return nil
 	})
 
-	cache.ArticleTagCache.Invalidate(req.ID)
+	s.articleTagCache.Invalidate(req.ID)
 	return err
 }
 
@@ -129,7 +139,7 @@ func (s *articleService) GetArticleInIds(articleIds []int64) []model.Article {
 		return nil
 	}
 	var articles []model.Article
-	if err := dao.DB().Where("id IN (?)", articleIds).Find(&articles).Error; err != nil {
+	if err := s.db.Where("id IN (?)", articleIds).Find(&articles).Error; err != nil {
 		log.Error("GetArticleInIds failed: %v", err)
 		return nil
 	}
@@ -156,7 +166,7 @@ func (s *articleService) GetArticleTags(articleId int64) []model.Tag {
 	for _, articleTag := range articleTags {
 		tagIds = append(tagIds, articleTag.TagId)
 	}
-	return cache.TagCache.GetList(tagIds)
+	return s.tagCache.GetList(tagIds)
 }
 
 func (s *articleService) GetTagArticles(tagId int64, cursor int64) (articles []model.Article, nextCursor int64) {
@@ -178,12 +188,12 @@ func (s *articleService) GetTagArticles(tagId int64, cursor int64) (articles []m
 }
 
 func (s *articleService) GetRelatedArticles(articleId int64) []model.Article {
-	tagIds := cache.ArticleTagCache.Get(articleId)
+	tagIds := s.articleTagCache.Get(articleId)
 	if len(tagIds) == 0 {
 		return nil
 	}
 	var articleTags []model.ArticleTag
-	if err := dao.DB().Where("tag_id IN (?)", tagIds).Limit(30).Find(&articleTags).Error; err != nil {
+	if err := s.db.Where("tag_id IN (?)", tagIds).Limit(30).Find(&articleTags).Error; err != nil {
 		log.Error("GetRelatedArticles find tags failed: %v", err)
 		return nil
 	}
@@ -230,7 +240,7 @@ func (s *articleService) GenerateRss() {
 	var items []*feeds.Item
 	for _, article := range articles {
 		articleUrl := urls.ArticleUrl(article.ID)
-		user := cache.UserCache.Get(article.UserId)
+		user := s.userCache.Get(article.UserId)
 		if user == nil {
 			continue
 		}
@@ -250,8 +260,8 @@ func (s *articleService) GenerateRss() {
 		items = append(items, item)
 	}
 
-	siteTitle := cache.SettingCache.GetValue(model.SettingSiteTitle)
-	siteDescription := cache.SettingCache.GetValue(model.SettingSiteDescription)
+	siteTitle := s.settingCache.GetValue(model.SettingSiteTitle)
+	siteDescription := s.settingCache.GetValue(model.SettingSiteDescription)
 	feed := &feeds.Feed{
 		Title:       siteTitle,
 		Link:        &feeds.Link{Href: viper.GetString("base.url")},

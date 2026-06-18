@@ -5,6 +5,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/strtrim"
@@ -16,7 +17,7 @@ import (
 // 由调用方（handler/service）提前查询好后注入，render 本身不做任何 I/O
 type FavoriteContext struct {
 	Article *model.Article // EntityType == Article 时提供
-	Post    *model.Post    // EntityType == Post 时提供
+	Post    *domain.Post   // EntityType == Post 时提供
 	User    *model.User    // 关联实体的作者信息
 }
 

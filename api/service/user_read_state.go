@@ -1,7 +1,7 @@
 package service
 
 import (
-	"ultrathreads/dao"
+	"ultrathreads/repository"
 	"ultrathreads/model"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
@@ -23,12 +23,12 @@ type UserReadStateServicer interface {
 	MarkAsRead(userID int64, nodeSlug string, now int64) error
 }
 
-func NewUserReadStateService(repo dao.UserReadStateRepository) UserReadStateServicer {
+func NewUserReadStateService(repo repository.UserReadStateRepository) UserReadStateServicer {
 	return &userReadStateService{repo: repo}
 }
 
 type userReadStateService struct {
-	repo dao.UserReadStateRepository
+	repo repository.UserReadStateRepository
 }
 
 func (s *userReadStateService) Get(id int64) *model.UserReadState {

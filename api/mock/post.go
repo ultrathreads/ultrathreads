@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"ultrathreads/dao"
 	"ultrathreads/model"
 
 	"github.com/Pallinder/go-randomdata"
@@ -72,12 +71,12 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 			nodeId := int64(RandInt(1, 5))
 			ts := timeToUnix(cursor)
 			post := postFactory(0, 0, nodeId, ts, ts, false)
-			if err := dao.PostDao.Create(post); err != nil {
+			if err := postDao.Create(post); err != nil {
 				fmt.Printf("mock root post error: %v\n", err)
 				continue
 			}
 			post.ThreadId = post.ID
-			if err := dao.PostDao.Update(post); err != nil {
+			if err := postDao.Update(post); err != nil {
 				fmt.Printf("mock update thread_id error: %v\n", err)
 				continue
 			}
@@ -117,7 +116,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 
 			replyTs := timeToUnix(replyTime)
 			reply := postFactory(root.ID, root.ID, root.NodeId, replyTs, replyTs, true)
-			if err := dao.PostDao.Create(reply); err != nil {
+			if err := postDao.Create(reply); err != nil {
 				fmt.Printf("mock reply error: %v\n", err)
 				continue
 			}
@@ -133,7 +132,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 				}
 				subTs := timeToUnix(subReplyTime)
 				subReply := postFactory(reply.ID, root.ID, root.NodeId, subTs, subTs, true)
-				if err := dao.PostDao.Create(subReply); err != nil {
+				if err := postDao.Create(subReply); err != nil {
 					fmt.Printf("mock sub-reply error: %v\n", err)
 				}
 				if subTs > lastCommentTs {
@@ -144,7 +143,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 
 		if lastCommentTs != root.CreateTime {
 			root.LastCommentTime = lastCommentTs
-			if err := dao.PostDao.Update(root); err != nil {
+			if err := postDao.Update(root); err != nil {
 				fmt.Printf("mock update last_comment_time error: %v\n", err)
 			}
 		}
@@ -163,7 +162,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 
 	for i := 0; i < pinCount; i++ {
 		rootPosts[i].IsPinned = true
-		if err := dao.PostDao.Update(rootPosts[i]); err != nil {
+		if err := postDao.Update(rootPosts[i]); err != nil {
 			fmt.Printf("mock set is_pinned error: %v\n", err)
 		} else {
 			fmt.Printf("[mock] pinned root post id=%d title=%q\n", rootPosts[i].ID, rootPosts[i].Title)

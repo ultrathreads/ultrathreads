@@ -17,12 +17,14 @@ import (
 	"ultrathreads/bus"
 	"ultrathreads/cache"
 	"ultrathreads/cron"
-	"ultrathreads/dao"
 	"ultrathreads/database"
 	"ultrathreads/handler"
+	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/server"
 	"ultrathreads/service"
 	"ultrathreads/util/hashid"
+	"ultrathreads/util/querybuilder"
 )
 
 var CmdWeb = &cli.Command{
@@ -55,7 +57,6 @@ func runWeb(c *cli.Context) error {
 
 	// 4. 初始化事件总线
 	mgr := bus.NewManager()
-	bus.RegisterHandlers(mgr)
 
 	// 5. 设置 Gin 运行模式
 	gin.SetMode(viper.GetString("mode"))
@@ -66,14 +67,89 @@ func runWeb(c *cli.Context) error {
 		return fmt.Errorf("setup database failed: %w", err)
 	}
 
-	repos := dao.NewRepositories(db)
-	caches := cache.NewCaches(repos)
+	repos := repository.NewRepositories(db)
 
-	svcs := service.NewServices(repos, caches)
+	// 构建 CacheLoaders，提供数据加载函数给 cache 层
+	// 这样 cache 层不需要直接依赖 dao 层
+	loaders := &cache.CacheLoaders{
+		NodeLoader: func(nodeId int64) *model.Node {
+			return repos.Node.Get(nodeId)
+		},
+		AllNodesLoader: func() []model.Node {
+			return repos.Node.Find(querybuilder.NewQueryBuilder().
+				Eq("status", model.StatusOk).
+				Asc("sort_no").Desc("id"))
+		},
+		PostRecLoader: func() []model.Post {
+			return repos.Post.Find(querybuilder.NewQueryBuilder().
+				Eq("recommend", true).
+				Eq("status", model.StatusOk).
+				Limit(20).
+				Desc("last_comment_time"))
+		},
+		TagLoader: func(tagId int64) *model.Tag {
+			return repos.Tag.Get(tagId)
+		},
+		HotTagsLoader: func() []model.Tag {
+			return repos.Tag.Find(querybuilder.NewQueryBuilder().
+				Eq("status", model.StatusOk).
+				Desc("id").
+				Limit(10))
+		},
+		PostTagsLoader: func(postId int64) []model.Tag {
+			postTags := repos.PostTag.Find(
+				querybuilder.NewQueryBuilder().Where("post_id = ?", postId),
+			)
+			var tags []model.Tag
+			for _, pt := range postTags {
+				if tag := repos.Tag.Get(pt.TagId); tag != nil {
+					tags = append(tags, *tag)
+				}
+			}
+			return tags
+		},
+		UserLoader: func(userId int64) *model.User {
+			return repos.User.Get(userId)
+		},
+		UserScoreLoader: func(userId int64) int {
+			userScore := repos.UserScore.FindOne(querybuilder.NewQueryBuilder().Eq("user_id", userId))
+			if userScore == nil {
+				return 0
+			}
+			return userScore.Score
+		},
+		ReadStateLoader: func(userID, nodeID int64) int64 {
+			return repos.UserReadState.GetLastReadAt(userID, nodeID)
+		},
+		UserStatesLoader: func(userID int64) map[int64]int64 {
+			return repos.UserReadState.GetAllReadStates(userID)
+		},
+		UserCountLoader: func() int {
+			return int(repos.User.Count(querybuilder.NewQueryBuilder()))
+		},
+		PostCountLoader: func() int {
+			return int(repos.Post.Count(querybuilder.NewQueryBuilder()))
+		},
+		SettingLoader: func(key string) *model.Setting {
+			return repos.Setting.GetByKey(key)
+		},
+		ArticleTagLoader: func(articleId int64) []int64 {
+			articleTags := repos.ArticleTag.FindByArticleId(articleId)
+			var tagIds []int64
+			for _, articleTag := range articleTags {
+				tagIds = append(tagIds, articleTag.TagId)
+			}
+			return tagIds
+		},
+	}
+
+	caches := cache.NewCaches(loaders)
+
+	svcs := service.NewServices(repos, caches, db)
 
 	cron.Setup(svcs.Article, svcs.Post)
 
-	handlers := handler.NewHandlers(svcs, mgr)
+	handlers := handler.NewHandlers(svcs, caches, mgr)
 
 	// ========== Web Server ==========
 	srv := server.NewServer(server.Config{

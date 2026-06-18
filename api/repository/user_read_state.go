@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -28,7 +28,7 @@ type userReadStateRepo struct {
 	db *gorm.DB
 }
 
-func NewUserReadStateDao(db *gorm.DB) UserReadStateRepository {
+func NewUserReadStateRepository(db *gorm.DB) UserReadStateRepository {
 	return &userReadStateRepo{db: db}
 }
 

@@ -15,11 +15,12 @@ import (
 
 type TagHandler struct {
 	base.BaseHandler
-	tagSvc service.TagServicer
+	tagSvc   service.TagServicer
+	tagCache cache.TagCacheInterface
 }
 
-func NewTagHandler(tagSvc service.TagServicer) *TagHandler {
-	return &TagHandler{tagSvc: tagSvc}
+func NewTagHandler(tagSvc service.TagServicer, tagCache cache.TagCacheInterface) *TagHandler {
+	return &TagHandler{tagSvc: tagSvc, tagCache: tagCache}
 }
 
 // Show 标签详情
@@ -58,7 +59,7 @@ func (h *TagHandler) AutoComplete(ctx *gin.Context) {
 
 // HotTags 热门标签
 func (h *TagHandler) HotTags(ctx *gin.Context) {
-	tags := cache.TagCache.GetHot()
+	tags := h.tagCache.GetHot()
 
 	h.Success(ctx, render.ToTags(tags))
 }

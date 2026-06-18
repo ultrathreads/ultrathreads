@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/email"
 	"ultrathreads/util/log"
@@ -34,17 +34,21 @@ type NotificationServicer interface {
 	SendEmailNotice(notification *model.Notification)
 }
 
-func NewNotificationService(repo dao.NotificationRepository, postRepo dao.PostRepository) NotificationServicer {
+func NewNotificationService(repo repository.NotificationRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface) NotificationServicer {
 	return &notificationService{
 		repo:              repo,
 		postRepo:          postRepo,
+		userCache:         userCache,
+		settingCache:      settingCache,
 		notificationsChan: make(chan *model.Notification),
 	}
 }
 
 type notificationService struct {
-	repo                     dao.NotificationRepository
-	postRepo                 dao.PostRepository
+	repo                     repository.NotificationRepository
+	postRepo                 repository.PostRepository
+	userCache                cache.UserCacheInterface
+	settingCache             cache.SettingCacheInterface
 	notificationsChan        chan *model.Notification
 	notificationsConsumeOnce sync.Once
 }
@@ -98,7 +102,7 @@ func (s *notificationService) MarkRead(userId int64) error {
 }
 
 func (s *notificationService) SendUserWatchNotification(userWatch *model.UserWatch) {
-	user := cache.UserCache.Get(userWatch.WatcherID)
+	user := s.userCache.Get(userWatch.WatcherID)
 
 	var (
 		fromId       = userWatch.WatcherID
@@ -122,7 +126,7 @@ func (s *notificationService) SendUserWatchNotification(userWatch *model.UserWat
 }
 
 func (s *notificationService) SendPostLikeNotification(postLike *model.PostLike) {
-	user := cache.UserCache.Get(postLike.UserId)
+	user := s.userCache.Get(postLike.UserId)
 
 	var (
 		fromId       = postLike.UserId
@@ -141,14 +145,14 @@ func (s *notificationService) SendPostLikeNotification(postLike *model.PostLike)
 		return
 	}
 	s.Produce(fromId, authorId, content, quoteContent, model.MsgTypePostLike, map[string]interface{}{
-		"entityType":  model.EntityTypePost,
-		"entityId":    post.ID,
+		"entityType": model.EntityTypePost,
+		"entityId":   post.ID,
 		"postLikeId": postLike.ID,
 	})
 }
 
 func (s *notificationService) Produce(fromId, toId int64, content, quoteContent string, msgType int, extraDataMap map[string]interface{}) {
-	to := cache.UserCache.Get(toId)
+	to := s.userCache.Get(toId)
 	if to == nil {
 		return
 	}
@@ -193,9 +197,9 @@ func (s *notificationService) Consume() {
 }
 
 func (s *notificationService) SendEmailNotice(notification *model.Notification) {
-	user := cache.UserCache.Get(notification.UserId)
+	user := s.userCache.Get(notification.UserId)
 	if user != nil && len(user.Email.String) > 0 {
-		siteTitle := cache.SettingCache.GetValue(model.SettingSiteTitle)
+		siteTitle := s.settingCache.GetValue(model.SettingSiteTitle)
 		emailTitle := siteTitle + " 新消息提醒"
 
 		email.SendTemplateEmail(user.Email.String, emailTitle, emailTitle, notification.Content,

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ type favoriteRepo struct {
 	db *gorm.DB
 }
 
-func NewFavoriteDao(db *gorm.DB) FavoriteRepository {
+func NewFavoriteRepository(db *gorm.DB) FavoriteRepository {
 	return &favoriteRepo{db: db}
 }
 

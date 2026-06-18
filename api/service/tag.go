@@ -1,15 +1,15 @@
 package service
 
 import (
-	"strings"
 	"errors"
+	"strings"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
-	"ultrathreads/model"
 	"ultrathreads/dto"
-	"ultrathreads/util/querybuilder"
+	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util/hashid"
+	"ultrathreads/util/querybuilder"
 )
 
 type ScanTagCallback func(tags []model.Tag) bool
@@ -33,12 +33,13 @@ type TagServicer interface {
 	Scan(cb ScanTagCallback)
 }
 
-func NewTagService(repo dao.TagRepository) TagServicer {
-	return &tagService{repo: repo}
+func NewTagService(repo repository.TagRepository, tagCache cache.TagCacheInterface) TagServicer {
+	return &tagService{repo: repo, tagCache: tagCache}
 }
 
 type tagService struct {
-	repo dao.TagRepository
+	repo     repository.TagRepository
+	tagCache cache.TagCacheInterface
 }
 
 func (s *tagService) Get(id int64) *model.Tag {
@@ -47,7 +48,7 @@ func (s *tagService) Get(id int64) *model.Tag {
 
 func (s *tagService) GetBySlug(slug string) *model.Tag {
 	id := hashid.Slug2Id[model.Tag](slug)
-	return cache.TagCache.Get(id)
+	return s.tagCache.Get(id)
 }
 
 func (s *tagService) Take(where ...interface{}) *model.Tag {

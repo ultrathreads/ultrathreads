@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"errors"
@@ -29,7 +29,7 @@ type TagRepository interface {
 	GetOrCreates(tags []string) []int64
 }
 
-func NewTagDao(db *gorm.DB) TagRepository {
+func NewTagRepository(db *gorm.DB) TagRepository {
 	return &tagRepo{db: db}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/cache"
 	"ultrathreads/dto"
 	"ultrathreads/handler/base"
 	"ultrathreads/model"
@@ -17,12 +18,19 @@ import (
 
 type ArticleHandler struct {
 	base.BaseHandler
-	articleSvc  service.ArticleServicer
-	favoriteSvc service.FavoriteServicer
+	articleSvc      service.ArticleServicer
+	favoriteSvc     service.FavoriteServicer
+	articleTagCache cache.ArticleTagCacheInterface
+	tagCache        cache.TagCacheInterface
 }
 
-func NewArticleHandler(articleSvc service.ArticleServicer, favoriteSvc service.FavoriteServicer) *ArticleHandler {
-	return &ArticleHandler{articleSvc: articleSvc, favoriteSvc: favoriteSvc}
+func NewArticleHandler(articleSvc service.ArticleServicer, favoriteSvc service.FavoriteServicer, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *ArticleHandler {
+	return &ArticleHandler{
+		articleSvc:      articleSvc,
+		favoriteSvc:     favoriteSvc,
+		articleTagCache: articleTagCache,
+		tagCache:        tagCache,
+	}
 }
 
 // Show show article by id
@@ -34,7 +42,7 @@ func (h *ArticleHandler) Show(ctx *gin.Context) {
 			h.Fail(ctx, util.ErrorArticleNotFound)
 			return
 		}
-		h.Success(ctx, render.ToArticle(article))
+		h.Success(ctx, render.ToArticle(article, h.articleTagCache, h.tagCache))
 	}
 }
 
@@ -53,7 +61,7 @@ func (h *ArticleHandler) Store(ctx *gin.Context) {
 			h.Fail(ctx, util.FromError(err))
 			return
 		}
-		h.Success(ctx, render.ToArticle(article))
+		h.Success(ctx, render.ToArticle(article, h.articleTagCache, h.tagCache))
 	}
 }
 
@@ -145,7 +153,7 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 	cursor := util.FormInt64Default(ctx, "cursor", 0)
 	articles, cursor := h.articleSvc.GetArticles(cursor)
 	h.Success(ctx, gin.H{
-		"results": render.ToSimpleArticles(articles),
+		"results": render.ToSimpleArticles(articles, h.articleTagCache, h.tagCache),
 		"cursor":  strconv.FormatInt(cursor, 10),
 	})
 }
@@ -157,7 +165,7 @@ func (h *ArticleHandler) GetTagArticles(ctx *gin.Context) {
 		cursor := util.FormInt64Default(ctx, "cursor", 0)
 		articles, cursor := h.articleSvc.GetTagArticles(gDto.ID, cursor)
 		h.Success(ctx, gin.H{
-			"results": render.ToSimpleArticles(articles),
+			"results": render.ToSimpleArticles(articles, h.articleTagCache, h.tagCache),
 			"cusor":   strconv.FormatInt(cursor, 10),
 		})
 	}
@@ -169,7 +177,7 @@ func (h *ArticleHandler) GetUserRecent(ctx *gin.Context) {
 	if h.BindAndValidate(ctx, &gDto) {
 		articles := h.articleSvc.Find(querybuilder.NewQueryBuilder().Where("user_id = ? and status = ?",
 			gDto.ID, model.StatusOk).Desc("id").Limit(10))
-		h.Success(ctx, render.ToSimpleArticles(articles))
+		h.Success(ctx, render.ToSimpleArticles(articles, h.articleTagCache, h.tagCache))
 	}
 }
 
@@ -184,7 +192,7 @@ func (h *ArticleHandler) GetUserArticles(ctx *gin.Context) {
 			Page(page, 20).Desc("id"))
 
 		h.Success(ctx, gin.H{
-			"results": render.ToSimpleArticles(articles),
+			"results": render.ToSimpleArticles(articles, h.articleTagCache, h.tagCache),
 			"page":    paging,
 		})
 	}
@@ -195,7 +203,7 @@ func (h *ArticleHandler) GetUserNewestBy(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if h.BindAndValidate(ctx, &gDto) {
 		newestArticles := h.articleSvc.GetUserNewestArticles(gDto.ID)
-		h.Success(ctx, render.ToSimpleArticles(newestArticles))
+		h.Success(ctx, render.ToSimpleArticles(newestArticles, h.articleTagCache, h.tagCache))
 	}
 }
 
@@ -204,7 +212,7 @@ func (h *ArticleHandler) GetRelatedBy(ctx *gin.Context) {
 	var gDto dto.IdRequest
 	if h.BindAndValidate(ctx, &gDto) {
 		relatedArticles := h.articleSvc.GetRelatedArticles(gDto.ID)
-		h.Success(ctx, render.ToSimpleArticles(relatedArticles))
+		h.Success(ctx, render.ToSimpleArticles(relatedArticles, h.articleTagCache, h.tagCache))
 	}
 }
 

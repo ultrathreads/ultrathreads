@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"errors"
@@ -41,7 +41,7 @@ type rbacRepo struct {
 	db *gorm.DB
 }
 
-func NewRbacDao(db *gorm.DB) RbacRepository {
+func NewRbacRepository(db *gorm.DB) RbacRepository {
 	return &rbacRepo{db: db}
 }
 
@@ -117,7 +117,7 @@ func (r *rbacRepo) GetUserRoleCodes(userID int64) []string {
 	urTable := urStmt.Table
 
 	r.db.Table(roleTable).
-		Select("DISTINCT " + roleTable + ".name").
+		Select("DISTINCT "+roleTable+".name").
 		Joins("JOIN "+urTable+" ON "+urTable+".role_id = "+roleTable+".id").
 		Where(urTable+".user_id = ?", userID).
 		Pluck("name", &codes)
@@ -218,7 +218,7 @@ func (r *rbacRepo) GetRolePermissionCodes(roleID int64) []string {
 	rpTable := rpStmt.Table
 
 	r.db.Table(permTable).
-		Select(permTable + ".code").
+		Select(permTable+".code").
 		Joins("JOIN "+rpTable+" ON "+rpTable+".permission_id = "+permTable+".id").
 		Where(rpTable+".role_id = ?", roleID).
 		Pluck("code", &codes)
@@ -242,7 +242,7 @@ func (r *rbacRepo) GetUserPermissionCodes(userID int64) []string {
 	urTable := urStmt.Table
 
 	r.db.Table(permTable).
-		Select("DISTINCT " + permTable + ".code").
+		Select("DISTINCT "+permTable+".code").
 		Joins("JOIN "+rpTable+" ON "+rpTable+".permission_id = "+permTable+".id").
 		Joins("JOIN "+urTable+" ON "+urTable+".role_id = "+rpTable+".role_id").
 		Where(urTable+".user_id = ?", userID).

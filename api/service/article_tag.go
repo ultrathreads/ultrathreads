@@ -1,8 +1,8 @@
 package service
 
 import (
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -19,12 +19,12 @@ type ArticleTagServicer interface {
 	DeleteByArticleId(postId int64)
 }
 
-func NewArticleTagService(repo dao.ArticleTagRepository) ArticleTagServicer {
+func NewArticleTagService(repo repository.ArticleTagRepository) ArticleTagServicer {
 	return &articleTagService{repo: repo}
 }
 
 type articleTagService struct {
-	repo dao.ArticleTagRepository
+	repo repository.ArticleTagRepository
 }
 
 func (s *articleTagService) Get(id int64) *model.ArticleTag {

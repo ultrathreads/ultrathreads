@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -28,7 +28,7 @@ type postTagRepo struct {
 	db *gorm.DB
 }
 
-func NewPostTagDao(db *gorm.DB) PostTagRepository {
+func NewPostTagRepository(db *gorm.DB) PostTagRepository {
 	return &postTagRepo{db: db}
 }
 

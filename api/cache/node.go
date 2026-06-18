@@ -3,9 +3,7 @@ package cache
 import (
 	"time"
 	"github.com/goburrow/cache"
-	"ultrathreads/dao"
 	"ultrathreads/model"
-	"ultrathreads/util/querybuilder"
 )
 
 var allNodesCacheKey = "all_nodes_cache"
@@ -19,28 +17,22 @@ type NodeCacheInterface interface {
 }
 
 type nodeCache struct {
-	repo     dao.NodeRepository
 	cache    cache.LoadingCache
 	allCache cache.LoadingCache
 }
 
-// ⚠️ 【关键】保留全局变量，但不再在包初始化时创建真实实例
-// 它只是一个占位符，等待 InitNodeCache 被调用
-var NodeCache NodeCacheInterface
-
-// InitNodeCache 由 main.go / app.go 在组装阶段调用
-// 将真实的 DI 实例赋值给全局变量，让旧代码无感切换
-func InitNodeCache(repo dao.NodeRepository) {
-	NodeCache = NewNodeCache(repo)
-}
-
 // NewNodeCache 真正的工厂函数，供 Caches 聚合体和测试使用
-func NewNodeCache(repo dao.NodeRepository) NodeCacheInterface {
-	c := &nodeCache{repo: repo}
+// nodeLoader 负责根据 nodeId 加载单个节点
+// allNodesLoader 负责加载所有节点列表
+func NewNodeCache(
+	nodeLoader func(nodeId int64) *model.Node,
+	allNodesLoader func() []model.Node,
+) NodeCacheInterface {
+	c := &nodeCache{}
 
 	c.cache = cache.NewLoadingCache(
 		func(key cache.Key) (cache.Value, error) {
-			return c.repo.Get(key2Int64(key)), nil
+			return nodeLoader(key2Int64(key)), nil
 		},
 		cache.WithMaximumSize(1000),
 		cache.WithExpireAfterAccess(30*time.Minute),
@@ -48,9 +40,7 @@ func NewNodeCache(repo dao.NodeRepository) NodeCacheInterface {
 
 	c.allCache = cache.NewLoadingCache(
 		func(key cache.Key) (cache.Value, error) {
-			return c.repo.Find(querybuilder.NewQueryBuilder().
-				Eq("status", model.StatusOk).
-				Asc("sort_no").Desc("id")), nil
+			return allNodesLoader(), nil
 		},
 		cache.WithMaximumSize(10),
 		cache.WithRefreshAfterWrite(30*time.Minute),
@@ -88,3 +78,6 @@ func (c *nodeCache) GetAll() []model.Node {
 func (c *nodeCache) InvalidateAll() {
 	c.allCache.Invalidate(allNodesCacheKey)
 }
+
+// 确保 nodeCache 实现接口
+var _ NodeCacheInterface = (*nodeCache)(nil)

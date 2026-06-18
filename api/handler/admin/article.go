@@ -22,11 +22,17 @@ import (
 // ArticleHandler article controller
 type ArticleHandler struct {
 	base.BaseHandler
-	articleSvc service.ArticleServicer
+	articleSvc      service.ArticleServicer
+	articleTagCache cache.ArticleTagCacheInterface
+	tagCache        cache.TagCacheInterface
 }
 
-func NewArticleHandler(articleSvc service.ArticleServicer) *ArticleHandler {
-	return &ArticleHandler{articleSvc: articleSvc}
+func NewArticleHandler(articleSvc service.ArticleServicer, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *ArticleHandler {
+	return &ArticleHandler{
+		articleSvc:      articleSvc,
+		articleTagCache: articleTagCache,
+		tagCache:        tagCache,
+	}
 }
 
 // Show show article
@@ -107,8 +113,8 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 				}
 			}
 		}
-		tagIds := cache.ArticleTagCache.Get(article.ID)
-		tags := cache.TagCache.GetList(tagIds)
+		tagIds := h.articleTagCache.Get(article.ID)
+		tags := h.tagCache.GetList(tagIds)
 		item["tags"] = render.ToTags(tags)
 
 		results = append(results, item)

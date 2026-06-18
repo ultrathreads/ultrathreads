@@ -1,8 +1,8 @@
 package service
 
 import (
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util/querybuilder"
 )
 
@@ -20,12 +20,12 @@ type UserScoreLogServicer interface {
 	Delete(id int64)
 }
 
-func NewUserScoreLogService(repo dao.UserScoreLogRepository) UserScoreLogServicer {
+func NewUserScoreLogService(repo repository.UserScoreLogRepository) UserScoreLogServicer {
 	return &userScoreLogService{repo: repo}
 }
 
 type userScoreLogService struct {
-	repo dao.UserScoreLogRepository
+	repo repository.UserScoreLogRepository
 }
 
 func (s *userScoreLogService) Get(id int64) *model.UserScoreLog {

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -27,7 +27,7 @@ type settingRepo struct {
 	db *gorm.DB
 }
 
-func NewSettingDao(db *gorm.DB) SettingRepository {
+func NewSettingRepository(db *gorm.DB) SettingRepository {
 	return &settingRepo{db: db}
 }
 

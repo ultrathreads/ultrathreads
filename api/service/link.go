@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strings"
 
-	"ultrathreads/dao"
 	"ultrathreads/dto"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
@@ -22,12 +22,12 @@ type LinkServicer interface {
 	Submit(url, title, summary, logo string) (*model.Link, error)
 }
 
-func NewLinkService(repo dao.LinkRepository) LinkServicer {
+func NewLinkService(repo repository.LinkRepository) LinkServicer {
 	return &linkService{repo: repo}
 }
 
 type linkService struct {
-	repo dao.LinkRepository
+	repo repository.LinkRepository
 }
 
 func (s *linkService) Get(id int64) *model.Link {

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ type userScoreLogRepo struct {
 	db *gorm.DB
 }
 
-func NewUserScoreLogDao(db *gorm.DB) UserScoreLogRepository {
+func NewUserScoreLogRepository(db *gorm.DB) UserScoreLogRepository {
 	return &userScoreLogRepo{db: db}
 }
 

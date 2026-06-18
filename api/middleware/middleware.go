@@ -8,6 +8,13 @@ import (
 	"ultrathreads/model"
 )
 
+var userCache cache.UserCacheInterface
+
+// SetUserCache 设置用户缓存实例（依赖注入）
+func SetUserCache(uc cache.UserCacheInterface) {
+	userCache = uc
+}
+
 // GetCurrent 获取当前登录用户
 func GetCurrent(ctx *gin.Context) *model.User {
 	userTmp, _ := ctx.Get(viper.GetString("jwt.identity_key"))
@@ -15,7 +22,7 @@ func GetCurrent(ctx *gin.Context) *model.User {
 		return nil
 	}
 
-	user := cache.UserCache.Get(userTmp.(model.UserClaims).ID)
+	user := userCache.Get(userTmp.(model.UserClaims).ID)
 	if user == nil || user.Status != model.StatusOk {
 		return nil
 	}

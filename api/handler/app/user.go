@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/domain"
 	"ultrathreads/dto"
 	"ultrathreads/handler/base"
 	"ultrathreads/model"
@@ -193,7 +194,7 @@ func (h *UserHandler) GetFavorites(ctx *gin.Context) {
 
 	// 4. 批量查询帖子
 	rawPostMap := h.postSvc.GetPostInIds(postIDs)
-	postMap := make(map[int64]*model.Post, len(rawPostMap))
+	postMap := make(map[int64]*domain.Post, len(rawPostMap))
 	for id, pst := range rawPostMap {
 		tmp := pst
 		postMap[id] = &tmp

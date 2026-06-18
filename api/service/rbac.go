@@ -3,8 +3,7 @@ package service
 import (
 	"sync"
 	"time"
-
-	"ultrathreads/dao"
+	"ultrathreads/repository"
 )
 
 // 后台管理准入权限码（与数据库 permissions.code 对应）
@@ -19,7 +18,7 @@ type RbacServicer interface {
 	InvalidateUserCache(userID int64)
 }
 
-func NewRbacService(repo dao.RbacRepository) RbacServicer {
+func NewRbacService(repo repository.RbacRepository) RbacServicer {
 	return &rbacService{
 		repo:  repo,
 		cache: make(map[int64]*permCacheEntry),
@@ -35,7 +34,7 @@ type permCacheEntry struct {
 
 type rbacService struct {
 	mu    sync.RWMutex
-	repo  dao.RbacRepository
+	repo  repository.RbacRepository
 	cache map[int64]*permCacheEntry
 	ttl   time.Duration
 }

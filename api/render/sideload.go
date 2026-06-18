@@ -3,15 +3,29 @@ package render
 import (
 	"html/template"
 
-	"ultrathreads/dao"
+	"ultrathreads/domain"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/markdown"
 )
 
+var (
+	userDao repository.UserRepository
+	nodeDao repository.NodeRepository
+	tagDao  repository.TagRepository
+)
+
+// SetRenderDaos 设置 render 包需要的 dao 实例（依赖注入）
+func SetRenderDaos(user repository.UserRepository, node repository.NodeRepository, tag repository.TagRepository) {
+	userDao = user
+	nodeDao = node
+	tagDao = tag
+}
+
 // ToSimplePostsWithIncluded 适配 slug 为主键的 sideload
 func ToSimplePostsWithIncluded(
-	posts []model.Post,
+	posts []domain.Post,
 	opts ...PostRenderOption,
 ) (
 	[]model.PostItem,
@@ -24,10 +38,10 @@ func ToSimplePostsWithIncluded(
 	}
 
 	// 解析选项，得到最终配置
-    cfg := &postRenderConfig{}
-    for _, opt := range opts {
-        opt(cfg)
-    }
+	cfg := &postRenderConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
 
 	// 1. 收集【数据库ID】（去重，用于批量查库）
 	var (
@@ -57,12 +71,12 @@ func ToSimplePostsWithIncluded(
 	}
 
 	// 2. 批量查库（依旧用 ID，主键索引最快）
-	users := dao.UserDao.FindByIds(uidList)
-	nodes := dao.NodeDao.FindByIds(nidList)
+	users := userDao.FindByIds(uidList)
+	nodes := nodeDao.FindByIds(nidList)
 
 	// 【关键】通过关联表批量查出 postId → tagIds 的映射
 	// 返回 map[int64][]int64 即 postId → []tagId
-	postTagMap := dao.TagDao.FindTagIdsByPostIds(postIDs)
+	postTagMap := tagDao.FindTagIdsByPostIds(postIDs)
 
 	// 从映射中收集所有去重的 tagID，再批量查 Tag 详情
 	tagIDs := make(map[int64]struct{})
@@ -71,7 +85,7 @@ func ToSimplePostsWithIncluded(
 			tagIDs[tid] = struct{}{}
 		}
 	}
-	tags := dao.TagDao.FindByIds(mapKeys(tagIDs))
+	tags := tagDao.FindByIds(mapKeys(tagIDs))
 
 	// ========== 3. 构建 slug 索引 ==========
 	userSlugMap := make(map[string]model.UserIncluded, len(users))
@@ -136,7 +150,7 @@ func ToSimplePostsWithIncluded(
 		}
 
 		// ✅ 根据配置按需赋值
-        if cfg.includeContent {
+		if cfg.includeContent {
 			mr := markdown.NewMd(markdown.MdWithTOC()).Run(p.Content)
 			rsp.Content = template.HTML(ToHtmlContent(mr.ContentHtml))
 		}

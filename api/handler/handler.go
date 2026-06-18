@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/bus"
+	"ultrathreads/cache"
 	"ultrathreads/handler/admin"
 	"ultrathreads/handler/app"
 	"ultrathreads/middleware"
@@ -15,20 +16,25 @@ import (
 
 type Handler struct {
 	services *service.Services
+	caches   *cache.Caches
 	mgr      *bus.Manager
 
 	jwtAuth  *jwt.GinJWTMiddleware
 	jwtOAuth *jwt.GinJWTMiddleware
 }
 
-func NewHandlers(services *service.Services, mgr *bus.Manager) *Handler {
+func NewHandlers(services *service.Services, caches *cache.Caches, mgr *bus.Manager) *Handler {
 	h := &Handler{
 		services: services,
+		caches:   caches,
 		mgr:      mgr,
 	}
 
 	h.jwtAuth = middleware.JwtAuth(middleware.LoginStandard, services.User, services.LoginSource)
 	h.jwtOAuth = middleware.JwtAuth(middleware.LoginOAuth, services.User, services.LoginSource)
+
+	// 初始化 middleware 的缓存依赖
+	middleware.SetUserCache(caches.User)
 
 	return h
 }
@@ -54,11 +60,11 @@ func (h *Handler) Init() *gin.Engine {
 	api := router.Group("/api")
 
 	// 注册前台路由
-	appHandler := app.NewHandler(h.services, h.jwtAuth, h.jwtOAuth)
+	appHandler := app.NewHandler(h.services, h.caches, h.jwtAuth, h.jwtOAuth)
 	appHandler.Init(api)
 
 	// 注册后台管理路由
-	adminHandler := admin.NewHandler(h.services, h.jwtAuth)
+	adminHandler := admin.NewHandler(h.services, h.caches, h.jwtAuth)
 	adminHandler.Init(api)
 
 	return router

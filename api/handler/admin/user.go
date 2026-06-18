@@ -15,11 +15,12 @@ import (
 // UserHandler user controller
 type UserHandler struct {
 	base.BaseHandler
-	userSvc service.UserServicer
+	userSvc   service.UserServicer
+	userCache cache.UserCacheInterface
 }
 
-func NewUserHandler(userSvc service.UserServicer) *UserHandler {
-	return &UserHandler{userSvc: userSvc}
+func NewUserHandler(userSvc service.UserServicer, userCache cache.UserCacheInterface) *UserHandler {
+	return &UserHandler{userSvc: userSvc, userCache: userCache}
 }
 
 // Show show user
@@ -99,7 +100,7 @@ func (h *UserHandler) List(ctx *gin.Context) {
 }
 
 func (h *UserHandler) buildUserItem(user *model.User) map[string]interface{} {
-	score := cache.UserCache.GetScore(user.ID)
+	score := h.userCache.GetScore(user.ID)
 
 	result := make(map[string]interface{})
 	result["id"] = user.ID

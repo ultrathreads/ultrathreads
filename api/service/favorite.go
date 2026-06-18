@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
@@ -27,14 +27,14 @@ type FavoriteServicer interface {
 	AddPostFavorite(userId int64, postSlug string) error
 }
 
-func NewFavoriteService(repo dao.FavoriteRepository, articleRepo dao.ArticleRepository, postRepo dao.PostRepository) FavoriteServicer {
+func NewFavoriteService(repo repository.FavoriteRepository, articleRepo repository.ArticleRepository, postRepo repository.PostRepository) FavoriteServicer {
 	return &favoriteService{repo: repo, articleRepo: articleRepo, postRepo: postRepo}
 }
 
 type favoriteService struct {
-	repo        dao.FavoriteRepository
-	articleRepo dao.ArticleRepository
-	postRepo    dao.PostRepository
+	repo        repository.FavoriteRepository
+	articleRepo repository.ArticleRepository
+	postRepo    repository.PostRepository
 }
 
 func (s *favoriteService) Get(id int64) *model.Favorite {

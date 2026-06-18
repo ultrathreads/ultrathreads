@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ type loginSourceRepo struct {
 	db *gorm.DB
 }
 
-func NewLoginSourceDao(db *gorm.DB) LoginSourceRepository {
+func NewLoginSourceRepository(db *gorm.DB) LoginSourceRepository {
 	return &loginSourceRepo{db: db}
 }
 

@@ -2,11 +2,9 @@
 package handler
 
 import (
-	"ultrathreads/bus/core" 
+	"ultrathreads/bus/core"
 	"ultrathreads/bus/event"
 	"ultrathreads/util/log"
-	"ultrathreads/dao"
-	"ultrathreads/cache"
 )
 
 func PostUpdatedHandler(sub core.SafeSubscriber) {
@@ -15,12 +13,12 @@ func PostUpdatedHandler(sub core.SafeSubscriber) {
 
 		//标签耗时长，放这里实现
 		if payload.IsRoot && len(payload.Tags) > 0 {
-			tagIds := dao.TagDao.GetOrCreates(payload.Tags)
-			dao.PostTagDao.DeletePostTags(payload.PostID)
-			dao.PostTagDao.AddPostTags(payload.PostID, tagIds)
+			tagIds := tagDao.GetOrCreates(payload.Tags)
+			postTagDao.DeletePostTags(payload.PostID)
+			postTagDao.AddPostTags(payload.PostID, tagIds)
 
 			//清除Tag缓存
-			cache.TagCache.InvalidatePostTags(payload.PostID)
+			tagCache.InvalidatePostTags(payload.PostID)
 		}
 	})
 }

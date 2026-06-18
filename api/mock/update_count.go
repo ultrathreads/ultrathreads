@@ -2,7 +2,6 @@ package mock
 
 import (
 	"fmt"
-	"ultrathreads/dao"
 	"ultrathreads/model"
 )
 
@@ -10,7 +9,7 @@ import (
 // 主题数 = 该 nodeId 下 parent_id == 0 的 post 数量
 func UpdateNodeTopicCount() {
 	var nodes []*model.Node
-	if err := dao.DB().Find(&nodes).Error; err != nil {
+	if err := mockDB.Find(&nodes).Error; err != nil {
 		fmt.Printf("[mock] failed to fetch nodes: %v\n", err)
 		return
 	}
@@ -18,7 +17,7 @@ func UpdateNodeTopicCount() {
 	updated := 0
 	for _, node := range nodes {
 		var count int64
-		err := dao.DB().Model(&model.Post{}).
+		err := mockDB.Model(&model.Post{}).
 			Where("node_id = ? AND parent_id = ?", node.ID, 0).
 			Count(&count).Error
 
@@ -28,7 +27,7 @@ func UpdateNodeTopicCount() {
 		}
 
 		// ✅ 使用 topic_count
-		if err := dao.DB().Model(node).Update("topic_count", count).Error; err != nil {
+		if err := mockDB.Model(node).Update("topic_count", count).Error; err != nil {
 			fmt.Printf("[mock] failed to update topic_count for node %d: %v\n", node.ID, err)
 			continue
 		}

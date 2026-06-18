@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"ultrathreads/domain"
 	"ultrathreads/dto"
 	"ultrathreads/handler/base"
 	"ultrathreads/model"
@@ -58,7 +59,16 @@ func (h *PostHandler) Update(ctx *gin.Context) {
 		return
 	}
 	req.Slug = gDto.Slug
-	err := h.postSvc.UpdateRootPost(req)
+
+	cmd := domain.UpdatePostCommand{
+		Slug:     req.Slug,
+		Title:    req.Title,
+		Content:  req.Content,
+		NodeSlug: req.NodeSlug,
+		Tags:     req.Tags,
+	}
+
+	err := h.postSvc.UpdateRootPost(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return

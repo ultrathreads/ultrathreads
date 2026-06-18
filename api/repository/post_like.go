@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ type postLikeRepo struct {
 	db *gorm.DB
 }
 
-func NewPostLikeDao(db *gorm.DB) PostLikeRepository {
+func NewPostLikeRepository(db *gorm.DB) PostLikeRepository {
 	return &postLikeRepo{db: db}
 }
 

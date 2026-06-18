@@ -3,7 +3,6 @@ package mock
 import (
 	"fmt"
 
-	"ultrathreads/dao"
 	"ultrathreads/model"
 )
 
@@ -58,7 +57,7 @@ func RbacTableSeeder(needCleanTable bool) {
 	roleMap := make(map[string]*model.Role)
 	for i := range seedRoles {
 		role := &seedRoles[i]
-		if err := dao.RbacDao.CreateRole(role); err != nil {
+		if err := rbacDao.CreateRole(role); err != nil {
 			fmt.Printf("mock role error [%s]: %v\n", role.Name, err)
 			continue
 		}
@@ -70,7 +69,7 @@ func RbacTableSeeder(needCleanTable bool) {
 	permMap := make(map[string]*model.Permission)
 	for i := range seedPermissions {
 		perm := &seedPermissions[i]
-		if err := dao.RbacDao.CreatePermission(perm); err != nil {
+		if err := rbacDao.CreatePermission(perm); err != nil {
 			fmt.Printf("mock permission error [%s]: %v\n", perm.Code, err)
 			continue
 		}
@@ -92,7 +91,7 @@ func RbacTableSeeder(needCleanTable bool) {
 				fmt.Printf("⚠️  skip role-perm binding: permission [%s] not found\n", code)
 				continue
 			}
-			if err := dao.RbacDao.AssignPermissionToRole(role.ID, perm.ID); err != nil {
+			if err := rbacDao.AssignPermissionToRole(role.ID, perm.ID); err != nil {
 				fmt.Printf("mock role_permission error [%s->%s]: %v\n", roleName, code, err)
 				continue
 			}
@@ -117,7 +116,7 @@ func RbacTableSeeder(needCleanTable bool) {
 			fmt.Printf("⚠️  skip user-role binding: role [%s] not found\n", binding.RoleName)
 			continue
 		}
-		if err := dao.RbacDao.AssignRoleToUser(binding.UserID, role.ID); err != nil {
+		if err := rbacDao.AssignRoleToUser(binding.UserID, role.ID); err != nil {
 			fmt.Printf("mock user_role error [user:%d->%s]: %v\n", binding.UserID, binding.RoleName)
 		} else {
 			fmt.Printf("✅ Bound user [ID:%d] to role [%s]\n", binding.UserID, binding.RoleName)

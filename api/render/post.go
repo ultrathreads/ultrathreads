@@ -3,6 +3,7 @@ package render
 import (
 	"html/template"
 
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
@@ -11,7 +12,7 @@ import (
 )
 
 // basePostFields 提取两个响应共有的字段赋值逻辑
-func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
+func basePostFields(rsp *model.PostSimpleResponse, post *domain.Post) {
 	slug := hashid.Id2Slug[model.Post](post.ID)
 	parentSlug := hashid.Id2Slug[model.Post](post.ParentId)
 	threadSlug := hashid.Id2Slug[model.Post](post.ThreadId)
@@ -28,7 +29,7 @@ func basePostFields(rsp *model.PostSimpleResponse, post *model.Post) {
 	rsp.LikeCount = post.LikeCount
 }
 
-func ToPost(post *model.Post) *model.PostResponse {
+func ToPost(post *domain.Post) *model.PostResponse {
 	if post == nil {
 		return nil
 	}
@@ -50,7 +51,7 @@ func ToPost(post *model.Post) *model.PostResponse {
 	return rsp
 }
 
-func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
+func ToSimplePost(post *domain.Post) *model.PostSimpleResponse {
 	if post == nil {
 		return nil
 	}
@@ -64,7 +65,7 @@ func ToSimplePost(post *model.Post) *model.PostSimpleResponse {
 }
 
 // ToSimplePosts
-func ToSimplePosts(posts []model.Post) []model.PostSimpleResponse {
+func ToSimplePosts(posts []domain.Post) []model.PostSimpleResponse {
 	if len(posts) == 0 {
 		return []model.PostSimpleResponse{}
 	}
@@ -78,7 +79,7 @@ func ToSimplePosts(posts []model.Post) []model.PostSimpleResponse {
 }
 
 // ToPosts 返回详情页帖子切片
-func ToPosts(posts []model.Post) []model.PostResponse {
+func ToPosts(posts []domain.Post) []model.PostResponse {
 	if len(posts) == 0 {
 		return []model.PostResponse{}
 	}

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ type linkRepo struct {
 	db *gorm.DB
 }
 
-func NewLinkDao(db *gorm.DB) LinkRepository {
+func NewLinkRepository(db *gorm.DB) LinkRepository {
 	return &linkRepo{db: db}
 }
 

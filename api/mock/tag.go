@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	"ultrathreads/dao"
 	"ultrathreads/model"
 )
 
@@ -37,7 +36,7 @@ func TagTableSeeder(needCleanTable bool, totalTags int) {
 	// 2. 批量创建标签并收集 ID
 	tagIDs := make([]int64, 0, len(baseTags))
 	for _, tag := range baseTags {
-		if err := dao.TagDao.Create(tag); err != nil {
+		if err := tagDao.Create(tag); err != nil {
 			fmt.Printf("[Mock] create tag '%s' error: %v\n", tag.Name, err)
 			continue
 		}
@@ -50,7 +49,7 @@ func TagTableSeeder(needCleanTable bool, totalTags int) {
 	}
 
 	// 3. 获取 10 条根帖 (parentId = 0)
-	rootPosts, err := dao.PostDao.GetRootPosts(10)
+	rootPosts, err := postDao.GetRootPosts(10)
 	if err != nil {
 		fmt.Printf("[Mock] get root posts error: %v\n", err)
 		return
@@ -84,7 +83,7 @@ func TagTableSeeder(needCleanTable bool, totalTags int) {
 				PostId: post.ID,
 				TagId:  shuffled[k],
 			}
-			if err := dao.PostTagDao.Create(pt); err != nil {
+			if err := postTagDao.Create(pt); err != nil {
 				fmt.Printf("[Mock] create post_tag (post=%d, tag=%d) error: %v\n",
 					post.ID, shuffled[k], err)
 				continue

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ type nodeRepo struct {
 	db *gorm.DB
 }
 
-func NewNodeDao(db *gorm.DB) NodeRepository {
+func NewNodeRepository(db *gorm.DB) NodeRepository {
 	return &nodeRepo{db: db}
 }
 

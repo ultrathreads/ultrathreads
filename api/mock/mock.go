@@ -3,15 +3,45 @@ package mock
 import (
 	"math/rand"
 
-	"gorm.io/gorm"
-	"ultrathreads/dao"
+	"ultrathreads/cache"
+	"ultrathreads/repository"
 	"ultrathreads/util/log"
+
+	"gorm.io/gorm"
 )
+
+var (
+	userDao    repository.UserRepository
+	postDao    repository.PostRepository
+	tagDao     repository.TagRepository
+	postTagDao repository.PostTagRepository
+	settingDao repository.SettingRepository
+	linkDao    repository.LinkRepository
+	rbacDao    repository.RbacRepository
+	mockDB     *gorm.DB
+	tagCache   cache.TagCacheInterface
+)
+
+// SetMockDaos 设置 mock 包需要的 dao 实例（依赖注入）
+func SetMockDaos(repos *repository.Repositories, db *gorm.DB) {
+	userDao = repos.User
+	postDao = repos.Post
+	tagDao = repos.Tag
+	postTagDao = repos.PostTag
+	settingDao = repos.Setting
+	linkDao = repos.Link
+	rbacDao = repos.Rbac
+	mockDB = db
+}
+
+// SetMockTagCache 设置标签缓存实例（依赖注入）
+func SetMockTagCache(tc cache.TagCacheInterface) {
+	tagCache = tc
+}
 
 // dropAndCreateTable 清空并重建表
 func dropAndCreateTable(table interface{}) {
-	db := dao.DB()
-	migrator := db.Migrator()
+	migrator := mockDB.Migrator()
 
 	if migrator.HasTable(table) {
 		if err := migrator.DropTable(table); err != nil {

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ type userWatchRepo struct {
 	db *gorm.DB
 }
 
-func NewUserWatchDao(db *gorm.DB) UserWatchRepository {
+func NewUserWatchRepository(db *gorm.DB) UserWatchRepository {
 	return &userWatchRepo{db: db}
 }
 

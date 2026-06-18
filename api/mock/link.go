@@ -3,7 +3,6 @@ package mock
 import (
 	"fmt"
 	"ultrathreads/model"
-	"ultrathreads/dao"
 	"strconv"
 )
 
@@ -23,7 +22,7 @@ func LinkTableSeeder(needCleanTable bool, totalLinks int) {
 
 	for i := 0; i < totalLinks; i++ {
 		link := linkFactory(i)
-		if err := dao.LinkDao.Create(link); err != nil {
+		if err := linkDao.Create(link); err != nil {
 			fmt.Printf("mock link error： %v\n", err)
 		}
 	}

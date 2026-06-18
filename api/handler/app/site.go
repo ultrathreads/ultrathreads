@@ -15,10 +15,11 @@ type SiteHandler struct {
 	settingSvc       service.SettingServicer
 	appinfoSvc       service.AppinfoServicer
 	userReadStateSvc service.UserReadStateServicer
+	statCache        cache.StatCacheInterface
 }
 
-func NewSiteHandler(settingSvc service.SettingServicer, appinfoSvc service.AppinfoServicer, userReadStateSvc service.UserReadStateServicer) *SiteHandler {
-	return &SiteHandler{settingSvc: settingSvc, appinfoSvc: appinfoSvc, userReadStateSvc: userReadStateSvc}
+func NewSiteHandler(settingSvc service.SettingServicer, appinfoSvc service.AppinfoServicer, userReadStateSvc service.UserReadStateServicer, statCache cache.StatCacheInterface) *SiteHandler {
+	return &SiteHandler{settingSvc: settingSvc, appinfoSvc: appinfoSvc, userReadStateSvc: userReadStateSvc, statCache: statCache}
 }
 
 func (h *SiteHandler) Debug(ctx *gin.Context) {
@@ -38,8 +39,8 @@ func (h *SiteHandler) Config(ctx *gin.Context) {
 
 func (h *SiteHandler) Stat(ctx *gin.Context) {
 	data := make(map[string]interface{})
-	data["userCount"] = cache.StatCache.GetUserCount()
-	data["postCount"] = cache.StatCache.GetPostCount()
+	data["userCount"] = h.statCache.GetUserCount()
+	data["postCount"] = h.statCache.GetPostCount()
 
 	h.Success(ctx, data)
 }

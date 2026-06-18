@@ -10,7 +10,7 @@ import (
 	"ultrathreads/util/hashid"
 )
 
-func ToArticle(article *model.Article) *model.ArticleResponse {
+func ToArticle(article *model.Article, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *model.ArticleResponse {
 	if article == nil {
 		return nil
 	}
@@ -26,8 +26,8 @@ func ToArticle(article *model.Article) *model.ArticleResponse {
 
 	//rsp.User = ToUserDefaultIfNull(article.UserId)
 
-	tagIds := cache.ArticleTagCache.Get(article.ID)
-	tags := cache.TagCache.GetList(tagIds)
+	tagIds := articleTagCache.Get(article.ID)
+	tags := tagCache.GetList(tagIds)
 	rsp.Tags = ToTags(tags)
 
 	if article.ContentType == model.ContentTypeMarkdown {
@@ -47,20 +47,20 @@ func ToArticle(article *model.Article) *model.ArticleResponse {
 	return rsp
 }
 
-func ToArticles(articles []model.Article) []model.ArticleResponse {
+func ToArticles(articles []model.Article, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) []model.ArticleResponse {
 	if len(articles) == 0 {
 		return []model.ArticleResponse{}
 	}
 	responses := make([]model.ArticleResponse, 0, len(articles))
 	for i := range articles {
-		if r := ToArticle(&articles[i]); r != nil {
+		if r := ToArticle(&articles[i], articleTagCache, tagCache); r != nil {
 			responses = append(responses, *r)
 		}
 	}
 	return responses
 }
 
-func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
+func ToSimpleArticle(article *model.Article, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) *model.ArticleSimpleResponse {
 	if article == nil {
 		return nil
 	}
@@ -75,8 +75,8 @@ func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
 
 	//rsp.User = ToUserDefaultIfNull(article.UserId)
 
-	tagIds := cache.ArticleTagCache.Get(article.ID)
-	tags := cache.TagCache.GetList(tagIds)
+	tagIds := articleTagCache.Get(article.ID)
+	tags := tagCache.GetList(tagIds)
 	rsp.Tags = ToTags(tags)
 
 	// 列表页仅需 Summary，无需解析完整 Markdown + TOC
@@ -92,13 +92,13 @@ func ToSimpleArticle(article *model.Article) *model.ArticleSimpleResponse {
 	return rsp
 }
 
-func ToSimpleArticles(articles []model.Article) []model.ArticleSimpleResponse {
+func ToSimpleArticles(articles []model.Article, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface) []model.ArticleSimpleResponse {
 	if len(articles) == 0 {
 		return []model.ArticleSimpleResponse{}
 	}
 	responses := make([]model.ArticleSimpleResponse, 0, len(articles))
 	for i := range articles {
-		if r := ToSimpleArticle(&articles[i]); r != nil {
+		if r := ToSimpleArticle(&articles[i], articleTagCache, tagCache); r != nil {
 			responses = append(responses, *r)
 		}
 	}

@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
@@ -28,13 +28,14 @@ type UserScoreServicer interface {
 	Decrement(userId int64, score int, sourceType, sourceId, description string) error
 }
 
-func NewUserScoreService(repo dao.UserScoreRepository, scoreLogSvc UserScoreLogServicer) UserScoreServicer {
-	return &userScoreService{repo: repo, scoreLogSvc: scoreLogSvc}
+func NewUserScoreService(repo repository.UserScoreRepository, scoreLogSvc UserScoreLogServicer, userCache cache.UserCacheInterface) UserScoreServicer {
+	return &userScoreService{repo: repo, scoreLogSvc: scoreLogSvc, userCache: userCache}
 }
 
 type userScoreService struct {
-	repo         dao.UserScoreRepository
-	scoreLogSvc  UserScoreLogServicer
+	repo        repository.UserScoreRepository
+	scoreLogSvc UserScoreLogServicer
+	userCache   cache.UserCacheInterface
 }
 
 func (s *userScoreService) Get(id int64) *model.UserScore {
@@ -133,7 +134,7 @@ func (s *userScoreService) addScore(userId int64, score int, sourceType, sourceI
 		CreateTime:  util.NowTimestamp(),
 	})
 	if err == nil {
-		cache.UserCache.InvalidateScore(userId)
+		s.userCache.InvalidateScore(userId)
 	}
 	return err
 }

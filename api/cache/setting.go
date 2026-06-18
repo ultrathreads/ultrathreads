@@ -5,7 +5,6 @@ import (
 
 	"github.com/goburrow/cache"
 
-	"ultrathreads/dao"
 	"ultrathreads/model"
 )
 
@@ -13,19 +12,19 @@ type settingCache struct {
 	cache cache.LoadingCache
 }
 
-var SettingCache = newSettingCache()
-
-func newSettingCache() *settingCache {
-	return &settingCache{
-		cache: cache.NewLoadingCache(
-			func(key cache.Key) (value cache.Value, e error) {
-				value = dao.SettingDao.GetByKey(key.(string))
-				return
-			},
-			cache.WithMaximumSize(1000),
-			cache.WithExpireAfterAccess(30*time.Minute),
-		),
-	}
+// NewSettingCache 创建 SettingCache 实例
+// loader 函数负责根据 key 加载设置
+func NewSettingCache(loader func(key string) *model.Setting) *settingCache {
+	c := &settingCache{}
+	c.cache = cache.NewLoadingCache(
+		func(key cache.Key) (value cache.Value, e error) {
+			value = loader(key.(string))
+			return
+		},
+		cache.WithMaximumSize(1000),
+		cache.WithExpireAfterAccess(30*time.Minute),
+	)
+	return c
 }
 
 func (c *settingCache) Get(key string) *model.Setting {
@@ -50,3 +49,16 @@ func (c *settingCache) GetValue(key string) string {
 func (c *settingCache) Invalidate(key string) {
 	c.cache.Invalidate(key)
 }
+
+// SettingCacheInterface 定义 SettingCache 的接口
+type SettingCacheInterface interface {
+	Get(key string) *model.Setting
+	GetValue(key string) string
+	Invalidate(key string)
+}
+
+// 确保 settingCache 实现接口
+var _ SettingCacheInterface = (*settingCache)(nil)
+
+// 为了向后兼容，保留类型别名
+type SettingCache = settingCache

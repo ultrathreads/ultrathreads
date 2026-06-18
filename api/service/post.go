@@ -12,9 +12,9 @@ import (
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
@@ -22,73 +22,82 @@ import (
 	"ultrathreads/util/urls"
 )
 
-type ScanPostCallback func(posts []model.Post)
+type ScanPostCallback func(posts []domain.Post)
 
 // PostServicer 帖子业务契约
 type PostServicer interface {
-	Get(id int64) *model.Post
-	GetBySlug(slug string) *model.Post
-	Find(cnd *querybuilder.QueryBuilder) []model.Post
-	List(cnd *querybuilder.QueryBuilder) ([]model.Post, *querybuilder.Paging)
+	Get(id int64) *domain.Post
+	GetBySlug(slug string) *domain.Post
+	Find(cnd *querybuilder.QueryBuilder) []domain.Post
+	List(cnd *querybuilder.QueryBuilder) ([]domain.Post, *querybuilder.Paging)
 	Count(cnd *querybuilder.QueryBuilder) int64
-	GetNodeThreadsFull(page, limit int, nodeSlug string) ([]model.Post, *querybuilder.Paging)
-	GetTagThreadsFull(tagSlug string, page int) ([]model.Post, *querybuilder.Paging)
-	GetPostTree(postSlug string) (*model.Post, []model.Post, error)
-	GetPostsByThreadId(slug string) ([]model.Post, error)
-	GetUserPosts(userSlug, postType string, page int, pageSize int) ([]model.Post, *querybuilder.Paging)
+	GetNodeThreadsFull(page, limit int, nodeSlug string) ([]domain.Post, *querybuilder.Paging)
+	GetTagThreadsFull(tagSlug string, page int) ([]domain.Post, *querybuilder.Paging)
+	GetPostTree(postSlug string) (*domain.Post, []domain.Post, error)
+	GetPostsByThreadId(slug string) ([]domain.Post, error)
+	GetUserPosts(userSlug, postType string, page int, pageSize int) ([]domain.Post, *querybuilder.Paging)
 	Delete(id int64) error
 	Undelete(id int64) error
-	CreateRootPost(userID int64, req dto.CreateRootPostRequest) (*model.Post, error)
-	UpdateRootPost(req dto.UpdateRootPostRequest) error
-	CreateReply(userID int64, req dto.CreateReplyRequest) (*model.Post, error)
-	UpdateReply(req dto.UpdateReplyRequest) error
+	CreateRootPost(userID int64, cmd domain.CreatePostCommand) (*domain.Post, error)
+	UpdateRootPost(cmd domain.UpdatePostCommand) error
+	CreateReply(userID int64, cmd domain.CreateReplyCommand) (*domain.Post, error)
+	UpdateReply(cmd domain.UpdateReplyCommand) error
 	SetRecommend(postId int64, recommend bool) error
 	GetPostTags(postId int64) []model.Tag
-	GetPostInIds(postIds []int64) map[int64]model.Post
+	GetPostInIds(postIds []int64) map[int64]domain.Post
 	IncrViewCount(postId int64)
 	OnComment(postId, lastCommentUserId, lastCommentTime int64)
 	GenerateRss()
 	ScanDesc(dateFrom, dateTo int64, cb ScanPostCallback)
 }
 
-func NewPostService(repo dao.PostRepository, nodeRepo dao.NodeRepository, postTagSvc PostTagServicer, settingSvc SettingServicer) PostServicer {
+func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepository, postTagSvc PostTagServicer, settingSvc SettingServicer, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) PostServicer {
 	return &postService{
-		repo:        repo,
-		nodeRepo:    nodeRepo,
-		postTagSvc:  postTagSvc,
-		settingSvc:  settingSvc,
+		repo:         repo,
+		nodeRepo:     nodeRepo,
+		postTagSvc:   postTagSvc,
+		settingSvc:   settingSvc,
+		tagCache:     tagCache,
+		userCache:    userCache,
+		settingCache: settingCache,
+		db:           db,
 	}
 }
 
 type postService struct {
-	repo        dao.PostRepository
-	nodeRepo    dao.NodeRepository
-	postTagSvc  PostTagServicer
-	settingSvc  SettingServicer
+	repo         repository.PostRepository
+	nodeRepo     repository.NodeRepository
+	postTagSvc   PostTagServicer
+	settingSvc   SettingServicer
+	tagCache     cache.TagCacheInterface
+	userCache    cache.UserCacheInterface
+	settingCache cache.SettingCacheInterface
+	db           *gorm.DB
 }
 
-func (s *postService) Get(id int64) *model.Post {
-	return s.repo.Get(id)
+func (s *postService) Get(id int64) *domain.Post {
+	return toDomainPost(s.repo.Get(id))
 }
 
-func (s *postService) GetBySlug(slug string) *model.Post {
+func (s *postService) GetBySlug(slug string) *domain.Post {
 	id := hashid.Slug2Id[model.Post](slug)
-	return s.repo.Get(id)
+	return toDomainPost(s.repo.Get(id))
 }
 
-func (s *postService) Find(cnd *querybuilder.QueryBuilder) []model.Post {
-	return s.repo.Find(cnd)
+func (s *postService) Find(cnd *querybuilder.QueryBuilder) []domain.Post {
+	return toDomainPosts(s.repo.Find(cnd))
 }
 
-func (s *postService) List(cnd *querybuilder.QueryBuilder) ([]model.Post, *querybuilder.Paging) {
-	return s.repo.List(cnd)
+func (s *postService) List(cnd *querybuilder.QueryBuilder) ([]domain.Post, *querybuilder.Paging) {
+	posts, paging := s.repo.List(cnd)
+	return toDomainPosts(posts), paging
 }
 
 func (s *postService) Count(cnd *querybuilder.QueryBuilder) int64 {
 	return s.repo.Count(cnd)
 }
 
-func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]model.Post, *querybuilder.Paging) {
+func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]domain.Post, *querybuilder.Paging) {
 	nodeId := hashid.Slug2Id[model.Node](nodeSlug)
 	rootCnd := querybuilder.NewQueryBuilder().
 		Eq("parent_id", 0).
@@ -105,7 +114,7 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]mo
 
 	rootPosts, paging := s.repo.List(rootCnd)
 	if len(rootPosts) == 0 {
-		return []model.Post{}, paging
+		return []domain.Post{}, paging
 	}
 
 	threadIds := make([]int64, 0, len(rootPosts))
@@ -132,13 +141,13 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]mo
 		}
 	}
 
-	return result, paging
+	return toDomainPosts(result), paging
 }
 
-func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model.Post, paging *querybuilder.Paging) {
+func (s *postService) GetTagThreadsFull(tagSlug string, page int) ([]domain.Post, *querybuilder.Paging) {
 	tagId := hashid.Slug2Id[model.Tag](tagSlug)
 
-	subQuery := dao.DB().Model(&model.PostTag{}).
+	subQuery := s.db.Model(&model.PostTag{}).
 		Select("post_id").
 		Where("tag_id = ? AND status = ?", tagId, model.StatusOk)
 
@@ -151,7 +160,7 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model
 
 	rootPosts, paging := s.repo.List(rootCnd)
 	if len(rootPosts) == 0 {
-		return []model.Post{}, paging
+		return []domain.Post{}, paging
 	}
 
 	threadIds := make([]int64, 0, len(rootPosts))
@@ -178,10 +187,10 @@ func (s *postService) GetTagThreadsFull(tagSlug string, page int) (posts []model
 		}
 	}
 
-	return result, paging
+	return toDomainPosts(result), paging
 }
 
-func (s *postService) GetPostTree(postSlug string) (*model.Post, []model.Post, error) {
+func (s *postService) GetPostTree(postSlug string) (*domain.Post, []domain.Post, error) {
 	postId := hashid.Slug2Id[model.Post](postSlug)
 	if postId <= 0 {
 		return nil, nil, errors.New("invalid post_id")
@@ -205,10 +214,10 @@ func (s *postService) GetPostTree(postSlug string) (*model.Post, []model.Post, e
 		posts = []model.Post{}
 	}
 
-	return currentPost, posts, nil
+	return toDomainPost(currentPost), toDomainPosts(posts), nil
 }
 
-func (s *postService) GetPostsByThreadId(slug string) ([]model.Post, error) {
+func (s *postService) GetPostsByThreadId(slug string) ([]domain.Post, error) {
 	threadId := hashid.Slug2Id[model.Post](slug)
 	if threadId <= 0 {
 		return nil, errors.New("invalid thread_id")
@@ -224,10 +233,10 @@ func (s *postService) GetPostsByThreadId(slug string) ([]model.Post, error) {
 		posts = []model.Post{}
 	}
 
-	return posts, nil
+	return toDomainPosts(posts), nil
 }
 
-func (s *postService) GetUserPosts(userSlug, postType string, page int, pageSize int) ([]model.Post, *querybuilder.Paging) {
+func (s *postService) GetUserPosts(userSlug, postType string, page int, pageSize int) ([]domain.Post, *querybuilder.Paging) {
 	userID := hashid.Slug2Id[model.User](userSlug)
 	qb := querybuilder.NewQueryBuilder().
 		Eq("user_id", userID).
@@ -244,7 +253,8 @@ func (s *postService) GetUserPosts(userSlug, postType string, page int, pageSize
 		qb.Eq("parent_id", 0)
 	}
 
-	return s.repo.List(qb)
+	posts, paging := s.repo.List(qb)
+	return toDomainPosts(posts), paging
 }
 
 func (s *postService) Delete(id int64) error {
@@ -263,8 +273,8 @@ func (s *postService) Undelete(id int64) error {
 	return err
 }
 
-func (s *postService) CreateRootPost(userID int64, req dto.CreateRootPostRequest) (*model.Post, error) {
-	nodeID := hashid.Slug2Id[model.Node](req.NodeSlug)
+func (s *postService) CreateRootPost(userID int64, cmd domain.CreatePostCommand) (*domain.Post, error) {
+	nodeID := hashid.Slug2Id[model.Node](cmd.NodeSlug)
 
 	if nodeID <= 0 {
 		nodeID = s.settingSvc.GetSetting().DefaultNodeId
@@ -282,14 +292,14 @@ func (s *postService) CreateRootPost(userID int64, req dto.CreateRootPostRequest
 		Type:            model.PostTypeNormal,
 		UserId:          userID,
 		NodeId:          nodeID,
-		Title:           req.Title,
-		Content:         req.Content,
+		Title:           cmd.Title,
+		Content:         cmd.Content,
 		Status:          model.StatusOk,
 		LastCommentTime: now,
 		CreateTime:      now,
 	}
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(post).Error; err != nil {
 			return fmt.Errorf("创建帖子失败: %w", err)
 		}
@@ -302,22 +312,26 @@ func (s *postService) CreateRootPost(userID int64, req dto.CreateRootPostRequest
 		return nil
 	})
 
-	return post, err
+	if err != nil {
+		return nil, err
+	}
+
+	return toDomainPost(post), nil
 }
 
-func (s *postService) UpdateRootPost(req dto.UpdateRootPostRequest) error {
-	nodeID := hashid.Slug2Id[model.Node](*req.NodeSlug)
-	postID := hashid.Slug2Id[model.Post](req.Slug)
+func (s *postService) UpdateRootPost(cmd domain.UpdatePostCommand) error {
+	nodeID := hashid.Slug2Id[model.Node](*cmd.NodeSlug)
+	postID := hashid.Slug2Id[model.Post](cmd.Slug)
 	node := s.nodeRepo.Get(nodeID)
 	if node == nil || node.Status != model.StatusOk {
 		return util.NewErrorMsg("节点不存在")
 	}
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
 			"node_id":    node.ID,
-			"title":      req.Title,
-			"content":    req.Content,
+			"title":      cmd.Title,
+			"content":    cmd.Content,
 			"updated_at": util.NowTimestamp(),
 		}).Error; err != nil {
 			return err
@@ -328,25 +342,25 @@ func (s *postService) UpdateRootPost(req dto.UpdateRootPostRequest) error {
 	return err
 }
 
-func (s *postService) CreateReply(userID int64, req dto.CreateReplyRequest) (*model.Post, error) {
-	parentID := hashid.Slug2Id[model.Post](req.ParentSlug)
+func (s *postService) CreateReply(userID int64, cmd domain.CreateReplyCommand) (*domain.Post, error) {
+	parentID := hashid.Slug2Id[model.Post](cmd.ParentSlug)
 
 	if parentID <= 0 {
 		return nil, errors.New("无效的父级帖子")
 	}
 
-	title := util.ExtractReplyTitle(req.Content, 20)
+	title := util.ExtractReplyTitle(cmd.Content, 20)
 	now := util.NowTimestamp()
 	post := &model.Post{
 		Type:       model.PostTypeNormal,
 		UserId:     userID,
 		Title:      title,
-		Content:    req.Content,
+		Content:    cmd.Content,
 		Status:     model.StatusOk,
 		CreateTime: now,
 	}
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		var parentPost model.Post
 		if err := tx.Where("id = ? AND status = ?", parentID, model.StatusOk).First(&parentPost).Error; err != nil {
 			return fmt.Errorf("父级帖子不存在或已删除: %w", err)
@@ -373,18 +387,22 @@ func (s *postService) CreateReply(userID int64, req dto.CreateReplyRequest) (*mo
 		return nil
 	})
 
-	return post, err
+	if err != nil {
+		return nil, err
+	}
+
+	return s.toDomainPost(post), nil
 }
 
-func (s *postService) UpdateReply(req dto.UpdateReplyRequest) error {
-	postID := hashid.Slug2Id[model.Post](req.Slug)
+func (s *postService) UpdateReply(cmd domain.UpdateReplyCommand) error {
+	postID := hashid.Slug2Id[model.Post](cmd.Slug)
 
-	title := util.ExtractReplyTitle(*req.Content, 20)
+	title := util.ExtractReplyTitle(*cmd.Content, 20)
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
 			"title":      title,
-			"content":    req.Content,
+			"content":    cmd.Content,
 			"updated_at": util.NowTimestamp(),
 		}).Error; err != nil {
 			return err
@@ -400,35 +418,79 @@ func (s *postService) SetRecommend(postId int64, recommend bool) error {
 }
 
 func (s *postService) GetPostTags(postId int64) []model.Tag {
-	return cache.TagCache.GetPostTags(postId)
+	return s.tagCache.GetPostTags(postId)
 }
 
-func (s *postService) GetPostInIds(postIds []int64) map[int64]model.Post {
+func (s *postService) GetPostInIds(postIds []int64) map[int64]domain.Post {
 	if len(postIds) == 0 {
 		return nil
 	}
 	var posts []model.Post
-	if err := dao.DB().Where("id IN (?)", postIds).Find(&posts).Error; err != nil {
+	if err := s.db.Where("id IN (?)", postIds).Find(&posts).Error; err != nil {
 		log.Error("GetPostInIds failed: %v", err)
 		return nil
 	}
 
-	postsMap := make(map[int64]model.Post, len(posts))
+	postsMap := make(map[int64]domain.Post, len(posts))
 	for _, post := range posts {
-		postsMap[post.ID] = post
+		postsMap[post.ID] = *toDomainPost(&post)
 	}
 	return postsMap
 }
 
+// toDomainPost 将 model.Post 转换为 domain.Post
+func toDomainPost(m *model.Post) *domain.Post {
+	if m == nil {
+		return nil
+	}
+	return &domain.Post{
+		ID:                m.ID,
+		ThreadId:          m.ThreadId,
+		ParentId:          m.ParentId,
+		Type:              m.Type,
+		NodeId:            m.NodeId,
+		UserId:            m.UserId,
+		Title:             m.Title,
+		Content:           m.Content,
+		ImageList:         m.ImageList,
+		IsPinned:          m.IsPinned,
+		Recommend:         m.Recommend,
+		ViewCount:         m.ViewCount,
+		LikeCount:         m.LikeCount,
+		Status:            m.Status,
+		LastCommentUserId: m.LastCommentUserId,
+		LastCommentTime:   m.LastCommentTime,
+		CreateTime:        m.CreateTime,
+		CreatedAt:         m.CreatedAt,
+		UpdatedAt:         m.UpdatedAt,
+		ExtraData:         m.ExtraData,
+	}
+}
+
+// toDomainPosts 将 []model.Post 转换为 []domain.Post
+func toDomainPosts(models []model.Post) []domain.Post {
+	if len(models) == 0 {
+		return []domain.Post{}
+	}
+	result := make([]domain.Post, len(models))
+	for i, m := range models {
+		d := toDomainPost(&m)
+		if d != nil {
+			result[i] = *d
+		}
+	}
+	return result
+}
+
 func (s *postService) IncrViewCount(postId int64) {
-	if err := dao.DB().Model(&model.Post{}).Where("id = ?", postId).
+	if err := s.db.Model(&model.Post{}).Where("id = ?", postId).
 		UpdateColumn("view_count", gorm.Expr("view_count + ?", 1)).Error; err != nil {
 		log.Error("IncrViewCount failed: %v", err)
 	}
 }
 
 func (s *postService) OnComment(postId, lastCommentUserId, lastCommentTime int64) {
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model.Post{}).Where("id = ?", postId).Updates(map[string]interface{}{
 			"comment_count":        gorm.Expr("comment_count + ?", 1),
 			"last_comment_user_id": lastCommentUserId,
@@ -456,7 +518,7 @@ func (s *postService) GenerateRss() {
 	for _, post := range posts {
 		postSlug := hashid.Id2Slug[model.Post](post.ID)
 		postUrl := urls.PostUrl(postSlug)
-		user := cache.UserCache.Get(post.UserId)
+		user := s.userCache.Get(post.UserId)
 		if user == nil {
 			continue
 		}
@@ -470,8 +532,8 @@ func (s *postService) GenerateRss() {
 		items = append(items, item)
 	}
 
-	siteTitle := cache.SettingCache.GetValue(model.SettingSiteTitle)
-	siteDescription := cache.SettingCache.GetValue(model.SettingSiteDescription)
+	siteTitle := s.settingCache.GetValue(model.SettingSiteTitle)
+	siteDescription := s.settingCache.GetValue(model.SettingSiteDescription)
 	feed := &feeds.Feed{
 		Title:       siteTitle,
 		Link:        &feeds.Link{Href: viper.GetString("base.baseUrl")},
@@ -510,6 +572,35 @@ func (s *postService) ScanDesc(dateFrom, dateTo int64, cb ScanPostCallback) {
 			break
 		}
 		cursor = list[len(list)-1].ID
-		cb(list)
+		cb(toDomainPosts(list))
+	}
+}
+
+// toDomainPost 将 model.Post 转换为 domain.Post
+func (s *postService) toDomainPost(m *model.Post) *domain.Post {
+	if m == nil {
+		return nil
+	}
+	return &domain.Post{
+		ID:                m.ID,
+		ThreadId:          m.ThreadId,
+		ParentId:          m.ParentId,
+		Type:              m.Type,
+		NodeId:            m.NodeId,
+		UserId:            m.UserId,
+		Title:             m.Title,
+		Content:           m.Content,
+		ImageList:         m.ImageList,
+		IsPinned:          m.IsPinned,
+		Recommend:         m.Recommend,
+		ViewCount:         m.ViewCount,
+		LikeCount:         m.LikeCount,
+		Status:            m.Status,
+		LastCommentUserId: m.LastCommentUserId,
+		LastCommentTime:   m.LastCommentTime,
+		CreateTime:        m.CreateTime,
+		CreatedAt:         m.CreatedAt,
+		UpdatedAt:         m.UpdatedAt,
+		ExtraData:         m.ExtraData,
 	}
 }

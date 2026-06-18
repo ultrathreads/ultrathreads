@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -28,7 +28,7 @@ type articleTagRepo struct {
 	db *gorm.DB
 }
 
-func NewArticleTagDao(db *gorm.DB) ArticleTagRepository {
+func NewArticleTagRepository(db *gorm.DB) ArticleTagRepository {
 	return &articleTagRepo{db: db}
 }
 

@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
 	"ultrathreads/dto"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/log"
@@ -15,26 +15,26 @@ import (
 
 // Controller 层依赖的业务接口
 type NodeServicer interface {
-    Get(id int64) *model.Node
-    GetBySlug(slug string) *model.Node
-    List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
-    Create(req dto.NodeCreateForm) (*model.Node, error)
-    Update(id int64, req dto.NodeUpdateForm) error
-    Delete(id int64) error
-    IncrTopicCount(nodeId int64)
-    GetRecommendNodes() []model.Node
-    GetNodes() []model.Node
+	Get(id int64) *model.Node
+	GetBySlug(slug string) *model.Node
+	List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
+	Create(req dto.NodeCreateForm) (*model.Node, error)
+	Update(id int64, req dto.NodeUpdateForm) error
+	Delete(id int64) error
+	IncrTopicCount(nodeId int64)
+	GetRecommendNodes() []model.Node
+	GetNodes() []model.Node
 }
 
-func NewNodeService(repo dao.NodeRepository, nodeCache cache.NodeCacheInterface) NodeServicer {
-    return &nodeService{
-    	repo: repo,
-    	nodeCache: nodeCache,
-    }
+func NewNodeService(repo repository.NodeRepository, nodeCache cache.NodeCacheInterface) NodeServicer {
+	return &nodeService{
+		repo:      repo,
+		nodeCache: nodeCache,
+	}
 }
 
-type nodeService struct{
-	repo dao.NodeRepository
+type nodeService struct {
+	repo      repository.NodeRepository
 	nodeCache cache.NodeCacheInterface
 }
 
@@ -74,7 +74,7 @@ func (s *nodeService) Update(id int64, req dto.NodeUpdateForm) error {
 	err := s.repo.Updates(id, map[string]interface{}{
 		"name":        req.Name,
 		"description": req.Description,
-		"icon": 	   req.Icon,
+		"icon":        req.Icon,
 		"sort_no":     req.SortNo,
 		"status":      req.Status,
 	})

@@ -1,4 +1,4 @@
-package dao
+package repository
 
 import (
 	"gorm.io/gorm"
@@ -27,7 +27,7 @@ type notificationRepo struct {
 	db *gorm.DB
 }
 
-func NewNotificationDao(db *gorm.DB) NotificationRepository {
+func NewNotificationRepository(db *gorm.DB) NotificationRepository {
 	return &notificationRepo{db: db}
 }
 

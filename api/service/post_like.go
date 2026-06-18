@@ -1,8 +1,8 @@
 package service
 
 import (
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
 )
@@ -23,12 +23,12 @@ type PostLikeServicer interface {
 	Like(userID, postID int64) error
 }
 
-func NewPostLikeService(repo dao.PostLikeRepository) PostLikeServicer {
+func NewPostLikeService(repo repository.PostLikeRepository) PostLikeServicer {
 	return &postLikeService{repo: repo}
 }
 
 type postLikeService struct {
-	repo dao.PostLikeRepository
+	repo repository.PostLikeRepository
 }
 
 func (s *postLikeService) Get(id int64) *model.PostLike {

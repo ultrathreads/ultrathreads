@@ -6,13 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"ultrathreads/database"
+	"ultrathreads/mock"
+	"ultrathreads/repository"
+	"ultrathreads/util/log"
+
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
-	"ultrathreads/database"
-	"ultrathreads/dao"
-	"ultrathreads/mock"
-	"ultrathreads/util/log"
 )
 
 var CmdMock = &cli.Command{
@@ -57,8 +58,7 @@ func runMock(c *cli.Context) error {
 	}
 
 	// 7. 初始化 DAO 聚合体（注入 db 实例）
-	_ = dao.NewRepositories(db)
-
+	_ = repository.NewRepositories(db)
 
 	// ✅ 交互确认（支持 --yes / -y 跳过）
 	if !c.Bool("yes") {

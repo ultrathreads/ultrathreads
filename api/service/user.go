@@ -9,13 +9,13 @@ import (
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dao"
 	"ultrathreads/dto"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/avatar"
-	"ultrathreads/util/log"
 	"ultrathreads/util/hashid"
+	"ultrathreads/util/log"
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/uploader"
 )
@@ -56,13 +56,15 @@ type UserServicer interface {
 	VerifyAndReturnUserInfo(username, password string) (bool, error, model.User)
 }
 
-func NewUserService(repo dao.UserRepository, postRepo dao.PostRepository) UserServicer {
-	return &userService{repo: repo, postRepo: postRepo}
+func NewUserService(repo repository.UserRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, db *gorm.DB) UserServicer {
+	return &userService{repo: repo, postRepo: postRepo, userCache: userCache, db: db}
 }
 
 type userService struct {
-	repo     dao.UserRepository
-	postRepo dao.PostRepository
+	repo      repository.UserRepository
+	postRepo  repository.PostRepository
+	userCache cache.UserCacheInterface
+	db        *gorm.DB
 }
 
 func (s *userService) Get(id int64) *model.User {
@@ -72,7 +74,7 @@ func (s *userService) Get(id int64) *model.User {
 func (s *userService) GetBySlug(slug string) *model.User {
 	id := hashid.Slug2Id[model.User](slug)
 
-	user := cache.UserCache.Get(id)
+	user := s.userCache.Get(id)
 	if user == nil {
 		user = s.repo.Get(id)
 	}
@@ -108,19 +110,19 @@ func (s *userService) Update(req dto.UpdateUserRequest) error {
 		"level":       req.Level,
 		"update_time": util.NowTimestamp(),
 	})
-	cache.UserCache.Invalidate(userID)
+	s.userCache.Invalidate(userID)
 	return err
 }
 
 func (s *userService) Updates(id int64, columns map[string]interface{}) error {
 	err := s.repo.Updates(id, columns)
-	cache.UserCache.Invalidate(id)
+	s.userCache.Invalidate(id)
 	return err
 }
 
 func (s *userService) UpdateColumn(id int64, name string, value interface{}) error {
 	err := s.repo.UpdateColumn(id, name, value)
-	cache.UserCache.Invalidate(id)
+	s.userCache.Invalidate(id)
 	return err
 }
 
@@ -129,7 +131,7 @@ func (s *userService) Delete(slug string) error {
 	if err := s.repo.Delete(id); err != nil {
 		return err
 	}
-	cache.UserCache.Invalidate(id)
+	s.userCache.Invalidate(id)
 	return nil
 }
 
@@ -182,7 +184,7 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 		UpdateTime: util.NowTimestamp(),
 	}
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
@@ -205,7 +207,7 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 	if err != nil {
 		return nil, err
 	}
-	cache.UserCache.Invalidate(user.ID)
+	s.userCache.Invalidate(user.ID)
 	return user, nil
 }
 
@@ -238,7 +240,7 @@ func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*mode
 		UpdateTime:  util.NowTimestamp(),
 	}
 
-	err := dao.DB().Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
@@ -257,7 +259,7 @@ func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*mode
 	if err != nil {
 		return nil, util.FromError(err)
 	}
-	cache.UserCache.Invalidate(user.ID)
+	s.userCache.Invalidate(user.ID)
 	return user, nil
 }
 
@@ -352,7 +354,7 @@ func (s *userService) IncrTopicCount(userId int64) int64 {
 		log.Error("IncrTopicCount failed: %v", err)
 		return 0
 	}
-	cache.UserCache.Invalidate(userId)
+	s.userCache.Invalidate(userId)
 	user := s.repo.Get(userId)
 	if user == nil {
 		return 0
@@ -365,7 +367,7 @@ func (s *userService) IncrCommentCount(userId int64) int64 {
 		log.Error("IncrCommentCount failed: %v", err)
 		return 0
 	}
-	cache.UserCache.Invalidate(userId)
+	s.userCache.Invalidate(userId)
 	user := s.repo.Get(userId)
 	if user == nil {
 		return 0
@@ -380,7 +382,7 @@ func (s *userService) SyncUserCount() {
 			if err := s.repo.UpdateColumn(user.ID, "post_count", topicCount); err != nil {
 				log.Error("SyncUserCount update post_count failed for user %d: %v", user.ID, err)
 			}
-			cache.UserCache.Invalidate(user.ID)
+			s.userCache.Invalidate(user.ID)
 		}
 	})
 }

@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"ultrathreads/dao"
 	"ultrathreads/model"
+	"ultrathreads/repository"
 	"ultrathreads/util"
 	"ultrathreads/util/hashid"
 	"ultrathreads/util/querybuilder"
@@ -25,12 +25,12 @@ type UserWatchServicer interface {
 	GetBy(userID, watchedUserID int64) *model.UserWatch
 }
 
-func NewUserWatchService(repo dao.UserWatchRepository) UserWatchServicer {
+func NewUserWatchService(repo repository.UserWatchRepository) UserWatchServicer {
 	return &userWatchService{repo: repo}
 }
 
 type userWatchService struct {
-	repo dao.UserWatchRepository
+	repo repository.UserWatchRepository
 }
 
 func (s *userWatchService) Get(id int64) *model.UserWatch {

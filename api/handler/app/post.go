@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/bus/event"
+	"ultrathreads/domain"
 	"ultrathreads/dto"
 	"ultrathreads/handler/base"
 	"ultrathreads/model"
@@ -204,7 +205,15 @@ func (h *PostHandler) StoreRootPost(ctx *gin.Context) {
 		return
 	}
 
-	post, err := h.postSvc.CreateRootPost(user.ID, req)
+	cmd := domain.CreatePostCommand{
+		NodeSlug:  req.NodeSlug,
+		Title:     req.Title,
+		Content:   req.Content,
+		Tags:      req.Tags,
+		ImageList: req.ImageList,
+	}
+
+	post, err := h.postSvc.CreateRootPost(user.ID, cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
@@ -239,7 +248,15 @@ func (h *PostHandler) UpdateRootPost(ctx *gin.Context) {
 		return
 	}
 
-	err := h.postSvc.UpdateRootPost(req)
+	cmd := domain.UpdatePostCommand{
+		Slug:     req.Slug,
+		Title:    req.Title,
+		Content:  req.Content,
+		NodeSlug: req.NodeSlug,
+		Tags:     req.Tags,
+	}
+
+	err := h.postSvc.UpdateRootPost(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
@@ -264,7 +281,14 @@ func (h *PostHandler) StoreReply(ctx *gin.Context) {
 		return
 	}
 
-	post, err := h.postSvc.CreateReply(user.ID, req)
+	cmd := domain.CreateReplyCommand{
+		Slug:       req.Slug,
+		Content:    req.Content,
+		ImageList:  req.ImageList,
+		ParentSlug: req.ParentSlug,
+	}
+
+	post, err := h.postSvc.CreateReply(user.ID, cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
@@ -297,7 +321,12 @@ func (h *PostHandler) UpdateReply(ctx *gin.Context) {
 		return
 	}
 
-	err := h.postSvc.UpdateReply(req)
+	cmd := domain.UpdateReplyCommand{
+		Slug:    req.Slug,
+		Content: req.Content,
+	}
+
+	err := h.postSvc.UpdateReply(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
