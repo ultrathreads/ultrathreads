@@ -18,7 +18,7 @@ import (
 	"ultrathreads/cache"
 	"ultrathreads/cron"
 	"ultrathreads/database"
-	"ultrathreads/handler"
+	"ultrathreads/delivery/handler"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/server"

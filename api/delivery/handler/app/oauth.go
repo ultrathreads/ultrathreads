@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/handler/base"
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/oauth/gitee"
 	"ultrathreads/oauth/github"
 	"ultrathreads/oauth/qq"

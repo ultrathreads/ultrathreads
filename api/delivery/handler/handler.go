@@ -8,9 +8,9 @@ import (
 
 	"ultrathreads/bus"
 	"ultrathreads/cache"
-	"ultrathreads/handler/admin"
-	"ultrathreads/handler/app"
-	"ultrathreads/middleware"
+	"ultrathreads/delivery/handler/admin"
+	"ultrathreads/delivery/handler/app"
+	"ultrathreads/delivery/middleware"
 	"ultrathreads/service"
 )
 

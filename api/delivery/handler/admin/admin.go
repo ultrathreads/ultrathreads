@@ -3,7 +3,7 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/middleware"
+	"ultrathreads/delivery/middleware"
 )
 
 // Init 注册后台管理 API 路由

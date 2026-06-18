@@ -4,7 +4,7 @@ import (
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/handler/base"
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/util/urls"
 )
 

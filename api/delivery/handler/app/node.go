@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/dto"
-	"ultrathreads/handler/base"
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/model"
 	"ultrathreads/render"
 	"ultrathreads/service"

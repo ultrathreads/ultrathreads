@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/config"
-	"ultrathreads/handler/base"
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/util"
 )
 

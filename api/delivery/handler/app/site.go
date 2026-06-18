@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/cache"
-	"ultrathreads/handler/base"
+	"ultrathreads/delivery/handler/base"
 	"ultrathreads/model"
 	"ultrathreads/service"
 	"ultrathreads/util/hashid"

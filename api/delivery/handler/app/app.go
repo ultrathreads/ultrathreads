@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/middleware"
+	"ultrathreads/delivery/middleware"
 )
 
 // Init 注册前台 API 路由
