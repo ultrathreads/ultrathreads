@@ -5,8 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -41,7 +42,12 @@ func (h *TagHandler) Store(ctx *gin.Context) {
 	if !h.BindAndValidate(ctx, &tagForm) {
 		return
 	}
-	tag, err := h.tagSvc.Create(tagForm)
+	cmd := domain.CreateTagCommand{
+		Name:        tagForm.Name,
+		Description: tagForm.Description,
+		Status:      tagForm.Status,
+	}
+	tag, err := h.tagSvc.Create(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
@@ -61,7 +67,13 @@ func (h *TagHandler) Update(ctx *gin.Context) {
 		return
 	}
 
-	err := h.tagSvc.Update(tagForm.ID, tagForm)
+	cmd := domain.UpdateTagCommand{
+		ID:          tagForm.ID,
+		Name:        tagForm.Name,
+		Description: tagForm.Description,
+		Status:      tagForm.Status,
+	}
+	err := h.tagSvc.Update(tagForm.ID, cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return

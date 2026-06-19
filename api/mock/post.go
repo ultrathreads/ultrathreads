@@ -93,7 +93,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 		}
 
 		threadCursor := rootTime
-		lastReplyTs := root.CreatedAt
+		var lastReplyTs time.Time = rootTime
 
 		for j := 0; j < replyCount; j++ {
 			var replyTime time.Time
@@ -138,7 +138,7 @@ func PostTableSeeder(needCleanTable bool, totalRootPosts int) {
 			}
 		}
 
-		if lastReplyTs != root.CreatedAt {
+		if !lastReplyTs.Equal(rootTime) {
 			root.LastRepliedAt = lastReplyTs
 			if err := postDao.Update(root); err != nil {
 				fmt.Printf("mock update last_replied_at error: %v\n", err)

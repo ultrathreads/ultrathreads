@@ -58,7 +58,8 @@ func runMock(c *cli.Context) error {
 	}
 
 	// 7. 初始化 DAO 聚合体（注入 db 实例）
-	_ = repository.NewRepositories(db)
+	repos := repository.NewRepositories(db)
+	mock.SetMockDaos(repos, db)
 
 	// ✅ 交互确认（支持 --yes / -y 跳过）
 	if !c.Bool("yes") {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"ultrathreads/model"
+	"ultrathreads/util/querybuilder"
 )
 
 // SettingTableSeeder -
@@ -14,7 +15,10 @@ func SettingTableSeeder(needCleanTable bool) {
 	}
 
 	// ✅ GetHot() 返回 []model.Tag，需先提取 Name 字段转为 []string
-	hotTagEntities := tagCache.GetHot()
+	//hotTagEntities := tagCache.GetHot()
+	hotTagEntities, _ := tagDao.List(querybuilder.NewQueryBuilder().
+		Eq("status", model.StatusOk).
+		Page(1, 200).Desc("id"))
 	tagNames := make([]string, 0, len(hotTagEntities))
 	for _, t := range hotTagEntities {
 		if t.Name != "" { // 过滤空名称，避免存入无效标签

@@ -5,8 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -41,7 +42,14 @@ func (h *NodeHandler) Store(ctx *gin.Context) {
 	if !h.BindAndValidate(ctx, &nodeForm) {
 		return
 	}
-	node, err := h.nodeSvc.Create(nodeForm)
+	cmd := domain.CreateNodeCommand{
+		Name:        nodeForm.Name,
+		Description: nodeForm.Description,
+		Icon:        nodeForm.Icon,
+		SortNo:      nodeForm.SortNo,
+		Status:      nodeForm.Status,
+	}
+	node, err := h.nodeSvc.Create(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
@@ -61,7 +69,15 @@ func (h *NodeHandler) Update(ctx *gin.Context) {
 		return
 	}
 
-	err := h.nodeSvc.Update(nodeForm.ID, nodeForm)
+	cmd := domain.UpdateNodeCommand{
+		ID:          nodeForm.ID,
+		Name:        nodeForm.Name,
+		Description: nodeForm.Description,
+		Icon:        nodeForm.Icon,
+		SortNo:      nodeForm.SortNo,
+		Status:      nodeForm.Status,
+	}
+	err := h.nodeSvc.Update(nodeForm.ID, cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return

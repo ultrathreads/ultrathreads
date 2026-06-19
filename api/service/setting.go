@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/util"
@@ -27,7 +27,7 @@ type SettingService interface {
 	List(cnd *querybuilder.QueryBuilder) ([]model.Setting, *querybuilder.Paging)
 	GetAll() []model.Setting
 	SetAll(configStr string) error
-	SetAllFromStruct(req dto.SettingsRequest) error
+	SetAllFromStruct(cmd domain.UpdateSettingsCommand) error
 	Set(key, value, name, description string) error
 	GetSetting() *model.ConfigData
 }
@@ -83,8 +83,8 @@ func (s *settingService) SetAll(configStr string) error {
 	})
 }
 
-func (s *settingService) SetAllFromStruct(req dto.SettingsRequest) error {
-	bytes, err := json.Marshal(req)
+func (s *settingService) SetAllFromStruct(cmd domain.UpdateSettingsCommand) error {
+	bytes, err := json.Marshal(cmd)
 	if err != nil {
 		return fmt.Errorf("序列化配置失败: %w", err)
 	}

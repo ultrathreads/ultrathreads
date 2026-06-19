@@ -5,6 +5,7 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
 	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/service"
@@ -53,7 +54,15 @@ func (h *UserHandler) Update(ctx *gin.Context) {
 		return
 	}
 
-	err := h.userSvc.Update(req)
+	cmd := domain.UpdateUserCommand{
+		Slug:        req.Slug,
+		Nickname:    req.Nickname,
+		Avatar:      req.Avatar,
+		Website:     req.Website,
+		Description: req.Description,
+		Level:       req.Level,
+	}
+	err := h.userSvc.Update(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return

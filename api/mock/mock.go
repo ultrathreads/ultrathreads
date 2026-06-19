@@ -58,6 +58,10 @@ func dropAndCreateTable(table interface{}) {
 // Mock 执行所有数据填充
 func Mock(db *gorm.DB) {
 	mockDB = db
+	// 初始化 repositories
+	repos := repository.NewRepositories(db)
+	SetMockDaos(repos, db)
+
 	UserTableSeeder(true, 10)
 	RbacTableSeeder(true)
 	NodeTableSeeder(db, true, 4)

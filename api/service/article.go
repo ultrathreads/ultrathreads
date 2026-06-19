@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/util"
@@ -27,8 +27,8 @@ type ArticleService interface {
 	Get(id int64) *model.Article
 	Find(cnd *querybuilder.QueryBuilder) []model.Article
 	List(cnd *querybuilder.QueryBuilder) ([]model.Article, *querybuilder.Paging)
-	Create(req dto.ArticleCreateForm) (*model.Article, error)
-	Update(req dto.ArticleUpdateForm) error
+	Create(cmd domain.CreateArticleCommand) (*model.Article, error)
+	Update(cmd domain.UpdateArticleCommand) error
 	Delete(id int64) error
 	GetArticleInIds(articleIds []int64) []model.Article
 	GetArticles(cursor int64) ([]model.Article, int64)
@@ -78,12 +78,12 @@ func (s *articleService) List(cnd *querybuilder.QueryBuilder) ([]model.Article, 
 	return s.repo.List(cnd)
 }
 
-func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, error) {
+func (s *articleService) Create(cmd domain.CreateArticleCommand) (*model.Article, error) {
 	article := &model.Article{
-		UserId:      req.UserID,
-		Title:       req.Title,
-		Summary:     req.Summary,
-		Content:     req.Content,
+		UserId:      cmd.UserID,
+		Title:       cmd.Title,
+		Summary:     cmd.Summary,
+		Content:     cmd.Content,
 		ContentType: model.ContentTypeMarkdown,
 		Status:      model.StatusOk,
 		Share:       false,
@@ -93,7 +93,7 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 	}
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		tagIDs := s.tagRepo.GetOrCreates(util.ParseTagsToArray(req.Tags))
+		tagIDs := s.tagRepo.GetOrCreates(util.ParseTagsToArray(cmd.Tags))
 
 		if err := tx.Create(article).Error; err != nil {
 			return err
@@ -106,23 +106,23 @@ func (s *articleService) Create(req dto.ArticleCreateForm) (*model.Article, erro
 	return article, err
 }
 
-func (s *articleService) Update(req dto.ArticleUpdateForm) error {
+func (s *articleService) Update(cmd domain.UpdateArticleCommand) error {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Article{}).Where("id = ?", req.ID).Updates(map[string]interface{}{
-			"title":      req.Title,
-			"content":    req.Content,
+		if err := tx.Model(&model.Article{}).Where("id = ?", cmd.ID).Updates(map[string]interface{}{
+			"title":      cmd.Title,
+			"content":    cmd.Content,
 			"updated_at": time.Now(),
 		}).Error; err != nil {
 			return err
 		}
 
-		tagIds := s.tagRepo.GetOrCreates(util.ParseTagsToArray(req.Tags))
-		s.articleTagRepo.DeleteArticleTags(req.ID)
-		s.articleTagRepo.AddArticleTags(req.ID, tagIds)
+		tagIds := s.tagRepo.GetOrCreates(util.ParseTagsToArray(cmd.Tags))
+		s.articleTagRepo.DeleteArticleTags(cmd.ID)
+		s.articleTagRepo.AddArticleTags(cmd.ID, tagIds)
 		return nil
 	})
 
-	s.articleTagCache.Invalidate(req.ID)
+	s.articleTagCache.Invalidate(cmd.ID)
 	return err
 }
 

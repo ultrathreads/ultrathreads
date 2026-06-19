@@ -3,8 +3,9 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 )
@@ -31,7 +32,15 @@ func (h *SettingHandler) Store(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.settingSvc.SetAllFromStruct(req); err != nil {
+	cmd := domain.UpdateSettingsCommand{
+		SiteTitle:       req.SiteTitle,
+		SiteDescription: req.SiteDescription,
+		SiteKeywords:    req.SiteKeywords,
+		SiteNavs:        req.SiteNavs,
+		DefaultNodeId:   req.DefaultNodeId,
+		RecommendTags:   req.RecommendTags,
+	}
+	if err := h.settingSvc.SetAllFromStruct(cmd); err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
 	}

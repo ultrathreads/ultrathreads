@@ -7,6 +7,7 @@ import (
 
 	"ultrathreads/cache"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
 	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/render"
@@ -55,8 +56,14 @@ func (h *ArticleHandler) Store(ctx *gin.Context) {
 	}
 	var articleForm dto.ArticleCreateForm
 	if h.BindAndValidate(ctx, &articleForm) {
-		articleForm.UserID = user.ID
-		article, err := h.articleSvc.Create(articleForm)
+		cmd := domain.CreateArticleCommand{
+			UserID:  user.ID,
+			Title:   articleForm.Title,
+			Summary: articleForm.Summary,
+			Content: articleForm.Content,
+			Tags:    articleForm.Tags,
+		}
+		article, err := h.articleSvc.Create(cmd)
 		if err != nil {
 			h.Fail(ctx, util.FromError(err))
 			return
@@ -129,8 +136,14 @@ func (h *ArticleHandler) Update(ctx *gin.Context) {
 
 	var articleForm dto.ArticleUpdateForm
 	if h.BindAndValidate(ctx, &articleForm) {
-		articleForm.ID = article.ID
-		err := h.articleSvc.Update(articleForm)
+		cmd := domain.UpdateArticleCommand{
+			ID:      article.ID,
+			Title:   articleForm.Title,
+			Summary: articleForm.Summary,
+			Content: articleForm.Content,
+			Tags:    articleForm.Tags,
+		}
+		err := h.articleSvc.Update(cmd)
 		if err != nil {
 			h.Fail(ctx, util.FromError(err))
 			return

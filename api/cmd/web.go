@@ -20,6 +20,7 @@ import (
 	"ultrathreads/database"
 	"ultrathreads/delivery/handler"
 	"ultrathreads/model"
+	"ultrathreads/render"
 	"ultrathreads/repository"
 	"ultrathreads/server"
 	"ultrathreads/service"
@@ -146,6 +147,9 @@ func runWeb(c *cli.Context) error {
 	caches := cache.NewCaches(loaders)
 
 	svcs := service.NewServices(repos, caches, db)
+
+	// 初始化 render 包的依赖注入
+	render.SetRenderDaos(repos.User, repos.Node, repos.Tag)
 
 	cron.Setup(svcs.Article, svcs.Post)
 

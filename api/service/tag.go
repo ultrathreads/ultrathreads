@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/util/hashid"
@@ -22,8 +22,8 @@ type TagService interface {
 	Find(cnd *querybuilder.QueryBuilder) []model.Tag
 	FindOne(cnd *querybuilder.QueryBuilder) *model.Tag
 	List(cnd *querybuilder.QueryBuilder) ([]model.Tag, *querybuilder.Paging)
-	Create(req dto.TagCreateForm) (*model.Tag, error)
-	Update(int int64, req dto.TagUpdateForm) error
+	Create(cmd domain.CreateTagCommand) (*model.Tag, error)
+	Update(int int64, cmd domain.UpdateTagCommand) error
 	Delete(id int64) error
 	AutoComplete(input string) []model.Tag
 	GetOrCreate(name string) (*model.Tag, error)
@@ -67,11 +67,11 @@ func (s *tagService) List(cnd *querybuilder.QueryBuilder) ([]model.Tag, *querybu
 	return s.repo.List(cnd)
 }
 
-func (s *tagService) Create(req dto.TagCreateForm) (*model.Tag, error) {
+func (s *tagService) Create(cmd domain.CreateTagCommand) (*model.Tag, error) {
 	tag := &model.Tag{
-		Name:        req.Name,
-		Description: req.Description,
-		Status:      req.Status,
+		Name:        cmd.Name,
+		Description: cmd.Description,
+		Status:      cmd.Status,
 	}
 	if err := s.repo.Create(tag); err != nil {
 		return nil, errors.New("创建标签失败")
@@ -79,11 +79,11 @@ func (s *tagService) Create(req dto.TagCreateForm) (*model.Tag, error) {
 	return tag, nil
 }
 
-func (s *tagService) Update(int int64, req dto.TagUpdateForm) error {
-	err := s.repo.Updates(req.ID, map[string]interface{}{
-		"name":        req.Name,
-		"description": req.Description,
-		"status":      req.Status,
+func (s *tagService) Update(int int64, cmd domain.UpdateTagCommand) error {
+	err := s.repo.Updates(cmd.ID, map[string]interface{}{
+		"name":        cmd.Name,
+		"description": cmd.Description,
+		"status":      cmd.Status,
 	})
 	if err != nil {
 		return errors.New("更新标签失败")

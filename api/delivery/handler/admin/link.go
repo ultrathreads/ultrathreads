@@ -5,8 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
+	"ultrathreads/dto"
 	"ultrathreads/service"
 	"ultrathreads/util"
 	"ultrathreads/util/querybuilder"
@@ -41,7 +42,14 @@ func (h *LinkHandler) Store(ctx *gin.Context) {
 	if !h.BindAndValidate(ctx, &linkForm) {
 		return
 	}
-	link, err := h.linkSvc.Create(linkForm)
+	cmd := domain.CreateLinkCommand{
+		Title:   linkForm.Title,
+		URL:     linkForm.URL,
+		Logo:    linkForm.Logo,
+		Summary: linkForm.Summary,
+		Status:  linkForm.Status,
+	}
+	link, err := h.linkSvc.Create(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return
@@ -66,7 +74,15 @@ func (h *LinkHandler) Update(ctx *gin.Context) {
 		return
 	}
 	linkForm.ID = gDto.ID
-	err := h.linkSvc.Update(linkForm)
+	cmd := domain.UpdateLinkCommand{
+		ID:      linkForm.ID,
+		Title:   linkForm.Title,
+		URL:     linkForm.URL,
+		Logo:    linkForm.Logo,
+		Summary: linkForm.Summary,
+		Status:  linkForm.Status,
+	}
+	err := h.linkSvc.Update(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return

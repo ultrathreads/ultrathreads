@@ -8,8 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
 	"ultrathreads/delivery/handler/base"
+	"ultrathreads/domain"
+	"ultrathreads/dto"
 	"ultrathreads/model"
 	"ultrathreads/render"
 	"ultrathreads/service"
@@ -65,7 +66,14 @@ func (h *ArticleHandler) Update(ctx *gin.Context) {
 		return
 	}
 	articleForm.ID = gDto.ID
-	err := h.articleSvc.Update(articleForm)
+	cmd := domain.UpdateArticleCommand{
+		ID:      articleForm.ID,
+		Title:   articleForm.Title,
+		Summary: articleForm.Summary,
+		Content: articleForm.Content,
+		Tags:    articleForm.Tags,
+	}
+	err := h.articleSvc.Update(cmd)
 	if err != nil {
 		h.Fail(ctx, util.FromError(err))
 		return

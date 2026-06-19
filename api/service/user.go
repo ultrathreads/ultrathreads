@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/util"
@@ -38,7 +38,7 @@ type UserService interface {
 	FindOne(cnd *querybuilder.QueryBuilder) *model.User
 	List(cnd *querybuilder.QueryBuilder) ([]model.User, *querybuilder.Paging)
 	Count(cnd *querybuilder.QueryBuilder) int64
-	Update(req dto.UpdateUserRequest) error
+	Update(cmd domain.UpdateUserCommand) error
 	Updates(id int64, columns map[string]interface{}) error
 	UpdateColumn(id int64, name string, value interface{}) error
 	Delete(slug string) error
@@ -103,12 +103,12 @@ func (s *userService) Count(cnd *querybuilder.QueryBuilder) int64 {
 	return s.repo.Count(cnd)
 }
 
-func (s *userService) Update(req dto.UpdateUserRequest) error {
-	userID := hashid.Slug2Id[model.User](req.Slug)
+func (s *userService) Update(cmd domain.UpdateUserCommand) error {
+	userID := hashid.Slug2Id[model.User](cmd.Slug)
 	err := s.repo.Updates(userID, map[string]interface{}{
-		"nickname":    req.Nickname,
-		"description": req.Description,
-		"level":       req.Level,
+		"nickname":    cmd.Nickname,
+		"description": cmd.Description,
+		"level":       cmd.Level,
 		"updated_at":  time.Now(),
 	})
 	s.userCache.Invalidate(userID)

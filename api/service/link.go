@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/util/querybuilder"
@@ -16,8 +16,8 @@ type LinkService interface {
 	Get(id int64) *model.Link
 	Find(cnd *querybuilder.QueryBuilder) []model.Link
 	List(cnd *querybuilder.QueryBuilder) ([]model.Link, *querybuilder.Paging)
-	Create(req dto.LinkCreateForm) (*model.Link, error)
-	Update(req dto.LinkUpdateForm) error
+	Create(cmd domain.CreateLinkCommand) (*model.Link, error)
+	Update(cmd domain.UpdateLinkCommand) error
 	Delete(id int64) error
 	Submit(url, title, summary, logo string) (*model.Link, error)
 }
@@ -42,12 +42,12 @@ func (s *linkService) List(cnd *querybuilder.QueryBuilder) ([]model.Link, *query
 	return s.repo.List(cnd)
 }
 
-func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
+func (s *linkService) Create(cmd domain.CreateLinkCommand) (*model.Link, error) {
 	link := &model.Link{
-		Title:     req.Title,
-		Url:       req.URL,
-		Summary:   req.Summary,
-		Logo:      req.Logo,
+		Title:     cmd.Title,
+		Url:       cmd.URL,
+		Summary:   cmd.Summary,
+		Logo:      cmd.Logo,
 		CreatedAt: time.Now(),
 	}
 	if err := s.repo.Create(link); err != nil {
@@ -56,13 +56,13 @@ func (s *linkService) Create(req dto.LinkCreateForm) (*model.Link, error) {
 	return link, nil
 }
 
-func (s *linkService) Update(req dto.LinkUpdateForm) error {
-	return s.repo.Updates(req.ID, map[string]interface{}{
-		"title":      req.Title,
-		"url":        req.URL,
-		"summary":    req.Summary,
-		"logo":       req.Logo,
-		"status":     req.Status,
+func (s *linkService) Update(cmd domain.UpdateLinkCommand) error {
+	return s.repo.Updates(cmd.ID, map[string]interface{}{
+		"title":      cmd.Title,
+		"url":        cmd.URL,
+		"summary":    cmd.Summary,
+		"logo":       cmd.Logo,
+		"status":     cmd.Status,
 		"updated_at": time.Now(),
 	})
 }

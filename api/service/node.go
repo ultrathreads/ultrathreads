@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"ultrathreads/cache"
-	"ultrathreads/dto"
+	"ultrathreads/domain"
 	"ultrathreads/model"
 	"ultrathreads/repository"
 	"ultrathreads/util/hashid"
@@ -18,8 +18,8 @@ type NodeService interface {
 	Get(id int64) *model.Node
 	GetBySlug(slug string) *model.Node
 	List(cnd *querybuilder.QueryBuilder) ([]model.Node, *querybuilder.Paging)
-	Create(req dto.NodeCreateForm) (*model.Node, error)
-	Update(id int64, req dto.NodeUpdateForm) error
+	Create(cmd domain.CreateNodeCommand) (*model.Node, error)
+	Update(id int64, cmd domain.UpdateNodeCommand) error
 	Delete(id int64) error
 	IncrTopicCount(nodeId int64)
 	GetRecommendNodes() []model.Node
@@ -54,13 +54,13 @@ func (s *nodeService) List(cnd *querybuilder.QueryBuilder) (list []model.Node, p
 	return s.repo.List(cnd)
 }
 
-func (s *nodeService) Create(req dto.NodeCreateForm) (*model.Node, error) {
+func (s *nodeService) Create(cmd domain.CreateNodeCommand) (*model.Node, error) {
 	node := &model.Node{
-		Name:        req.Name,
-		Description: req.Description,
-		Icon:        req.Icon,
-		SortNo:      req.SortNo,
-		Status:      req.Status,
+		Name:        cmd.Name,
+		Description: cmd.Description,
+		Icon:        cmd.Icon,
+		SortNo:      cmd.SortNo,
+		Status:      cmd.Status,
 		CreatedAt:   time.Now(),
 	}
 	if err := s.repo.Create(node); err != nil {
@@ -70,13 +70,13 @@ func (s *nodeService) Create(req dto.NodeCreateForm) (*model.Node, error) {
 	return node, nil
 }
 
-func (s *nodeService) Update(id int64, req dto.NodeUpdateForm) error {
+func (s *nodeService) Update(id int64, cmd domain.UpdateNodeCommand) error {
 	err := s.repo.Updates(id, map[string]interface{}{
-		"name":        req.Name,
-		"description": req.Description,
-		"icon":        req.Icon,
-		"sort_no":     req.SortNo,
-		"status":      req.Status,
+		"name":        cmd.Name,
+		"description": cmd.Description,
+		"icon":        cmd.Icon,
+		"sort_no":     cmd.SortNo,
+		"status":      cmd.Status,
 	})
 	if err != nil {
 		return errors.New("更新节点失败")
