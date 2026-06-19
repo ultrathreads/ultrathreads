@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/tidwall/gjson"
-	"gorm.io/gorm"
 
 	"ultrathreads/cache"
 	"ultrathreads/domain"
@@ -57,15 +56,15 @@ type UserService interface {
 	VerifyAndReturnUserInfo(username, password string) (bool, error, model.User)
 }
 
-func NewUserService(repo repository.UserRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, db *gorm.DB) UserService {
-	return &userService{repo: repo, postRepo: postRepo, userCache: userCache, db: db}
+func NewUserService(repo repository.UserRepository, postRepo repository.PostRepository, userCache cache.UserCacheInterface, loginSourceRepo repository.LoginSourceRepository) UserService {
+	return &userService{repo: repo, postRepo: postRepo, userCache: userCache, loginSourceRepo: loginSourceRepo}
 }
 
 type userService struct {
-	repo      repository.UserRepository
-	postRepo  repository.PostRepository
-	userCache cache.UserCacheInterface
-	db        *gorm.DB
+	repo            repository.UserRepository
+	postRepo        repository.PostRepository
+	userCache       cache.UserCacheInterface
+	loginSourceRepo repository.LoginSourceRepository
 }
 
 func (s *userService) Get(id int64) *model.User {
@@ -185,31 +184,39 @@ func (s *userService) Create(username, email, nickname, password, rePassword str
 		UpdatedAt: time.Now(),
 	}
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(user).Error; err != nil {
-			return err
-		}
+	// 先创建用户以获取ID（HandleAvatar需要userId）
+	if err := s.repo.Create(user); err != nil {
+		return nil, err
+	}
 
-		avatarUrl, err := s.HandleAvatar(user.ID, "")
-		if err != nil {
-			return err
-		}
-
-		updateColumns := map[string]interface{}{
-			"avatar": avatarUrl,
-		}
-		if user.ID == 1 {
-			updateColumns["level"] = model.UserLevelAdmin
-		}
-
-		return tx.Model(&model.User{}).Where("id = ?", user.ID).Updates(updateColumns).Error
-	})
-
+	avatarUrl, err := s.HandleAvatar(user.ID, "")
 	if err != nil {
 		return nil, err
 	}
+
+	// 通过事务封装更新头像和管理员等级
+	isAdmin := user.ID == 1
+	if err := s.repo.Updates(user.ID, buildAvatarUpdates(avatarUrl, isAdmin)); err != nil {
+		return nil, err
+	}
+	user.Avatar = avatarUrl
+	if isAdmin {
+		user.Level = model.UserLevelAdmin
+	}
+
 	s.userCache.Invalidate(user.ID)
 	return user, nil
+}
+
+// buildAvatarUpdates 构建头像更新字段
+func buildAvatarUpdates(avatarUrl string, isAdmin bool) map[string]interface{} {
+	updateColumns := map[string]interface{}{
+		"avatar": avatarUrl,
+	}
+	if isAdmin {
+		updateColumns["level"] = model.UserLevelAdmin
+	}
+	return updateColumns
 }
 
 func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*model.User, error) {
@@ -241,25 +248,26 @@ func (s *userService) SignInByLoginSource(loginSource *model.LoginSource) (*mode
 		UpdatedAt:   time.Now(),
 	}
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(user).Error; err != nil {
-			return err
-		}
-		if err := tx.Model(&model.LoginSource{}).Where("id = ?", loginSource.ID).
-			UpdateColumn("user_id", user.ID).Error; err != nil {
-			return err
-		}
-		avatarUrl, err := s.HandleAvatar(user.ID, loginSource.Avatar)
-		if err != nil {
-			return err
-		}
-		return tx.Model(&model.User{}).Where("id = ?", user.ID).
-			UpdateColumn("avatar", avatarUrl).Error
-	})
+	// 先创建用户以获取ID
+	if err := s.repo.Create(user); err != nil {
+		return nil, util.FromError(err)
+	}
 
+	// 绑定登录来源
+	if err := s.loginSourceRepo.UpdateColumn(loginSource.ID, "user_id", user.ID); err != nil {
+		return nil, util.FromError(err)
+	}
+
+	// 处理头像
+	avatarUrl, err := s.HandleAvatar(user.ID, loginSource.Avatar)
 	if err != nil {
 		return nil, util.FromError(err)
 	}
+	if err := s.repo.UpdateColumn(user.ID, "avatar", avatarUrl); err != nil {
+		return nil, util.FromError(err)
+	}
+	user.Avatar = avatarUrl
+
 	s.userCache.Invalidate(user.ID)
 	return user, nil
 }
@@ -351,7 +359,7 @@ func (s *userService) UpdatePassword(userId int64, oldPassword, password, rePass
 }
 
 func (s *userService) IncrTopicCount(userId int64) int64 {
-	if err := s.repo.UpdateColumn(userId, "post_count", gorm.Expr("post_count + ?", 1)); err != nil {
+	if err := s.repo.IncrColumn(userId, "post_count", 1); err != nil {
 		log.Error("IncrTopicCount failed: %v", err)
 		return 0
 	}
@@ -364,7 +372,7 @@ func (s *userService) IncrTopicCount(userId int64) int64 {
 }
 
 func (s *userService) IncrCommentCount(userId int64) int64 {
-	if err := s.repo.UpdateColumn(userId, "comment_count", gorm.Expr("comment_count + ?", 1)); err != nil {
+	if err := s.repo.IncrColumn(userId, "comment_count", 1); err != nil {
 		log.Error("IncrCommentCount failed: %v", err)
 		return 0
 	}

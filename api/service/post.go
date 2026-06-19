@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
-	"github.com/spf13/viper"
-	"gorm.io/gorm"
 
 	"ultrathreads/cache"
 	"ultrathreads/domain"
@@ -21,6 +19,12 @@ import (
 	"ultrathreads/util/querybuilder"
 	"ultrathreads/util/urls"
 )
+
+// RssConfig RSS 生成所需的配置（通过构造注入，避免 service 层依赖 viper）
+type RssConfig struct {
+	BaseURL    string
+	StaticPath string
+}
 
 type ScanPostCallback func(posts []domain.Post)
 
@@ -51,7 +55,7 @@ type PostService interface {
 	ScanDesc(dateFrom, dateTo int64, cb ScanPostCallback)
 }
 
-func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepository, postTagSvc PostTagService, settingSvc SettingService, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) PostService {
+func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepository, postTagSvc PostTagService, settingSvc SettingService, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, rssCfg RssConfig) PostService {
 	return &postService{
 		repo:         repo,
 		nodeRepo:     nodeRepo,
@@ -60,7 +64,7 @@ func NewPostService(repo repository.PostRepository, nodeRepo repository.NodeRepo
 		tagCache:     tagCache,
 		userCache:    userCache,
 		settingCache: settingCache,
-		db:           db,
+		rssCfg:       rssCfg,
 	}
 }
 
@@ -72,7 +76,7 @@ type postService struct {
 	tagCache     cache.TagCacheInterface
 	userCache    cache.UserCacheInterface
 	settingCache cache.SettingCacheInterface
-	db           *gorm.DB
+	rssCfg       RssConfig
 }
 
 func (s *postService) Get(id int64) *domain.Post {
@@ -123,14 +127,12 @@ func (s *postService) GetNodeThreadsFull(page, limit int, nodeSlug string) ([]do
 func (s *postService) GetTagThreadsFull(tagSlug string, page int) ([]domain.Post, *querybuilder.Paging) {
 	tagId := hashid.Slug2Id[model.Tag](tagSlug)
 
-	subQuery := s.db.Model(&model.PostTag{}).
-		Select("post_id").
-		Where("tag_id = ? AND status = ?", tagId, model.StatusOk)
+	postIds := s.repo.FindPostIdsByTagId(tagId)
 
 	rootCnd := querybuilder.NewQueryBuilder().
 		Eq("parent_id", 0).
 		Eq("status", model.StatusOk).
-		Where("id IN (?)", subQuery).
+		In("id", postIds).
 		Desc("last_replied_at").
 		Page(page, 20)
 
@@ -278,21 +280,8 @@ func (s *postService) CreateRootPost(userID int64, cmd domain.CreatePostCommand)
 		CreatedAt:     now,
 	}
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(post).Error; err != nil {
-			return fmt.Errorf("创建帖子失败: %w", err)
-		}
-
-		if err := tx.Model(post).UpdateColumn("thread_id", post.ID).Error; err != nil {
-			return fmt.Errorf("更新ThreadId失败: %w", err)
-		}
-		post.ThreadId = post.ID
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
+	if err := s.repo.CreateRootPost(post); err != nil {
+		return nil, fmt.Errorf("创建帖子失败: %w", err)
 	}
 
 	return toDomainPost(post), nil
@@ -306,19 +295,12 @@ func (s *postService) UpdateRootPost(cmd domain.UpdatePostCommand) error {
 		return util.NewErrorMsg("节点不存在")
 	}
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
-			"node_id":    node.ID,
-			"title":      cmd.Title,
-			"content":    cmd.Content,
-			"updated_at": util.NowTimestamp(),
-		}).Error; err != nil {
-			return err
-		}
-		return nil
+	return s.repo.Updates(postID, map[string]interface{}{
+		"node_id":    node.ID,
+		"title":      cmd.Title,
+		"content":    cmd.Content,
+		"updated_at": util.NowTimestamp(),
 	})
-
-	return err
 }
 
 func (s *postService) CreateReply(userID int64, cmd domain.CreateReplyCommand) (*domain.Post, error) {
@@ -339,35 +321,8 @@ func (s *postService) CreateReply(userID int64, cmd domain.CreateReplyCommand) (
 		CreatedAt: now,
 	}
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		var parentPost model.Post
-		if err := tx.Where("id = ? AND status = ?", parentID, model.StatusOk).First(&parentPost).Error; err != nil {
-			return fmt.Errorf("父级帖子不存在或已删除: %w", err)
-		}
-
-		threadId := parentPost.ThreadId
-		if threadId == 0 {
-			threadId = parentPost.ID
-		}
-		post.ParentId = parentID
-		post.ThreadId = threadId
-		post.NodeId = parentPost.NodeId
-
-		if err := tx.Create(post).Error; err != nil {
-			return fmt.Errorf("创建回复失败: %w", err)
-		}
-
-		if err := tx.Model(&model.Post{}).
-			Where("id = ?", threadId).
-			UpdateColumn("last_replied_at", now).Error; err != nil {
-			return fmt.Errorf("更新根帖最后评论时间失败: %w", err)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
+	if err := s.repo.CreateReply(post, parentID); err != nil {
+		return nil, fmt.Errorf("创建回复失败: %w", err)
 	}
 
 	return toDomainPost(post), nil
@@ -378,18 +333,11 @@ func (s *postService) UpdateReply(cmd domain.UpdateReplyCommand) error {
 
 	title := util.ExtractReplyTitle(*cmd.Content, 20)
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Post{}).Where("id = ?", postID).Updates(map[string]interface{}{
-			"title":      title,
-			"content":    cmd.Content,
-			"updated_at": util.NowTimestamp(),
-		}).Error; err != nil {
-			return err
-		}
-		return nil
+	return s.repo.Updates(postID, map[string]interface{}{
+		"title":      title,
+		"content":    cmd.Content,
+		"updated_at": util.NowTimestamp(),
 	})
-
-	return err
 }
 
 func (s *postService) SetRecommend(postId int64, recommend bool) error {
@@ -404,11 +352,7 @@ func (s *postService) GetPostInIds(postIds []int64) map[int64]domain.Post {
 	if len(postIds) == 0 {
 		return nil
 	}
-	var posts []model.Post
-	if err := s.db.Where("id IN (?)", postIds).Find(&posts).Error; err != nil {
-		log.Error("GetPostInIds failed: %v", err)
-		return nil
-	}
+	posts := s.repo.FindByIds(postIds)
 
 	postsMap := make(map[int64]domain.Post, len(posts))
 	for _, post := range posts {
@@ -461,29 +405,13 @@ func toDomainPosts(models []model.Post) []domain.Post {
 }
 
 func (s *postService) IncrViewCount(postId int64) {
-	if err := s.db.Model(&model.Post{}).Where("id = ?", postId).
-		UpdateColumn("view_count", gorm.Expr("view_count + ?", 1)).Error; err != nil {
+	if err := s.repo.IncrViewCount(postId); err != nil {
 		log.Error("IncrViewCount failed: %v", err)
 	}
 }
 
 func (s *postService) OnComment(postId, lastCommentUserId, lastCommentTime int64) {
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Post{}).Where("id = ?", postId).Updates(map[string]interface{}{
-			"comment_count":      gorm.Expr("comment_count + ?", 1),
-			"last_reply_user_id": lastCommentUserId,
-			"last_replied_at":    lastCommentTime,
-		}).Error; err != nil {
-			return err
-		}
-		if err := tx.Model(&model.PostTag{}).Where("post_id = ?", postId).Updates(map[string]interface{}{
-			"last_replied_at": lastCommentTime,
-		}).Error; err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
+	if err := s.repo.OnComment(postId, lastCommentUserId, lastCommentTime); err != nil {
 		log.Error("OnComment failed: %v", err)
 	}
 }
@@ -514,14 +442,14 @@ func (s *postService) GenerateRss() {
 	siteDescription := s.settingCache.GetValue(model.SettingSiteDescription)
 	feed := &feeds.Feed{
 		Title:       siteTitle,
-		Link:        &feeds.Link{Href: viper.GetString("base.baseUrl")},
+		Link:        &feeds.Link{Href: s.rssCfg.BaseURL},
 		Description: siteDescription,
 		Author:      &feeds.Author{Name: siteTitle},
 		Created:     time.Now(),
 		Items:       items,
 	}
 
-	staticPath := viper.GetString("base.static_path")
+	staticPath := s.rssCfg.StaticPath
 
 	atom, err := feed.ToAtom()
 	if err != nil {

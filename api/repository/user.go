@@ -25,6 +25,10 @@ type UserRepository interface {
 	Delete(id int64) error
 	GetByEmail(email string) *model.User
 	GetByUsername(username string) *model.User
+	// 以下方法封装事务/多表操作，避免 service 层依赖 *gorm.DB
+	CreateWithAvatar(user *model.User, avatarUrl string, isAdmin bool) error
+	CreateFromLoginSource(user *model.User, loginSourceId int64, avatarUrl string) error
+	IncrColumn(id int64, column string, delta int) error
 }
 
 type userRepo struct {
@@ -123,4 +127,41 @@ func (r *userRepo) GetByEmail(email string) *model.User {
 
 func (r *userRepo) GetByUsername(username string) *model.User {
 	return r.Take("username = ?", username)
+}
+
+// CreateWithAvatar 创建用户并更新头像（事务：创建用户 + 更新头像/管理员等级）
+func (r *userRepo) CreateWithAvatar(user *model.User, avatarUrl string, isAdmin bool) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+		updateColumns := map[string]interface{}{
+			"avatar": avatarUrl,
+		}
+		if isAdmin {
+			updateColumns["level"] = model.UserLevelAdmin
+		}
+		return tx.Model(&model.User{}).Where("id = ?", user.ID).Updates(updateColumns).Error
+	})
+}
+
+// CreateFromLoginSource 通过登录来源创建用户（事务：创建用户 + 绑定登录来源 + 更新头像）
+func (r *userRepo) CreateFromLoginSource(user *model.User, loginSourceId int64, avatarUrl string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.LoginSource{}).Where("id = ?", loginSourceId).
+			UpdateColumn("user_id", user.ID).Error; err != nil {
+			return err
+		}
+		return tx.Model(&model.User{}).Where("id = ?", user.ID).
+			UpdateColumn("avatar", avatarUrl).Error
+	})
+}
+
+// IncrColumn 自增指定字段
+func (r *userRepo) IncrColumn(id int64, column string, delta int) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).
+		UpdateColumn(column, gorm.Expr(column+" + ?", delta)).Error
 }

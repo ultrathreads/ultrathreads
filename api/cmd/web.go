@@ -146,7 +146,7 @@ func runWeb(c *cli.Context) error {
 
 	caches := cache.NewCaches(loaders)
 
-	svcs := service.NewServices(repos, caches, db)
+	svcs := service.NewServices(repos, caches)
 
 	// 初始化 render 包的依赖注入
 	render.SetRenderDaos(repos.User, repos.Node, repos.Tag)

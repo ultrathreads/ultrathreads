@@ -7,8 +7,6 @@ import (
 
 	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/gorilla/feeds"
-	"github.com/spf13/viper"
-	"gorm.io/gorm"
 
 	"ultrathreads/cache"
 	"ultrathreads/domain"
@@ -40,7 +38,7 @@ type ArticleService interface {
 	GenerateRss()
 }
 
-func NewArticleService(repo repository.ArticleRepository, tagRepo repository.TagRepository, articleTagRepo repository.ArticleTagRepository, articleTagSvc ArticleTagService, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, db *gorm.DB) ArticleService {
+func NewArticleService(repo repository.ArticleRepository, tagRepo repository.TagRepository, articleTagRepo repository.ArticleTagRepository, articleTagSvc ArticleTagService, articleTagCache cache.ArticleTagCacheInterface, tagCache cache.TagCacheInterface, userCache cache.UserCacheInterface, settingCache cache.SettingCacheInterface, rssCfg RssConfig) ArticleService {
 	return &articleService{
 		repo:            repo,
 		tagRepo:         tagRepo,
@@ -50,7 +48,7 @@ func NewArticleService(repo repository.ArticleRepository, tagRepo repository.Tag
 		tagCache:        tagCache,
 		userCache:       userCache,
 		settingCache:    settingCache,
-		db:              db,
+		rssCfg:          rssCfg,
 	}
 }
 
@@ -63,7 +61,7 @@ type articleService struct {
 	tagCache        cache.TagCacheInterface
 	userCache       cache.UserCacheInterface
 	settingCache    cache.SettingCacheInterface
-	db              *gorm.DB
+	rssCfg          RssConfig
 }
 
 func (s *articleService) Get(id int64) *model.Article {
@@ -92,35 +90,19 @@ func (s *articleService) Create(cmd domain.CreateArticleCommand) (*model.Article
 		UpdatedAt:   time.Now(),
 	}
 
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		tagIDs := s.tagRepo.GetOrCreates(util.ParseTagsToArray(cmd.Tags))
-
-		if err := tx.Create(article).Error; err != nil {
-			return err
-		}
-
-		s.articleTagRepo.AddArticleTags(article.ID, tagIDs)
-		return nil
-	})
+	tagIDs := s.tagRepo.GetOrCreates(util.ParseTagsToArray(cmd.Tags))
+	err := s.repo.CreateWithTags(article, tagIDs)
 
 	return article, err
 }
 
 func (s *articleService) Update(cmd domain.UpdateArticleCommand) error {
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Article{}).Where("id = ?", cmd.ID).Updates(map[string]interface{}{
-			"title":      cmd.Title,
-			"content":    cmd.Content,
-			"updated_at": time.Now(),
-		}).Error; err != nil {
-			return err
-		}
-
-		tagIds := s.tagRepo.GetOrCreates(util.ParseTagsToArray(cmd.Tags))
-		s.articleTagRepo.DeleteArticleTags(cmd.ID)
-		s.articleTagRepo.AddArticleTags(cmd.ID, tagIds)
-		return nil
-	})
+	tagIds := s.tagRepo.GetOrCreates(util.ParseTagsToArray(cmd.Tags))
+	err := s.repo.UpdateWithTags(cmd.ID, map[string]interface{}{
+		"title":      cmd.Title,
+		"content":    cmd.Content,
+		"updated_at": time.Now(),
+	}, tagIds)
 
 	s.articleTagCache.Invalidate(cmd.ID)
 	return err
@@ -138,12 +120,7 @@ func (s *articleService) GetArticleInIds(articleIds []int64) []model.Article {
 	if len(articleIds) == 0 {
 		return nil
 	}
-	var articles []model.Article
-	if err := s.db.Where("id IN (?)", articleIds).Find(&articles).Error; err != nil {
-		log.Error("GetArticleInIds failed: %v", err)
-		return nil
-	}
-	return articles
+	return s.repo.FindByIds(articleIds)
 }
 
 func (s *articleService) GetArticles(cursor int64) (articles []model.Article, nextCursor int64) {
@@ -192,11 +169,7 @@ func (s *articleService) GetRelatedArticles(articleId int64) []model.Article {
 	if len(tagIds) == 0 {
 		return nil
 	}
-	var articleTags []model.ArticleTag
-	if err := s.db.Where("tag_id IN (?)", tagIds).Limit(30).Find(&articleTags).Error; err != nil {
-		log.Error("GetRelatedArticles find tags failed: %v", err)
-		return nil
-	}
+	articleTags := s.articleTagRepo.FindByTagIds(tagIds, 30)
 
 	set := hashset.New()
 	for _, articleTag := range articleTags {
@@ -264,14 +237,14 @@ func (s *articleService) GenerateRss() {
 	siteDescription := s.settingCache.GetValue(model.SettingSiteDescription)
 	feed := &feeds.Feed{
 		Title:       siteTitle,
-		Link:        &feeds.Link{Href: viper.GetString("base.url")},
+		Link:        &feeds.Link{Href: s.rssCfg.BaseURL},
 		Description: siteDescription,
 		Author:      &feeds.Author{Name: siteTitle},
 		Created:     time.Now(),
 		Items:       items,
 	}
 
-	staticPath := viper.GetString("base.static_path")
+	staticPath := s.rssCfg.StaticPath
 
 	atom, err := feed.ToAtom()
 	if err != nil {

@@ -1,6 +1,10 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
+	"time"
+
 	"gorm.io/gorm"
 
 	"ultrathreads/model"
@@ -20,7 +24,9 @@ type SettingRepository interface {
 	UpdateColumn(id int64, name string, value interface{}) error
 	Delete(id int64)
 	GetByKey(key string) *model.Setting
-	Transaction(fc func(tx *gorm.DB) error) error
+	// 以下方法封装事务/多表操作，避免 service 层依赖 *gorm.DB
+	UpsertByKey(key, value, name, description string) error
+	UpsertAll(configs map[string]interface{}) error
 }
 
 type settingRepo struct {
@@ -99,6 +105,69 @@ func (r *settingRepo) GetByKey(key string) *model.Setting {
 	return r.Take("`key` = ?", key)
 }
 
-func (r *settingRepo) Transaction(fc func(tx *gorm.DB) error) error {
-	return r.db.Transaction(fc)
+// upsertSingle 在事务内执行单条 upsert 操作
+func (r *settingRepo) upsertSingle(tx *gorm.DB, key, value, name, description string) error {
+	if len(key) == 0 {
+		return errors.New("sys config key is null")
+	}
+
+	var sysConfig model.Setting
+	err := tx.Where("`key` = ?", key).First(&sysConfig).Error
+	notFound := errors.Is(err, gorm.ErrRecordNotFound)
+
+	if err != nil && !notFound {
+		return err
+	}
+
+	if notFound {
+		sysConfig = model.Setting{
+			Key:       key,
+			Value:     value,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if len(name) > 0 {
+			sysConfig.Name = name
+		}
+		if len(description) > 0 {
+			sysConfig.Description = description
+		}
+		if err := tx.Create(&sysConfig).Error; err != nil {
+			return err
+		}
+	} else {
+		updates := map[string]interface{}{
+			"value":      value,
+			"updated_at": time.Now(),
+		}
+		if len(name) > 0 {
+			updates["name"] = name
+		}
+		if len(description) > 0 {
+			updates["description"] = description
+		}
+		if err := tx.Model(&sysConfig).Updates(updates).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UpsertByKey 单条设置项 upsert
+func (r *settingRepo) UpsertByKey(key, value, name, description string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		return r.upsertSingle(tx, key, value, name, description)
+	})
+}
+
+// UpsertAll 批量设置项 upsert（事务）
+func (r *settingRepo) UpsertAll(configs map[string]interface{}) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		for k, v := range configs {
+			if err := r.upsertSingle(tx, k, fmt.Sprintf("%v", v), "", ""); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

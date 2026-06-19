@@ -1,10 +1,10 @@
 package service
 
 import (
+	"github.com/spf13/viper"
+
 	"ultrathreads/cache"
 	"ultrathreads/repository"
-
-	"gorm.io/gorm"
 )
 
 // Services 聚合所有服务实例，作为统一的服务访问入口
@@ -32,7 +32,7 @@ type Services struct {
 }
 
 // NewServices 集中初始化所有服务
-func NewServices(repos *repository.Repositories, caches *cache.Caches, db *gorm.DB) *Services {
+func NewServices(repos *repository.Repositories, caches *cache.Caches) *Services {
 	// 创建无依赖的基础服务
 	linkSvc := NewLinkService(repos.Link)
 	appinfoSvc := NewAppinfoService()
@@ -51,9 +51,13 @@ func NewServices(repos *repository.Repositories, caches *cache.Caches, db *gorm.
 	userScoreSvc := NewUserScoreService(repos.UserScore, scoreLogSvc, caches.User)
 
 	// 创建依赖其他服务
-	postSvc := NewPostService(repos.Post, repos.Node, postTagSvc, settingSvc, caches.Tag, caches.User, caches.Setting, db)
-	userSvc := NewUserService(repos.User, repos.Post, caches.User, db)
-	articleSvc := NewArticleService(repos.Article, repos.Tag, repos.ArticleTag, articleTagSvc, caches.ArticleTag, caches.Tag, caches.User, caches.Setting, db)
+	rssCfg := RssConfig{
+		BaseURL:    viper.GetString("base.baseUrl"),
+		StaticPath: viper.GetString("base.static_path"),
+	}
+	postSvc := NewPostService(repos.Post, repos.Node, postTagSvc, settingSvc, caches.Tag, caches.User, caches.Setting, rssCfg)
+	userSvc := NewUserService(repos.User, repos.Post, caches.User, repos.LoginSource)
+	articleSvc := NewArticleService(repos.Article, repos.Tag, repos.ArticleTag, articleTagSvc, caches.ArticleTag, caches.Tag, caches.User, caches.Setting, rssCfg)
 
 	// 创建依赖多种服务的聚合服务
 	statisticSvc := NewStatisticService(userSvc, postSvc, settingSvc)

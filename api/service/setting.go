@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/tidwall/gjson"
-	"gorm.io/gorm"
 
 	"ultrathreads/cache"
 	"ultrathreads/domain"
@@ -72,15 +70,15 @@ func (s *settingService) SetAll(configStr string) error {
 		return errors.New("配置数据格式错误")
 	}
 
-	return s.repo.Transaction(func(tx *gorm.DB) error {
-		for k := range configs {
-			v := json.Get(k).String()
-			if err := s.setSingle(tx, k, v, "", ""); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	if err := s.repo.UpsertAll(configs); err != nil {
+		return err
+	}
+
+	// 失效缓存
+	for k := range configs {
+		s.settingCache.Invalidate(k)
+	}
+	return nil
 }
 
 func (s *settingService) SetAllFromStruct(cmd domain.UpdateSettingsCommand) error {
@@ -93,56 +91,9 @@ func (s *settingService) SetAllFromStruct(cmd domain.UpdateSettingsCommand) erro
 }
 
 func (s *settingService) Set(key, value, name, description string) error {
-	return s.repo.Transaction(func(tx *gorm.DB) error {
-		return s.setSingle(tx, key, value, name, description)
-	})
-}
-
-func (s *settingService) setSingle(tx *gorm.DB, key, value, name, description string) error {
-	if len(key) == 0 {
-		return errors.New("sys config key is null")
-	}
-
-	var sysConfig model.Setting
-	err := tx.Where("`key` = ?", key).First(&sysConfig).Error
-	notFound := errors.Is(err, gorm.ErrRecordNotFound)
-
-	if err != nil && !notFound {
+	if err := s.repo.UpsertByKey(key, value, name, description); err != nil {
 		return err
 	}
-
-	if notFound {
-		sysConfig = model.Setting{
-			Key:       key,
-			Value:     value,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-		if len(name) > 0 {
-			sysConfig.Name = name
-		}
-		if len(description) > 0 {
-			sysConfig.Description = description
-		}
-		if err := tx.Create(&sysConfig).Error; err != nil {
-			return err
-		}
-	} else {
-		updates := map[string]interface{}{
-			"value":      value,
-			"updated_at": time.Now(),
-		}
-		if len(name) > 0 {
-			updates["name"] = name
-		}
-		if len(description) > 0 {
-			updates["description"] = description
-		}
-		if err := tx.Model(&sysConfig).Updates(updates).Error; err != nil {
-			return err
-		}
-	}
-
 	s.settingCache.Invalidate(key)
 	return nil
 }

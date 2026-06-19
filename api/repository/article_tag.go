@@ -23,6 +23,7 @@ type ArticleTagRepository interface {
 	AddArticleTags(articleId int64, tagIds []int64)
 	DeleteArticleTags(articleId int64)
 	FindByArticleId(articleId int64) []model.ArticleTag
+	FindByTagIds(tagIds []int64, limit int) []model.ArticleTag
 }
 
 type articleTagRepo struct {
@@ -109,4 +110,17 @@ func (r *articleTagRepo) DeleteArticleTags(articleId int64) {
 
 func (r *articleTagRepo) FindByArticleId(articleId int64) []model.ArticleTag {
 	return r.Find(querybuilder.NewQueryBuilder().Where("article_id = ?", articleId))
+}
+
+func (r *articleTagRepo) FindByTagIds(tagIds []int64, limit int) []model.ArticleTag {
+	if len(tagIds) == 0 {
+		return nil
+	}
+	var articleTags []model.ArticleTag
+	q := r.db.Where("tag_id IN ?", tagIds)
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	q.Find(&articleTags)
+	return articleTags
 }
