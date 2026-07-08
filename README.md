@@ -2,7 +2,7 @@
 
 ![Screenshot](screenshot.png)
 
-`UltraThreads` is an open-source, lightweight web forum that renders posts in threaded view.
+`UltraThreads` is an open-source, lightweight web forum built with Go and React, featuring threaded view for posts.
 
 ## Features
 
