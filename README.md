@@ -69,16 +69,6 @@ The project is still in early development. Refer to the README files of the `api
         │       └── 💬 [ID:44] Main continue nested (ParentId:42, ThreadId:4)
         │           └── 💬 [ID:45] Final deepest leaf (ParentId:44, ThreadId:4)
         └── 💬 [ID:46] Only one single root child (ParentId:4, ThreadId:4)
-
-    📌 [ID:5] TypeScript (ParentId:0, ThreadId:5)
-        ├── 💬 [ID:51] Mixed scenario A (ParentId:5, ThreadId:5)
-        │   └── 💬 [ID:52] Short nested (ParentId:51, ThreadId:5)
-        ├── 💬 [ID:53] Mixed scenario B (ParentId:5, ThreadId:5)
-        │   ├── 💬 [ID:54] Dense branch 1 (ParentId:53, ThreadId:5)
-        │   ├── 💬 [ID:55] Dense branch 2 (ParentId:53, ThreadId:5)
-        │   ├── 💬 [ID:56] Dense branch 3 (ParentId:53, ThreadId:5)
-        │   └── 💬 [ID:57] Dense branch 4 (ParentId:53, ThreadId:5)
-        └── 💬 [ID:58] Empty leaf node (ParentId:5, ThreadId:5)
     
 ## License
 UltraThreads is open-sourced software licensed under the [GNU General Public License version 3](https://opensource.org/license/gpl-3.0)
